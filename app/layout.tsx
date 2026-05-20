@@ -139,10 +139,6 @@ export default function RootLayout({
                   من نحن
                 </NavLink>
 
-                <NavLink href="/dashboard">
-                  Dashboard
-                </NavLink>
-
               </nav>
 
             </div>
