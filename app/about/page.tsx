@@ -1,97 +1,85 @@
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-
-export default async function HomePage() {
-
-  const { data: properties } = await supabase
-    .from("properties")
-    .select("*")
-    .eq("status", "approved")
-    .order("created_at", { ascending: false });
+export default function AboutPage() {
 
   return (
-    <main className="min-h-screen bg-[#FAFAFA]">
+    <main className="min-h-screen bg-[#F5F5F5] px-4 py-16">
 
-      <section className="max-w-7xl mx-auto px-6 py-14">
+      <div className="max-w-5xl mx-auto">
 
-        <div className="text-center mb-14">
+        <div className="text-center">
 
-          <h1 className="text-5xl md:text-7xl font-extrabold text-[#111827] leading-tight">
-            ابحث عن مكان إقامتك
-            <br />
-            داخل سوريا
+          <h1 className="text-5xl sm:text-7xl font-extrabold text-[#111827]">
+
+            من نحن
+
           </h1>
 
-          <p className="mt-6 text-xl text-[#6B7280] leading-9 max-w-3xl mx-auto">
-            منصة متخصصة بالعقارات قصيرة الإقامة داخل سوريا،
-            تشمل الشقق والفيلات والمزارع والغرف والشاليهات.
+          <p className="mt-8 text-xl text-[#6B7280] leading-10 max-w-3xl mx-auto">
+
+            Yalla Hala منصة متخصصة بالإقامات القصيرة
+            داخل سوريا، تساعد المستخدمين على العثور
+            على شقق وفيلات ومزارع وشاليهات بسهولة
+            وموثوقية.
+
           </p>
 
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-20 grid gap-8 md:grid-cols-3">
 
-          {properties?.map((property) => (
+          <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#E5E7EB] text-center">
 
-            <article
-              key={property.id}
-              className="overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-            >
+            <h2 className="text-3xl font-extrabold text-[#111827]">
 
-              <img
-                src={
-                  property.image ||
-                  "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"
-                }
-                alt={property.title}
-                loading="lazy"
-                className="h-72 w-full object-cover"
-              />
+              رؤيتنا
 
-              <div className="p-6 text-right">
+            </h2>
 
-                <div className="flex items-center justify-between mb-4">
+            <p className="mt-5 leading-9 text-[#6B7280]">
 
-                  <span className="bg-[#ECFDF5] text-[#3FAF9B] px-4 py-2 rounded-full text-sm font-bold">
-                    {property.type || "عقار"}
-                  </span>
+              بناء منصة حديثة تسهّل الوصول إلى
+              أماكن إقامة موثوقة داخل سوريا.
 
-                  <span className="text-xl font-extrabold text-[#111827]">
-                    ${property.price}
-                  </span>
+            </p>
 
-                </div>
+          </div>
 
-                <h2 className="text-2xl font-bold text-[#111827]">
-                  {property.title}
-                </h2>
+          <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#E5E7EB] text-center">
 
-                <p className="mt-3 text-[#6B7280]">
-                  {property.location}
-                </p>
+            <h2 className="text-3xl font-extrabold text-[#111827]">
 
-                {property.description && (
-                  <p className="mt-4 text-[#4B5563] leading-8 line-clamp-3">
-                    {property.description}
-                  </p>
-                )}
+              مهمتنا
 
-                <Link
-                  href={`/property/${property.id}`}
-                  className="mt-6 block w-full rounded-2xl bg-[#3FAF9B] py-4 text-center text-lg font-bold text-white transition hover:bg-[#2F8E7D]"
-                >
-                  عرض العقار
-                </Link>
+            </h2>
 
-              </div>
+            <p className="mt-5 leading-9 text-[#6B7280]">
 
-            </article>
+              ربط أصحاب العقارات بالمسافرين
+              بطريقة سهلة وآمنة وسريعة.
 
-          ))}
+            </p>
+
+          </div>
+
+          <div className="bg-white rounded-[32px] p-8 shadow-sm border border-[#E5E7EB] text-center">
+
+            <h2 className="text-3xl font-extrabold text-[#111827]">
+
+              الجودة
+
+            </h2>
+
+            <p className="mt-5 leading-9 text-[#6B7280]">
+
+              مراجعة العقارات وتحسين التجربة
+              لضمان جودة وموثوقية أعلى.
+
+            </p>
+
+          </div>
 
         </div>
 
-      </section>
+      </div>
 
     </main>
   );
