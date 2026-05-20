@@ -24,14 +24,18 @@ export const metadata = {
 };
 
 function Logo() {
-  return (
-    <div className="flex items-center gap-3">
 
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#3FAF9B] shadow-sm">
+  return (
+    <Link
+      href="/"
+      className="flex items-center gap-3"
+    >
+
+      <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-[#3FAF9B] shadow-sm">
 
         <svg
-          width="28"
-          height="28"
+          width="26"
+          height="26"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -67,17 +71,35 @@ function Logo() {
 
       <div className="text-right">
 
-        <h1 className="text-3xl font-extrabold leading-none text-[#1F2937] md:text-4xl">
+        <h1 className="text-2xl sm:text-3xl font-extrabold leading-none text-[#1F2937]">
           Yalla Hala
         </h1>
 
-        <p className="mt-1 text-sm font-medium text-[#6B7280] md:text-base">
+        <p className="mt-1 text-xs sm:text-sm font-medium text-[#6B7280]">
           بيتك البعيد من بيتك
         </p>
 
       </div>
 
-    </div>
+    </Link>
+  );
+}
+
+function NavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+
+  return (
+    <Link
+      href={href}
+      className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#1F2937] transition hover:bg-[#F9FAFB]"
+    >
+      {children}
+    </Link>
   );
 }
 
@@ -90,45 +112,40 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
 
-      <body className="bg-[#FAFAFA] text-[#1F2937]">
+      <body className="bg-[#FAFAFA] text-[#1F2937] overflow-x-hidden">
 
         <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
 
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
 
-            <nav className="flex items-center gap-3">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-              <Link
-                href="/"
-                className="rounded-full bg-[#3FAF9B] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#25695A] md:px-6 md:text-base"
-              >
-                الرئيسية
-              </Link>
+              <Logo />
 
-              <Link
-                href="/add-property"
-                className="rounded-full border border-[#E5E7EB] bg-white px-5 py-2.5 text-sm font-semibold text-[#1F2937] transition hover:bg-[#F9FAFB] md:px-6 md:text-base"
-              >
-                أضف عقارك
-              </Link>
+              <nav className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
 
-              <Link
-                href="/about"
-                className="rounded-full border border-[#E5E7EB] bg-white px-5 py-2.5 text-sm font-semibold text-[#1F2937] transition hover:bg-[#F9FAFB] md:px-6 md:text-base"
-              >
-                من نحن
-              </Link>
+                <Link
+                  href="/"
+                  className="rounded-full bg-[#3FAF9B] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#25695A]"
+                >
+                  الرئيسية
+                </Link>
 
-              <Link
-                href="/dashboard"
-                className="rounded-full border border-[#E5E7EB] bg-white px-5 py-2.5 text-sm font-semibold text-[#1F2937] transition hover:bg-[#F9FAFB] md:px-6 md:text-base"
-              >
-                Dashboard
-              </Link>
+                <NavLink href="/add-property">
+                  أضف عقارك
+                </NavLink>
 
-            </nav>
+                <NavLink href="/about">
+                  من نحن
+                </NavLink>
 
-            <Logo />
+                <NavLink href="/dashboard">
+                  Dashboard
+                </NavLink>
+
+              </nav>
+
+            </div>
 
           </div>
 
@@ -138,7 +155,7 @@ export default function RootLayout({
 
         <footer className="mt-16 border-t border-[#E5E7EB] bg-white">
 
-          <div className="mx-auto max-w-7xl px-6 py-10">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10">
 
             <div className="grid gap-10 md:grid-cols-3">
 
