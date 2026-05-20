@@ -79,30 +79,30 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#FAFAFA]">
 
-      <section className="max-w-7xl mx-auto px-6 py-14">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-14">
 
         <div className="text-center">
 
-          <h1 className="text-5xl md:text-7xl font-extrabold text-[#111827] leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold text-[#111827] leading-tight">
             ابحث عن مكان إقامتك
             <br />
             داخل سوريا
           </h1>
 
-          <p className="mt-6 text-xl text-[#6B7280] leading-9 max-w-3xl mx-auto">
+          <p className="mt-5 text-base sm:text-xl text-[#6B7280] leading-8 max-w-3xl mx-auto">
             شقق، فلل، مزارع، شاليهات وغرف للإقامة القصيرة.
           </p>
 
         </div>
 
-        <div className="mt-12 bg-white border border-[#E5E7EB] rounded-[32px] p-8 shadow-sm">
+        <div className="mt-8 sm:mt-12 bg-white border border-[#E5E7EB] rounded-[28px] p-4 sm:p-8 shadow-sm">
 
-          <div className="grid gap-5 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-4">
 
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="rounded-2xl border border-[#E5E7EB] px-5 py-4"
+              className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-sm sm:text-base"
             >
               <option value="">
                 كل الأنواع
@@ -121,7 +121,7 @@ export default function HomePage() {
               onChange={(e) =>
                 setSelectedGovernorate(e.target.value)
               }
-              className="rounded-2xl border border-[#E5E7EB] px-5 py-4"
+              className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-sm sm:text-base"
             >
               <option value="">
                 كل المحافظات
@@ -140,12 +140,12 @@ export default function HomePage() {
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
               placeholder="أقصى سعر"
-              className="rounded-2xl border border-[#E5E7EB] px-5 py-4"
+              className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-sm sm:text-base"
             />
 
             <button
               onClick={loadProperties}
-              className="rounded-2xl bg-[#3FAF9B] text-white text-lg font-bold"
+              className="rounded-2xl bg-[#3FAF9B] text-white text-base sm:text-lg font-bold py-4"
             >
               بحث
             </button>
@@ -154,15 +154,15 @@ export default function HomePage() {
 
         </div>
 
-        <div className="mt-14">
+        <div className="mt-10 sm:mt-14">
 
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-8">
 
-            <h2 className="text-4xl font-extrabold text-[#111827]">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] text-right">
               العقارات
             </h2>
 
-            <p className="text-lg text-[#6B7280]">
+            <p className="text-base sm:text-lg text-[#6B7280] text-right">
               عدد النتائج: {properties.length}
             </p>
 
@@ -170,15 +170,15 @@ export default function HomePage() {
 
           {loading ? (
 
-            <div className="text-center py-20 text-2xl">
+            <div className="text-center py-20 text-xl sm:text-2xl">
               جاري تحميل العقارات...
             </div>
 
           ) : properties.length === 0 ? (
 
-            <div className="bg-white border border-[#E5E7EB] rounded-[32px] p-12 text-center">
+            <div className="bg-white border border-[#E5E7EB] rounded-[28px] p-8 sm:p-12 text-center">
 
-              <h3 className="text-3xl font-extrabold text-[#111827]">
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
                 لا توجد نتائج
               </h3>
 
@@ -190,13 +190,13 @@ export default function HomePage() {
 
           ) : (
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
 
               {properties.map((property) => (
 
                 <article
                   key={property.id}
-                  className="overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                  className="overflow-hidden rounded-[28px] border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
                 >
 
                   <img
@@ -206,46 +206,42 @@ export default function HomePage() {
                     }
                     alt={property.title}
                     loading="lazy"
-                    className="h-72 w-full object-cover"
+                    className="h-60 sm:h-72 w-full object-cover"
                   />
 
-                  <div className="p-6 text-right">
+                  <div className="p-5 text-right">
 
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between gap-3 mb-4">
 
-                      <span className="bg-[#ECFDF5] text-[#3FAF9B] px-4 py-2 rounded-full text-sm font-bold">
+                      <span className="bg-[#ECFDF5] text-[#3FAF9B] px-3 py-2 rounded-full text-xs sm:text-sm font-bold">
                         {property.type}
                       </span>
 
-                      <span className="text-2xl font-extrabold text-[#111827]">
+                      <span className="text-lg sm:text-2xl font-extrabold text-[#111827]">
                         ${property.price}
                       </span>
 
                     </div>
 
-                    <h3 className="text-2xl font-extrabold text-[#111827]">
+                    <h3 className="text-xl sm:text-2xl font-extrabold text-[#111827] leading-8">
                       {property.title}
                     </h3>
 
-                    <p className="mt-3 text-[#6B7280]">
+                    <p className="mt-3 text-sm sm:text-base text-[#6B7280]">
                       {property.location}
                     </p>
 
-                    <div className="mt-5 flex gap-2 flex-wrap justify-end">
+                    <div className="mt-4 flex flex-wrap gap-2 justify-end">
 
-                      <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-sm">
-                        {property.governorate}
-                      </span>
-
-                      {property.rooms && (
-                        <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-sm">
-                          {property.rooms} غرف
+                      {property.governorate && (
+                        <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-xs sm:text-sm">
+                          {property.governorate}
                         </span>
                       )}
 
-                      {property.bathrooms && (
-                        <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-sm">
-                          {property.bathrooms} حمام
+                      {property.rooms && (
+                        <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-xs sm:text-sm">
+                          {property.rooms} غرف
                         </span>
                       )}
 
@@ -253,7 +249,7 @@ export default function HomePage() {
 
                     {property.description && (
 
-                      <p className="mt-5 leading-8 text-[#4B5563] line-clamp-3">
+                      <p className="mt-5 leading-7 sm:leading-8 text-sm sm:text-base text-[#4B5563] line-clamp-3">
                         {property.description}
                       </p>
 
@@ -261,7 +257,7 @@ export default function HomePage() {
 
                     <Link
                       href={`/property/${property.id}`}
-                      className="mt-6 block w-full rounded-2xl bg-[#3FAF9B] py-4 text-center text-lg font-bold text-white transition hover:bg-[#2F8E7D]"
+                      className="mt-6 block w-full rounded-2xl bg-[#3FAF9B] py-4 text-center text-base sm:text-lg font-bold text-white transition hover:bg-[#2F8E7D]"
                     >
                       عرض العقار
                     </Link>
