@@ -1,3 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+
 const governorates = [
   "دمشق",
   "ريف دمشق",
@@ -15,193 +21,265 @@ const governorates = [
   "الحسكة",
 ];
 
-const propertyTypes = ["شقة", "فيلا", "مزرعة", "غرفة", "شاليه"];
-
-const sampleProperties = [
-  {
-    id: 1,
-    title: "شقة حديثة ومريحة",
-    location: "حمص - عكرمة",
-    price: "$35 / ليلة",
-    type: "شقة",
-    image:
-      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    title: "فيلا عائلية مع حديقة",
-    location: "طرطوس - الكورنيش",
-    price: "$95 / ليلة",
-    type: "فيلا",
-    image:
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    title: "مزرعة هادئة للإجازات",
-    location: "ريف دمشق - الزبداني",
-    price: "$110 / ليلة",
-    type: "مزرعة",
-    image:
-      "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 4,
-    title: "غرفة مفروشة بإقامة مريحة",
-    location: "دمشق - المزة",
-    price: "$20 / ليلة",
-    type: "غرفة",
-    image:
-      "https://images.unsplash.com/photo-1505692952047-1a78307da8f2?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 5,
-    title: "شاليه بإطلالة جميلة",
-    location: "اللاذقية - كسب",
-    price: "$85 / ليلة",
-    type: "شاليه",
-    image:
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=1200&auto=format&fit=crop",
-  },
-  {
-    id: 6,
-    title: "شقة قريبة من الخدمات",
-    location: "حلب - الفرقان",
-    price: "$40 / ليلة",
-    type: "شقة",
-    image:
-      "https://images.unsplash.com/photo-1494526585095-c41746248156?q=80&w=1200&auto=format&fit=crop",
-  },
+const propertyTypes = [
+  "شقة",
+  "فيلا",
+  "مزرعة",
+  "غرفة",
+  "شاليه",
 ];
 
 export default function HomePage() {
+
+  const [properties, setProperties] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const [selectedGovernorate, setSelectedGovernorate] = useState("");
+
+  const [selectedType, setSelectedType] = useState("");
+
+  const [maxPrice, setMaxPrice] = useState("");
+
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  async function loadProperties() {
+
+    setLoading(true);
+
+    let query = supabase
+      .from("properties")
+      .select("*")
+      .eq("status", "approved")
+      .order("created_at", { ascending: false });
+
+    if (selectedGovernorate) {
+      query = query.eq("governorate", selectedGovernorate);
+    }
+
+    if (selectedType) {
+      query = query.eq("type", selectedType);
+    }
+
+    if (maxPrice) {
+      query = query.lte("price", Number(maxPrice));
+    }
+
+    const { data, error } = await query;
+
+    if (!error && data) {
+      setProperties(data);
+    }
+
+    setLoading(false);
+  }
+
   return (
-    <main className="min-h-screen bg-white">
-      <section className="mx-auto max-w-7xl px-6 py-10 md:py-14">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
-          <div className="text-right">
-            <span className="inline-block rounded-full border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-2 text-sm text-[#6B7280]">
-              ابحث بسهولة عن مكان إقامة مناسب داخل سوريا
-            </span>
+    <main className="min-h-screen bg-[#FAFAFA]">
 
-            <h1 className="mt-6 text-4xl font-extrabold leading-tight text-[#111827] md:text-6xl">
-              ابحث عن
-              <br />
-              <span className="text-[#3FAF9B]">شقة أو فيلا أو مزرعة</span>
-              <br />
-              أو غرفة أو شاليه
-            </h1>
+      <section className="max-w-7xl mx-auto px-6 py-14">
 
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[#6B7280]">
-              تصفح خيارات إقامة متنوعة داخل سوريا بطريقة مريحة وواضحة، ثم أرسل
-              طلب الحجز مباشرة لصاحب العقار.
-            </p>
+        <div className="text-center">
 
-            <div className="mt-6 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] px-4 py-3 text-sm leading-7 text-[#166534]">
-              إضافة العقارات مجانية حاليًا لفترة الإطلاق، ويتم التواصل والدفع
-              مباشرة بين الضيف وصاحب العقار.
-            </div>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-[#111827] leading-tight">
+            ابحث عن مكان إقامتك
+            <br />
+            داخل سوريا
+          </h1>
+
+          <p className="mt-6 text-xl text-[#6B7280] leading-9 max-w-3xl mx-auto">
+            شقق، فلل، مزارع، شاليهات وغرف للإقامة القصيرة.
+          </p>
+
+        </div>
+
+        <div className="mt-12 bg-white border border-[#E5E7EB] rounded-[32px] p-8 shadow-sm">
+
+          <div className="grid gap-5 md:grid-cols-4">
+
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="rounded-2xl border border-[#E5E7EB] px-5 py-4"
+            >
+              <option value="">
+                كل الأنواع
+              </option>
+
+              {propertyTypes.map((type) => (
+                <option key={type}>
+                  {type}
+                </option>
+              ))}
+
+            </select>
+
+            <select
+              value={selectedGovernorate}
+              onChange={(e) =>
+                setSelectedGovernorate(e.target.value)
+              }
+              className="rounded-2xl border border-[#E5E7EB] px-5 py-4"
+            >
+              <option value="">
+                كل المحافظات
+              </option>
+
+              {governorates.map((gov) => (
+                <option key={gov}>
+                  {gov}
+                </option>
+              ))}
+
+            </select>
+
+            <input
+              type="number"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              placeholder="أقصى سعر"
+              className="rounded-2xl border border-[#E5E7EB] px-5 py-4"
+            />
+
+            <button
+              onClick={loadProperties}
+              className="rounded-2xl bg-[#3FAF9B] text-white text-lg font-bold"
+            >
+              بحث
+            </button>
+
           </div>
 
-          <div className="rounded-[28px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
-            <h2 className="mb-6 text-right text-2xl font-bold text-[#111827] md:text-3xl">
-              ابحث عن العقار المناسب
+        </div>
+
+        <div className="mt-14">
+
+          <div className="flex items-center justify-between mb-8">
+
+            <h2 className="text-4xl font-extrabold text-[#111827]">
+              العقارات
             </h2>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-right text-sm text-[#6B7280]">
-                  نوع العقار
-                </label>
-                <select className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-right outline-none transition focus:border-[#3FAF9B]">
-                  {propertyTypes.map((type) => (
-                    <option key={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
+            <p className="text-lg text-[#6B7280]">
+              عدد النتائج: {properties.length}
+            </p>
 
-              <div>
-                <label className="mb-2 block text-right text-sm text-[#6B7280]">
-                  المحافظة
-                </label>
-                <select className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-right outline-none transition focus:border-[#3FAF9B]">
-                  {governorates.map((gov) => (
-                    <option key={gov}>{gov}</option>
-                  ))}
-                </select>
-              </div>
+          </div>
 
-              <div>
-                <label className="mb-2 block text-right text-sm text-[#6B7280]">
-                  تاريخ الوصول
-                </label>
-                <input
-                  type="date"
-                  className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 outline-none transition focus:border-[#3FAF9B]"
-                />
-              </div>
+          {loading ? (
 
-              <div>
-                <label className="mb-2 block text-right text-sm text-[#6B7280]">
-                  تاريخ المغادرة
-                </label>
-                <input
-                  type="date"
-                  className="w-full rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 outline-none transition focus:border-[#2E#3FAF9B7D6B]"
-                />
-              </div>
+            <div className="text-center py-20 text-2xl">
+              جاري تحميل العقارات...
             </div>
 
-            <button className="mt-5 w-full rounded-2xl bg-[#3FAF9B] py-4 text-lg font-semibold text-white transition hover:bg-[#25695A]">
-              ابحث الآن
-            </button>
-          </div>
+          ) : properties.length === 0 ? (
+
+            <div className="bg-white border border-[#E5E7EB] rounded-[32px] p-12 text-center">
+
+              <h3 className="text-3xl font-extrabold text-[#111827]">
+                لا توجد نتائج
+              </h3>
+
+              <p className="mt-4 text-[#6B7280]">
+                جرّب تغيير خيارات البحث
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+
+              {properties.map((property) => (
+
+                <article
+                  key={property.id}
+                  className="overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                >
+
+                  <img
+                    src={
+                      property.image ||
+                      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"
+                    }
+                    alt={property.title}
+                    loading="lazy"
+                    className="h-72 w-full object-cover"
+                  />
+
+                  <div className="p-6 text-right">
+
+                    <div className="flex items-center justify-between mb-4">
+
+                      <span className="bg-[#ECFDF5] text-[#3FAF9B] px-4 py-2 rounded-full text-sm font-bold">
+                        {property.type}
+                      </span>
+
+                      <span className="text-2xl font-extrabold text-[#111827]">
+                        ${property.price}
+                      </span>
+
+                    </div>
+
+                    <h3 className="text-2xl font-extrabold text-[#111827]">
+                      {property.title}
+                    </h3>
+
+                    <p className="mt-3 text-[#6B7280]">
+                      {property.location}
+                    </p>
+
+                    <div className="mt-5 flex gap-2 flex-wrap justify-end">
+
+                      <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-sm">
+                        {property.governorate}
+                      </span>
+
+                      {property.rooms && (
+                        <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-sm">
+                          {property.rooms} غرف
+                        </span>
+                      )}
+
+                      {property.bathrooms && (
+                        <span className="bg-[#F3F4F6] px-3 py-2 rounded-full text-sm">
+                          {property.bathrooms} حمام
+                        </span>
+                      )}
+
+                    </div>
+
+                    {property.description && (
+
+                      <p className="mt-5 leading-8 text-[#4B5563] line-clamp-3">
+                        {property.description}
+                      </p>
+
+                    )}
+
+                    <Link
+                      href={`/property/${property.id}`}
+                      className="mt-6 block w-full rounded-2xl bg-[#3FAF9B] py-4 text-center text-lg font-bold text-white transition hover:bg-[#2F8E7D]"
+                    >
+                      عرض العقار
+                    </Link>
+
+                  </div>
+
+                </article>
+
+              ))}
+
+            </div>
+
+          )}
+
         </div>
+
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 pb-16">
-        <div className="mb-8 text-right">
-          <h2 className="text-3xl font-bold text-[#111827]">عقارات مقترحة</h2>
-          <p className="mt-2 text-[#6B7280]">
-            أمثلة شكلية لكيفية ظهور العقارات في الصفحة الرئيسية
-          </p>
-        </div>
-
-        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-          {sampleProperties.map((property) => (
-            <article
-              key={property.id}
-              className="overflow-hidden rounded-[28px] border border-[#E5E7EB] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-            >
-              <img
-                src={property.image}
-                alt={property.title}
-                className="h-64 w-full object-cover"
-              />
-
-              <div className="p-5 text-right">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="rounded-full bg-[#ECFDF5] px-3 py-1 text-sm font-medium text-[#3FAF9B]">
-                    {property.type}
-                  </span>
-                  <span className="font-bold text-[#111827]">
-                    {property.price}
-                  </span>
-                </div>
-
-                <h3 className="text-xl font-bold text-[#111827]">
-                  {property.title}
-                </h3>
-                <p className="mt-2 text-[#6B7280]">{property.location}</p>
-
-                <button className="mt-4 rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#1F2937] transition hover:bg-[#F9FAFB]">
-                  إرسال طلب حجز
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
     </main>
   );
 }
