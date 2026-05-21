@@ -1,240 +1,119 @@
+"use client";
+
 import "./globals.css";
 import Link from "next/link";
-
-export const metadata = {
-  title: "Yalla Hala | عقارات للإقامة القصيرة في سوريا",
-
-  description:
-    "منصة لعرض الشقق والفيلات والمزارع والشاليهات للإقامة القصيرة داخل سوريا.",
-
-  openGraph: {
-    title: "Yalla Hala",
-
-    description:
-      "منصة للعقارات قصيرة الإقامة داخل سوريا",
-
-    url: "https://yallahala.com",
-
-    siteName: "Yalla Hala",
-
-    locale: "ar_SY",
-
-    type: "website",
-  },
-};
-
-function Logo() {
-
-  return (
-    <Link
-      href="/"
-      className="flex items-center gap-3"
-    >
-
-      <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-[#3FAF9B] shadow-sm">
-
-        <svg
-          width="26"
-          height="26"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-
-          <path
-            d="M3 10.5L12 3L21 10.5"
-            stroke="white"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          <path
-            d="M6.75 9.75V19.5H17.25V9.75"
-            stroke="white"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          <path
-            d="M10 19.5V14.75H14V19.5"
-            stroke="white"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-        </svg>
-
-      </div>
-
-      <div className="text-right">
-
-        <h1 className="text-2xl sm:text-3xl font-extrabold leading-none text-[#1F2937]">
-          Yalla Hala
-        </h1>
-
-        <p className="mt-1 text-xs sm:text-sm font-medium text-[#6B7280]">
-          بيتك البعيد من بيتك
-        </p>
-
-      </div>
-
-    </Link>
-  );
-}
-
-function NavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-
-  return (
-    <Link
-      href={href}
-      className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#1F2937] transition hover:bg-[#F9FAFB]"
-    >
-      {children}
-    </Link>
-  );
-}
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // التحقق من حالة المستخدم الحالية
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    // الاستماع لتغييرات حالة تسجيل الدخول
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  }
 
   return (
     <html lang="ar" dir="rtl">
+      <body className="bg-[#FAFAFA] text-[#1F2937] overflow-x-hidden antialiased">
+        <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white/95 backdrop-blur shadow-sm">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 flex items-center justify-between">
+            
+            {/* الشعار والهوية المقتبسة من صورتك الفنية */}
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1E5349] shadow-md transition transform hover:rotate-6">
+                <span className="text-white font-black text-xl">هلا</span>
+              </div>
+              <div className="text-right">
+                <h1 className="text-xl font-black text-[#111827] leading-none">Yalla Hala</h1>
+                <p className="text-[11px] font-bold text-[#CF9E59] mt-1">بيتك البعيد عن بيتك</p>
+              </div>
+            </Link>
 
-      <body className="bg-[#FAFAFA] text-[#1F2937] overflow-x-hidden">
+            {/* روابط التنقل السريعة */}
+            <nav className="hidden md:flex items-center gap-6 font-bold text-sm text-[#4B5563]">
+              <Link href="/" className="hover:text-[#3FAF9B] transition">الرئيسية</Link>
+              <Link href="/add-property" className="hover:text-[#3FAF9B] transition">أضف عقارك</Link>
+              <Link href="/about" className="hover:text-[#3FAF9B] transition">من نحن</Link>
+            </nav>
 
-        <header className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-white/95 backdrop-blur">
-
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4">
-
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-              <Logo />
-
-              <nav className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-
-                <Link
-                  href="/"
-                  className="rounded-full bg-[#3FAF9B] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#25695A]"
-                >
-                  الرئيسية
-                </Link>
-
-                <NavLink href="/add-property">
-                  أضف عقارك
-                </NavLink>
-
-                <NavLink href="/about">
-                  من نحن
-                </NavLink>
-
-              </nav>
-
+            {/* أزرار الحسابات والتحكم الاحترافية */}
+            <div className="flex items-center gap-3">
+              {user ? (
+                <div className="flex items-center gap-3 bg-[#ECFDF5] px-4 py-2 rounded-full border border-emerald-100">
+                  <span className="text-xs font-bold text-[#1E5349]">
+                    أهلاً، {user.user_metadata?.full_name || "عزيزنا الزبون"}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-xs bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-1 rounded-full transition"
+                  >
+                    خروج
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link href="/login" className="text-sm font-bold text-[#1E5349] hover:text-[#3FAF9B] px-3 py-2 transition">
+                    تسجيل الدخول
+                  </Link>
+                  <Link href="/register" className="bg-[#CF9E59] hover:bg-[#b58543] text-white font-bold text-sm px-5 py-2.5 rounded-full transition shadow-sm">
+                    إنشاء حساب
+                  </Link>
+                </>
+              )}
             </div>
 
           </div>
-
         </header>
 
         {children}
 
-        <footer className="mt-16 border-t border-[#E5E7EB] bg-white">
-
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10">
-
-            <div className="grid gap-10 md:grid-cols-3">
-
-              <div className="text-right">
-
-                <h3 className="text-3xl font-extrabold text-[#111827]">
-                  Yalla Hala
-                </h3>
-
-                <p className="mt-4 leading-8 text-[#6B7280]">
-                  منصة للعقارات قصيرة الإقامة داخل سوريا،
-                  تشمل الشقق والفيلات والمزارع والغرف والشاليهات.
-                </p>
-
-              </div>
-
-              <div className="text-right">
-
-                <h3 className="text-2xl font-bold text-[#111827]">
-                  روابط سريعة
-                </h3>
-
-                <div className="mt-5 flex flex-col gap-4">
-
-                  <Link
-                    href="/"
-                    className="text-[#6B7280] hover:text-[#3FAF9B]"
-                  >
-                    الرئيسية
-                  </Link>
-
-                  <Link
-                    href="/add-property"
-                    className="text-[#6B7280] hover:text-[#3FAF9B]"
-                  >
-                    أضف عقارك
-                  </Link>
-
-                  <Link
-                    href="/about"
-                    className="text-[#6B7280] hover:text-[#3FAF9B]"
-                  >
-                    من نحن
-                  </Link>
-
-                </div>
-
-              </div>
-
-              <div className="text-right">
-
-                <h3 className="text-2xl font-bold text-[#111827]">
-                  تواصل معنا
-                </h3>
-
-                <div className="mt-5 space-y-4 text-[#6B7280]">
-
-                  <p>
-                    contact@yallahala.com
-                  </p>
-
-                  <p>
-                    +963000000000
-                  </p>
-
-                </div>
-
-              </div>
-
+        {/* تذييل الصفحة الفاخر */}
+        <footer className="mt-24 border-t border-[#E5E7EB] bg-[#111827] text-gray-300">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid gap-10 md:grid-cols-3">
+            <div className="text-right">
+              <h3 className="text-2xl font-black text-white mb-4">Yalla Hala | يلا هلا</h3>
+              <p className="leading-7 text-sm text-gray-400">
+                منصتك السياحية الموثوقة لحجز العقارات وأماكن الإقامة في جميع المحافظات السورية. بيتك البعيد عن بيتك.
+              </p>
             </div>
-
-            <div className="mt-10 border-t border-[#E5E7EB] pt-6 text-center text-sm text-[#6B7280]">
-
-              © 2026 Yalla Hala - جميع الحقوق محفوظة
-
+            <div className="text-right">
+              <h3 className="text-lg font-bold text-white mb-4">روابط سريعة</h3>
+              <div className="flex flex-col gap-3 text-sm">
+                <Link href="/" className="hover:text-[#3FAF9B] transition">تصفح العقارات المتاحة</Link>
+                <Link href="/add-property" className="hover:text-[#3FAF9B] transition">أعلن عن عقارك معنا</Link>
+                <Link href="/about" className="hover:text-[#3FAF9B] transition">قصتنا ورؤيتنا</Link>
+              </div>
             </div>
-
+            <div className="text-right">
+              <h3 className="text-lg font-bold text-white mb-4">الدعم والتواصل</h3>
+              <p className="text-sm text-gray-400">البريد الإلكتروني: contact@yallahala.com</p>
+              <p className="text-sm text-gray-400 mt-2">رقم الهاتف: +963 11 000 0000</p>
+            </div>
           </div>
-
+          <div className="border-t border-gray-800 py-6 text-center text-xs text-gray-500 font-medium">
+            &copy; 2026 منصة يلا هلا. جميع الحقوق محفوظة.
+          </div>
         </footer>
-
       </body>
-
     </html>
   );
 }
