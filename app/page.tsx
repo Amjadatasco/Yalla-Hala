@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
-// تم تصحيح كلمة ريف دمشق هنا بدقة
 const governorates = [
   "دمشق", "ريف دمشق", "حلب", "اللاذقية", "طرطوس", 
   "حمص", "حماة", "السويداء", "درعا", "القنيطرة", 
@@ -57,7 +56,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB]">
+    <main className="min-h-screen bg-[#F9FAFB]" dir="rtl">
       
       {/* ترحيب البطل */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8 text-center relative z-10">
@@ -75,12 +74,12 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* شريط البحث المطور مع إصلاحات حقول التواريخ واللغة */}
+      {/* شريط البحث المطور - ترتيب منطقي صحيح للتواريخ وبدون طلاسم */}
       <section className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
         <div className="bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 items-center">
             
-            {/* زر البحث */}
+            {/* 1. زر البحث */}
             <div className="lg:col-span-2">
               <button
                 onClick={loadProperties}
@@ -91,7 +90,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* عدد الضيوف */}
+            {/* 2. عدد الضيوف */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex items-center shadow-sm">
               <select
                 value={guestsCount}
@@ -106,33 +105,29 @@ export default function HomePage() {
               </select>
             </div>
 
-            {/* تاريخ المغادرة - دعم لغوي كامل للعربية */}
+            {/* 3. تاريخ المغادرة (أصبح ثانياً من اليمين) */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ المغادرة</span>
               <input
                 type="date"
-                lang="ar-EG"
                 value={checkOutDate}
                 onChange={(e) => setCheckOutDate(e.target.value)}
                 className="w-full bg-transparent text-right text-xs text-[#4B5563] outline-none cursor-pointer"
-                style={{ direction: 'rtl' }}
               />
             </div>
 
-            {/* تاريخ الوصول - دعم لغوي كامل للعربية */}
+            {/* 4. تاريخ الوصول (أصبح أولاً من اليمين بالنسبة لحقول التاريخ) */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ الوصول</span>
               <input
                 type="date"
-                lang="ar-EG"
                 value={checkInDate}
                 onChange={(e) => setCheckInDate(e.target.value)}
                 className="w-full bg-transparent text-right text-xs text-[#4B5563] outline-none cursor-pointer"
-                style={{ direction: 'rtl' }}
               />
             </div>
 
-            {/* نوع العقار */}
+            {/* 5. نوع العقار */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex items-center shadow-sm">
               <select
                 value={selectedType}
@@ -146,7 +141,7 @@ export default function HomePage() {
               </select>
             </div>
 
-            {/* المدينة / المنطقة */}
+            {/* 6. المدينة / المنطقة */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex items-center shadow-sm">
               <select
                 value={selectedGovernorate}
@@ -212,7 +207,7 @@ export default function HomePage() {
                       التفاصيل
                     </Link>
                     <Link
-                      href={`/property/${property.id}`}
+                      href={`/property/${property.id}?action=book`}
                       className="rounded-xl bg-[#3FAF9B] text-white font-bold py-2 text-center text-xs hover:bg-[#2F8E7D] transition shadow-sm"
                     >
                       احجز الآن
