@@ -4,7 +4,6 @@ import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function PropertyPage({ params }: any) {
-  // فك حزمة params بطريقة متوافقة تماماً مع Next.js الحديث لمنع أي تعليق
   const resolvedParams = "then" in params ? use(params) : params;
 
   const [property, setProperty] = useState<any>(null);
@@ -13,13 +12,26 @@ export default function PropertyPage({ params }: any) {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true); // للتأكد من انتهاء جلب البيانات
+  const [pageLoading, setPageLoading] = useState(true);
+  
+  // حالة ذكية لتحديد ما يراه المستخدم (عرض التفاصيل أو فورم الحجز)
+  const [viewMode, setViewMode] = useState<"details" | "book">("details");
 
   useEffect(() => {
     if (resolvedParams?.id) {
       loadProperty();
     }
-  }, [resolvedParams?.id]); // جعل الكود ينتظر وصول الـ ID الفعلي من الرابط
+  }, [resolvedParams?.id]);
+
+  useEffect(() => {
+    // التقاط الرغبة من الرابط الخارجي (إذا قمت بتمرير ?action=book في زر احجز الآن)
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get("action") === "book") {
+        setViewMode("book");
+      }
+    }
+  }, []);
 
   async function loadProperty() {
     try {
@@ -36,7 +48,7 @@ export default function PropertyPage({ params }: any) {
     } catch (err) {
       console.error(err);
     } finally {
-      setPageLoading(false); // إيقاف التحميل حتماً بعد انتهاء المحاولة
+      setPageLoading(false);
     }
   }
 
@@ -66,10 +78,10 @@ export default function PropertyPage({ params }: any) {
       setGuestPhone("");
       setCheckIn("");
       setCheckOut("");
+      setViewMode("details"); // إعادة المستخدم لصفحة التفاصيل بعد النجاح
     }
   }
 
-  // إذا كان الموقع يقرأ البيانات من قاعدة البيانات حالياً
   if (pageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -78,7 +90,6 @@ export default function PropertyPage({ params }: any) {
     );
   }
 
-  // إذا انتهى التحميل ولم يجد العقار في قاعدة البيانات
   if (!property) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
@@ -94,6 +105,7 @@ export default function PropertyPage({ params }: any) {
     <main className="bg-[#FAFAFA] min-h-screen px-4 py-10">
       <div className="max-w-4xl mx-auto">
         
+        {/* صورة العقار */}
         <div className="rounded-2xl overflow-hidden shadow-sm mb-6">
           <img
             src={property.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"}
@@ -102,8 +114,9 @@ export default function PropertyPage({ params }: any) {
           />
         </div>
 
+        {/* كارت التحكم العلوي وتبديل العرض */}
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-6">
             <div className="text-right">
               <h1 className="text-2xl font-black text-[#111827]">{property.title}</h1>
               <p className="text-xs text-[#6B7280] mt-1">{property.location} - {property.governorate}</p>
@@ -114,66 +127,96 @@ export default function PropertyPage({ params }: any) {
             </div>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-lg font-bold text-right text-[#111827] mb-4">بيانات طلب الحجز الإقامة</h2>
-            
-            <div className="grid gap-4">
-              <input
-                type="text"
-                placeholder="اسم المستأجر"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
-              />
-              <input
-                type="text"
-                placeholder="رقم الهاتف"
-                value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
-                className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
-              />
-
-              <div className="grid gap-4 grid-cols-2">
-                <div>
-                  <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ الوصول</label>
-                  <input
-                    type="date"
-                    lang="ar-EG"
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                    className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B]"
-                    style={{ direction: 'rtl' }}
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ المغادرة</label>
-                  <input
-                    type="date"
-                    lang="ar-EG"
-                    value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                    className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B]"
-                    style={{ direction: 'rtl' }}
-                  />
-                </div>
-              </div>
-
-              <button
-                onClick={handleBooking}
-                disabled={loading}
-                className="mt-2 w-full rounded-xl bg-[#3FAF9B] py-3.5 text-sm font-bold text-white hover:bg-[#2F8E7D] transition shadow"
-              >
-                {loading ? "جاري الإرسال..." : "تأكيد الطلب المبدئي"}
-              </button>
-
-              <button
-                disabled
-                className="w-full rounded-xl bg-gray-200 py-3.5 text-sm font-bold text-gray-500 cursor-not-allowed text-center flex items-center justify-center gap-2"
-              >
-                الواتساب غير متوفر الآن
-              </button>
-            </div>
+          {/* أزرار تنقل داخلية تمنع التداخل البصري تماماً */}
+          <div className="flex border-b border-gray-100 mt-4">
+            <button
+              onClick={() => setViewMode("details")}
+              className={`flex-1 py-3 text-center text-sm font-bold border-b-2 transition ${
+                viewMode === "details" ? "border-[#3FAF9B] text-[#3FAF9B]" : "border-transparent text-gray-400"
+              }`}
+            >
+              تفاصيل ومزايا العقار
+            </button>
+            <button
+              onClick={() => setViewMode("book")}
+              className={`flex-1 py-3 text-center text-sm font-bold border-b-2 transition ${
+                viewMode === "book" ? "border-[#3FAF9B] text-[#3FAF9B]" : "border-transparent text-gray-400"
+              }`}
+            >
+              طلب حجز الإقامة الآن
+            </button>
           </div>
+
+          {/* العرض الأول: تفاصيل المسكن فقط */}
+          {viewMode === "details" && (
+            <div className="mt-6 text-right space-y-4 animate-fadeIn">
+              <h2 className="text-lg font-bold text-[#111827]">الوصف والمواصفات</h2>
+              <p className="text-sm text-gray-600 leading-7 bg-gray-50 p-4 rounded-xl">
+                {property.description || "مرحباً بك في منصة يلا هلا، هذا العقار مجهز بكافة الخدمات ووسائل الراحة الأساسية لضمان إقامة مريحة وسعيدة. للمزيد من الاستفسارات يمكنك التوجه مباشرة لتأكيد طلب الحجز المبدئي."}
+              </p>
+            </div>
+          )}
+
+          {/* العرض الثاني: استمارة الحجز بدون طلاسم حقول التاريخ */}
+          {viewMode === "book" && (
+            <div className="mt-6 animate-fadeIn">
+              <h2 className="text-lg font-bold text-right text-[#111827] mb-4">بيانات طلب الحجز الإقامة</h2>
+              
+              <div className="grid gap-4">
+                <input
+                  type="text"
+                  placeholder="اسم المستأجر"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
+                />
+                <input
+                  type="text"
+                  placeholder="رقم الهاتف"
+                  value={guestPhone}
+                  onChange={(e) => setGuestPhone(e.target.value)}
+                  className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
+                />
+
+                {/* تم تعديل طريقة عرض التاريخ لتفادي ظهور الرموز الغريبة åååå */}
+                <div className="grid gap-4 grid-cols-2">
+                  <div>
+                    <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ الوصول</label>
+                    <input
+                      type="date"
+                      value={checkIn}
+                      onChange={(e) => setCheckIn(e.target.value)}
+                      className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B] text-right"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ المغادرة</label>
+                    <input
+                      type="date"
+                      value={checkOut}
+                      onChange={(e) => setCheckOut(e.target.value)}
+                      className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B] text-right"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleBooking}
+                  disabled={loading}
+                  className="mt-2 w-full rounded-xl bg-[#3FAF9B] py-3.5 text-sm font-bold text-white hover:bg-[#2F8E7D] transition shadow"
+                >
+                  {loading ? "جاري الإرسال..." : "تأكيد الطلب المبدئي"}
+                </button>
+
+                <button
+                  disabled
+                  className="w-full rounded-xl bg-gray-200 py-3.5 text-sm font-bold text-gray-500 cursor-not-allowed text-center flex items-center justify-center gap-2"
+                >
+                  الواتساب غير متوفر الآن
+                </button>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
