@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const governorates = [
-  "دمشق", "ريف دمشق", "حلب", "اللاذقية", "طرطوس", 
+  "دمشق", "ريف دمشق", "حلب", "إدلب", "اللاذقية", "طرطوس", 
   "حمص", "حماة", "السويداء", "درعا", "القنيطرة", 
   "دير الزور", "الحسكة", "الرقة"
 ];
@@ -74,7 +74,7 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* شريط البحث المطور - تم قلب الترتيب الفعلي ليظهر الوصول أولاً دائماً */}
+      {/* شريط البحث المطور - تم قلب الترتيب الفعلي ليظهر الوصول أولاً دائماً وبدون طلاسم */}
       <section className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
         <div className="bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 items-center">
@@ -105,7 +105,7 @@ export default function HomePage() {
               </select>
             </div>
 
-            {/* 3. تاريخ الوصول (تم تقديمه هنا ليصبح قبل المغادرة في الترتيب الظاهري والعمودي) */}
+            {/* 3. تاريخ الوصول (تم تقديمه ليظهر أولاً بشكل عمي وأفقي) */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ الوصول</span>
               <input
@@ -116,7 +116,7 @@ export default function HomePage() {
               />
             </div>
 
-            {/* 4. تاريخ المغادرة (تأخر ليصبح بعد الوصول) */}
+            {/* 4. تاريخ المغادرة (تأخر ليصبح بعد الوصول منطقياً) */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ المغادرة</span>
               <input
