@@ -22,6 +22,10 @@ export default function PropertyPage({ params }: any) {
   // الحصول على تاريخ اليوم الحالي بصيغة YYYY-MM-DD لمنع الحجز في الماضي
   const todayStr = new Date().toISOString().split("T")[0];
 
+  // 🚀 حسابات بوت تليجرام الخاصة بك لإرسال إشعارات الحجوزات الفورية
+  const TELEGRAM_BOT_TOKEN = "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
+  const TELEGRAM_CHAT_ID = "629151535";
+
   useEffect(() => {
     if (resolvedParams?.id) {
       loadPropertyAndBookings();
@@ -53,10 +57,11 @@ export default function PropertyPage({ params }: any) {
         setProperty(propertyData);
 
         // 2. جلب الحجوزات الحالية الخاصة بهذا العقار لمنع تداخل التواريخ للمستأجرين
+        // 💡 تم تحويل المعامل إلى نص متوافق مع جدولك
         const { data: bookingsData, error: bookingsError } = await supabase
           .from("bookings")
           .select("check_in, check_out")
-          .eq("property_id", resolvedParams.id);
+          .eq("property_id", String(resolvedParams.id));
 
         if (!bookingsError && bookingsData) {
           setExistingBookings(bookingsData);
@@ -86,6 +91,34 @@ export default function PropertyPage({ params }: any) {
     return false; // التواريخ متاحة وصالحة للاستخدام
   }
 
+  // دالة إرسال التقرير المنسق الفاخر لبوت تليجرام الخاص بك
+  async function sendTelegramNotification(name: string, phone: string, inDate: string, outDate: string) {
+    try {
+      const messageText = 
+        `🚨 *طلب حجز جديد على منصة يلا هلا!* 🚨\n\n` +
+        `🏠 *العقار:* ${property?.title || "غير محدد"}\n` +
+        `📍 *الموقع:* ${property?.location || "غير محدد"} - ${property?.governorate || ""}\n` +
+        `💰 *السعر:* $${property?.price || "0"} / ليلة\n\n` +
+        `👤 *اسم المستأجر:* ${name}\n` +
+        `📞 *رقم الهاتف:* [${phone}](tel:${phone})\n\n` +
+        `📅 *تاريخ الوصول:* ${inDate}\n` +
+        `📅 *تاريخ المغادرة:* ${outDate}\n\n` +
+        `✨ _يرجى التواصل مع الزبون لتأكيد الحجز المبدئي._`;
+
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: messageText,
+          parse_mode: "Markdown"
+        })
+      });
+    } catch (err) {
+      console.error("Failed to send Telegram notification:", err);
+    }
+  }
+
   async function handleBooking() {
     // 1. التحقق من ملء البيانات
     if (!guestName.trim() || !guestPhone.trim() || !checkIn || !checkOut) {
@@ -110,9 +143,10 @@ export default function PropertyPage({ params }: any) {
     setLoading(true);
 
     // 4. محاولة إدخال الحجز في جدول Supabase
+    // 🚀 التعديل الجوهري السحري: String(property.id) لإرسال قيمة نصية تطابق عمود قاعدة بياناتك تماماً وتفك الـ RLS
     const { error } = await supabase.from("bookings").insert([
       {
-        property_id: property.id,
+        property_id: String(property.id),
         guest_name: guestName.trim(),
         guest_phone: guestPhone.trim(),
         check_in: checkIn,
@@ -136,6 +170,9 @@ export default function PropertyPage({ params }: any) {
         `تلميح الحل: يرجى التأكد من مطابقة أسماء الأعمدة وصلاحيات الـ RLS في جدول bookings داخل Supabase.`
       );
     } else {
+      // 🌟 تشغيل الإشعار الفوري وإرساله لهاتفك مباشرة بعد نجاح التخزين
+      await sendTelegramNotification(guestName.trim(), guestPhone.trim(), checkIn, checkOut);
+
       alert("🎉 تم إرسال طلب حجزك بنجاح وسيتواصل معك المسؤول قريباً!");
       setGuestName("");
       setGuestPhone("");
