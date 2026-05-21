@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const [user, setUser] = useState<any>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // حالة للتحكم في قائمة الهاتف
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -70,7 +70,7 @@ export default function RootLayout({
         <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 h-20 flex items-center justify-between">
 
-            {/* Brand - الهوية البصرية */}
+            {/* Brand */}
             <Link href="/" className="flex items-center gap-3 group shrink-0">
               <div className="relative h-12 w-12 flex items-center justify-center overflow-hidden rounded-xl bg-gray-50 transition-transform duration-300 group-hover:scale-105">
                 <img
@@ -90,14 +90,14 @@ export default function RootLayout({
               </div>
             </Link>
 
-            {/* Navigation - تظهر فقط على شاشات الكمبيوتر */}
+            {/* Navigation - للكمبيوتر */}
             <nav className="hidden md:flex items-center gap-8 font-bold text-sm text-[#4B5563]">
               <Link href="/" className="hover:text-[#2D6A5F] transition duration-200">الرئيسية</Link>
               <Link href="/add-property" className="hover:text-[#2D6A5F] transition duration-200">أضف عقارك</Link>
               <Link href="/about" className="hover:text-[#2D6A5F] transition duration-200">من نحن</Link>
             </nav>
 
-            {/* User Actions - تظهر فقط على شاشات الكمبيوتر */}
+            {/* User Actions - للكمبيوتر */}
             <div className="hidden md:flex items-center gap-3 shrink-0">
               {user ? (
                 <div className="flex items-center gap-2 bg-[#E6F4F1] px-4 py-1.5 rounded-full border border-emerald-100 shadow-sm">
@@ -123,7 +123,7 @@ export default function RootLayout({
               )}
             </div>
 
-            {/* زر القائمة المخصص للهواتف الذكية */}
+            {/* زر القائمة للجوال */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-2 text-gray-600 hover:text-[#2D6A5F] focus:outline-none"
@@ -140,9 +140,9 @@ export default function RootLayout({
 
           </div>
 
-          {/* قائمة الهاتف المنسدلة التفاعلية (Mobile Dropdown Menu) */}
+          {/* قائمة الهاتف المنسدلة */}
           {isMenuOpen && (
-            <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-4 shadow-inner animate-fadeIn">
+            <div className="md:hidden border-t border-gray-100 bg-white px-4 py-4 space-y-4 shadow-inner">
               <nav className="flex flex-col gap-3 font-bold text-sm text-[#4B5563]">
                 <Link href="/" onClick={() => setIsMenuOpen(false)} className="hover:text-[#2D6A5F] py-1 transition">الرئيسية</Link>
                 <Link href="/add-property" onClick={() => setIsMenuOpen(false)} className="hover:text-[#2D6A5F] py-1 transition">أضف عقارك</Link>
@@ -204,11 +204,11 @@ export default function RootLayout({
               </div>
             </div>
 
+            {/* تم الاكتفاء بالبريد الإلكتروني فقط هنا */}
             <div className="text-right">
               <h3 className="text-lg font-bold text-white mb-4">الدعم والتواصل</h3>
               <div className="space-y-3 text-sm text-gray-200">
-                <p>contact@yallahala.com</p>
-                <p>+963 11 000 0000</p>
+                <p className="hover:underline cursor-pointer">contact@yallahala.com</p>
               </div>
             </div>
           </div>
