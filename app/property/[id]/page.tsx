@@ -48,7 +48,7 @@ export default function PropertyPage({ params }: any) {
       }
     } catch (err) {
       console.error(err);
-    } pny {
+    } finally {
       setPageLoading(false);
     }
   }
