@@ -30,7 +30,7 @@ export default function PropertyPage({ params }: any) {
 
   async function handleBooking() {
     if (!guestName || !guestPhone || !checkIn || !checkOut) {
-      alert("يرجى ملء جميع بيانات استمارة طلب الحجز.");
+      alert("يرجى ملء جميع البيانات لإرسال طلبك.");
       return;
     }
     setLoading(true);
@@ -47,9 +47,9 @@ export default function PropertyPage({ params }: any) {
 
     setLoading(false);
     if (error) {
-      alert("للأسف، تعذر إرسال الطلب، حاول مرة أخرى.");
+      alert("تعذر إرسال الطلب حالياً.");
     } else {
-      alert("تم إرسال طلب الحجز بنجاح! سيتواصل معك فريقنا قريباً لتأكيد الحجز.");
+      alert("تم إرسال طلب حجزك بنجاح!");
       setGuestName("");
       setGuestPhone("");
       setCheckIn("");
@@ -59,85 +59,72 @@ export default function PropertyPage({ params }: any) {
 
   if (!property) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-xl font-bold text-[#3FAF9B] animate-spin">...</p>
-      </main>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-sm font-bold text-[#3FAF9B]">جاري التحميل...</p>
+      </div>
     );
   }
 
   return (
-    <main className="bg-[#FAFAFA] min-h-screen px-4 py-12">
-      <div className="max-w-5xl mx-auto">
+    <main className="bg-[#FAFAFA] min-h-screen px-4 py-10">
+      <div className="max-w-4xl mx-auto">
         
-        {/* صور العقار الفاخرة */}
-        <div className="rounded-[32px] overflow-hidden shadow-lg mb-8 bg-gray-200">
+        <div className="rounded-2xl overflow-hidden shadow-sm mb-6">
           <img
             src={property.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"}
             alt={property.title}
-            className="w-full h-[500px] object-cover"
+            className="w-full h-96 object-cover"
           />
         </div>
 
-        {/* تفاصيل العقار */}
-        <div className="bg-white border border-[#E5E7EB] rounded-[32px] p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-6">
+        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
             <div className="text-right">
-              <span className="bg-[#ECFDF5] text-[#3FAF9B] px-4 py-1 rounded-full text-xs font-bold">{property.type}</span>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-[#111827] mt-2">{property.title}</h1>
-              <p className="mt-2 text-sm text-[#6B7280]">{property.location} - {property.governorate}</p>
+              <h1 className="text-2xl font-black text-[#111827]">{property.title}</h1>
+              <p className="text-xs text-[#6B7280] mt-1">{property.location} - {property.governorate}</p>
             </div>
-            <div className="rounded-2xl bg-[#ECFDF5] px-6 py-4 text-center border border-emerald-100">
-              <p className="text-3xl font-black text-[#3FAF9B]">${property.price}</p>
-              <p className="text-xs text-[#6B7280] mt-1">لكل ليلة واحدة</p>
+            <div className="rounded-xl bg-[#E6F4F1] px-4 py-2 text-center">
+              <p className="text-xl font-black text-[#3FAF9B]">${property.price}</p>
+              <p className="text-[10px] text-[#6B7280]">ليلة واحدة</p>
             </div>
           </div>
 
-          {property.description && (
-            <div className="mt-6 text-right">
-              <h2 className="text-xl font-bold text-[#111827] mb-3">وصف وتفاصيل العقار</h2>
-              <p className="leading-8 text-base text-[#4B5563] bg-gray-50 p-4 rounded-2xl">{property.description}</p>
-            </div>
-          )}
-
-          {/* استمارة طلب الحجز مع التواريخ */}
-          <div className="mt-10 border-t pt-8">
-            <h2 className="text-2xl font-extrabold text-right text-[#111827] mb-6">طلب حجز الإقامة</h2>
+          <div className="mt-8">
+            <h2 className="text-lg font-bold text-right text-[#111827] mb-4">بيانات طلب الحجز الإقامة</h2>
             
-            <div className="grid gap-5">
-              <div className="grid gap-4 md:grid-cols-2">
-                <input
-                  type="text"
-                  placeholder="اسم المستأجر الكامل"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  className="rounded-2xl border border-[#E5E7EB] px-5 py-4 text-right outline-none focus:border-[#3FAF9B]"
-                />
-                <input
-                  type="text"
-                  placeholder="رقم الهاتف أو الواتساب الجوال"
-                  value={guestPhone}
-                  onChange={(e) => setGuestPhone(e.target.value)}
-                  className="rounded-2xl border border-[#E5E7EB] px-5 py-4 text-right outline-none focus:border-[#3FAF9B]"
-                />
-              </div>
+            <div className="grid gap-4">
+              <input
+                type="text"
+                placeholder="اسم المستأجر"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              />
+              <input
+                type="text"
+                placeholder="رقم الهاتف"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              />
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 grid-cols-2">
                 <div>
-                  <label className="block mb-2 text-right text-xs font-bold text-[#6B7280]">تاريخ الوصول المقترح</label>
+                  <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ الوصول</label>
                   <input
                     type="date"
                     value={checkIn}
                     onChange={(e) => setCheckIn(e.target.value)}
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-5 py-4 outline-none focus:border-[#3FAF9B]"
+                    className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B]"
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 text-right text-xs font-bold text-[#6B7280]">تاريخ المغادرة المقترح</label>
+                  <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ المغادرة</label>
                   <input
                     type="date"
                     value={checkOut}
                     onChange={(e) => setCheckOut(e.target.value)}
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-5 py-4 outline-none focus:border-[#3FAF9B]"
+                    className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B]"
                   />
                 </div>
               </div>
@@ -145,19 +132,18 @@ export default function PropertyPage({ params }: any) {
               <button
                 onClick={handleBooking}
                 disabled={loading}
-                className="mt-4 w-full rounded-2xl bg-[#3FAF9B] py-5 text-lg font-bold text-white transition hover:bg-[#2F8E7D] shadow-md disabled:opacity-50"
+                className="mt-2 w-full rounded-xl bg-[#3FAF9B] py-3.5 text-sm font-bold text-white hover:bg-[#2F8E7D] transition shadow"
               >
-                {loading ? "جاري معالجة طلبك..." : "تأكيد طلب الحجز المبدئي"}
+                {loading ? "جاري الإرسال..." : "تأكيد الطلب المبدئي"}
               </button>
 
-              <a
-                href={`https://wa.me/963900000000?text=مرحباً، أود الاستفسار عن حجز العقار: ${property.title}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full rounded-2xl bg-green-500 py-4 text-lg font-bold text-white text-center transition hover:bg-green-600 shadow-sm flex items-center justify-center gap-2"
+              {/* تعديل زر الواتساب وتجميده كما طلبت تماماً */}
+              <button
+                disabled
+                className="w-full rounded-xl bg-gray-300 py-3.5 text-sm font-bold text-gray-500 cursor-not-allowed text-center flex items-center justify-center gap-2"
               >
-                تواصل مباشر عبر الواتساب
-              </a>
+                الواتساب غير متوفر الآن
+              </button>
             </div>
           </div>
 
