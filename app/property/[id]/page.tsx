@@ -108,23 +108,28 @@ export default function PropertyPage({ params }: any) {
                 className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
               />
 
+              {/* فرض لغة الإدخال العربية على عناصر التواريخ داخل الاستمارة هنا */}
               <div className="grid gap-4 grid-cols-2">
                 <div>
                   <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ الوصول</label>
                   <input
                     type="date"
+                    lang="ar-EG"
                     value={checkIn}
                     onChange={(e) => setCheckIn(e.target.value)}
                     className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B]"
+                    style={{ direction: 'rtl' }}
                   />
                 </div>
                 <div>
                   <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ المغادرة</label>
                   <input
                     type="date"
+                    lang="ar-EG"
                     value={checkOut}
                     onChange={(e) => setCheckOut(e.target.value)}
                     className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B]"
+                    style={{ direction: 'rtl' }}
                   />
                 </div>
               </div>
@@ -137,7 +142,6 @@ export default function PropertyPage({ params }: any) {
                 {loading ? "جاري الإرسال..." : "تأكيد الطلب المبدئي"}
               </button>
 
-              {/* تعديل زر الواتساب وتجميده كما طلبت تماماً */}
               <button
                 disabled
                 className="w-full rounded-xl bg-gray-300 py-3.5 text-sm font-bold text-gray-500 cursor-not-allowed text-center flex items-center justify-center gap-2"

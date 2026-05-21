@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+// تم تصحيح كلمة ريف دمشق هنا بدقة
 const governorates = [
-  "دمشق", "ريف dمشق", "حلب", "اللاذقية", "طرطوس", 
+  "دمشق", "ريف دمشق", "حلب", "اللاذقية", "طرطوس", 
   "حمص", "حماة", "السويداء", "درعا", "القنيطرة", 
   "دير الزور", "الحسكة", "الرقة"
 ];
 
-// تعديل أنواع العقارات لتطابق الصورة تماماً
 const propertyTypes = [
   "شقة", "فيلا", "مزرعة", "غرفة", "شاليه"
 ];
@@ -59,7 +59,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB]">
       
-      {/* قسم الهيدر الترحيبي العالي الحماية لمنع تداخل النصوص */}
+      {/* ترحيب البطل */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8 text-center relative z-10">
         <span className="inline-block rounded-full bg-[#E6F4F1] px-5 py-2 text-sm font-bold text-[#3FAF9B] mb-4 shadow-sm">
           منصة يلا هلا السياحية
@@ -75,7 +75,7 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* شريط البحث المطور - تم إصلاح مشكلة العرض والتداخل وتفتيح اللون */}
+      {/* شريط البحث المطور مع إصلاحات حقول التواريخ واللغة */}
       <section className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
         <div className="bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 items-center">
@@ -106,25 +106,29 @@ export default function HomePage() {
               </select>
             </div>
 
-            {/* تاريخ المغادرة */}
+            {/* تاريخ المغادرة - دعم لغوي كامل للعربية */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ المغادرة</span>
               <input
                 type="date"
+                lang="ar-EG"
                 value={checkOutDate}
                 onChange={(e) => setCheckOutDate(e.target.value)}
                 className="w-full bg-transparent text-right text-xs text-[#4B5563] outline-none cursor-pointer"
+                style={{ direction: 'rtl' }}
               />
             </div>
 
-            {/* تاريخ الوصول */}
+            {/* تاريخ الوصول - دعم لغوي كامل للعربية */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ الوصول</span>
               <input
                 type="date"
+                lang="ar-EG"
                 value={checkInDate}
                 onChange={(e) => setCheckInDate(e.target.value)}
                 className="w-full bg-transparent text-right text-xs text-[#4B5563] outline-none cursor-pointer"
+                style={{ direction: 'rtl' }}
               />
             </div>
 
@@ -160,7 +164,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* قسم شبكة العقارات المتاحة */}
+      {/* عرض شبكة البطاقات */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 relative z-10">
         <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-8">
           <h2 className="text-2xl font-extrabold text-[#111827]">العقارات المتاحة للطلب</h2>
