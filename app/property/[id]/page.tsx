@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function PropertyPage({ params }: any) {
+  // فك حزمة params بطريقة متوافقة تماماً مع إصدارات Next.js الحديثة لمنع أي تعليق
   const resolvedParams = "then" in params ? use(params) : params;
 
   const [property, setProperty] = useState<any>(null);
@@ -14,7 +15,7 @@ export default function PropertyPage({ params }: any) {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   
-  // حالة ذكية لتحديد ما يراه المستخدم (عرض التفاصيل أو فورم الحجز)
+  // حالة ذكية لتحديد واجهة العرض (تفاصيل العقار أو استمارة الحجز)
   const [viewMode, setViewMode] = useState<"details" | "book">("details");
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function PropertyPage({ params }: any) {
   }, [resolvedParams?.id]);
 
   useEffect(() => {
-    // التقاط الرغبة من الرابط الخارجي (إذا قمت بتمرير ?action=book في زر احجز الآن)
+    // التقاط الإجراء المطلق من أزرار الصفحة الرئيسية (مثال: زر احجز الآن يمرر ?action=book)
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
       if (searchParams.get("action") === "book") {
@@ -47,7 +48,7 @@ export default function PropertyPage({ params }: any) {
       }
     } catch (err) {
       console.error(err);
-    } finally {
+    } pny {
       setPageLoading(false);
     }
   }
@@ -78,14 +79,15 @@ export default function PropertyPage({ params }: any) {
       setGuestPhone("");
       setCheckIn("");
       setCheckOut("");
-      setViewMode("details"); // إعادة المستخدم لصفحة التفاصيل بعد النجاح
+      setViewMode("details"); // إعادة المستخدم لتبويب التفاصيل بعد نجاح العملية
     }
   }
 
   if (pageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-sm font-bold text-[#3FAF9B] animate-pulse">جاري التحميل...</p>
+        <div className="w-10 h-10 border-4 border-[#3FAF9B] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-sm font-bold text-[#3FAF9B] mr-3">جاري التحميل...</p>
       </div>
     );
   }
@@ -102,11 +104,11 @@ export default function PropertyPage({ params }: any) {
   }
 
   return (
-    <main className="bg-[#FAFAFA] min-h-screen px-4 py-10">
+    <main className="bg-[#FAFAFA] min-h-screen px-4 py-10" dir="rtl">
       <div className="max-w-4xl mx-auto">
         
-        {/* صورة العقار */}
-        <div className="rounded-2xl overflow-hidden shadow-sm mb-6">
+        {/* صورة العقار الرئيسية */}
+        <div className="rounded-2xl overflow-hidden shadow-sm mb-6 bg-gray-100">
           <img
             src={property.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"}
             alt={property.title}
@@ -114,20 +116,20 @@ export default function PropertyPage({ params }: any) {
           />
         </div>
 
-        {/* كارت التحكم العلوي وتبديل العرض */}
+        {/* الكارت الأساسي لمعلومات العقار */}
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-6">
             <div className="text-right">
               <h1 className="text-2xl font-black text-[#111827]">{property.title}</h1>
               <p className="text-xs text-[#6B7280] mt-1">{property.location} - {property.governorate}</p>
             </div>
-            <div className="rounded-xl bg-[#E6F4F1] px-4 py-2 text-center">
+            <div className="rounded-xl bg-[#E6F4F1] px-4 py-2 text-center border border-emerald-50">
               <p className="text-xl font-black text-[#3FAF9B]">${property.price}</p>
-              <p className="text-[10px] text-[#6B7280]">ليلة واحدة</p>
+              <p className="text-[10px] text-[#6B7280] font-bold">ليلة واحدة</p>
             </div>
           </div>
 
-          {/* أزرار تنقل داخلية تمنع التداخل البصري تماماً */}
+          {/* أزرار التبديل العلوية لمنع تكرار الصفحات والمحتوى */}
           <div className="flex border-b border-gray-100 mt-4">
             <button
               onClick={() => setViewMode("details")}
@@ -147,17 +149,17 @@ export default function PropertyPage({ params }: any) {
             </button>
           </div>
 
-          {/* العرض الأول: تفاصيل المسكن فقط */}
+          {/* العرض الأول: تفاصيل ومواصفات المسكن */}
           {viewMode === "details" && (
             <div className="mt-6 text-right space-y-4 animate-fadeIn">
               <h2 className="text-lg font-bold text-[#111827]">الوصف والمواصفات</h2>
               <p className="text-sm text-gray-600 leading-7 bg-gray-50 p-4 rounded-xl">
-                {property.description || "مرحباً بك في منصة يلا هلا، هذا العقار مجهز بكافة الخدمات ووسائل الراحة الأساسية لضمان إقامة مريحة وسعيدة. للمزيد من الاستفسارات يمكنك التوجه مباشرة لتأكيد طلب الحجز المبدئي."}
+                {property.description || "مرحباً بك في منصة يلا هلا، هذا العقار مجهز بالخدمات الأساسية لضمان إقامة مريحة وسعيدة. للمزيد من الاستفسارات يمكنك التوجه مباشرة لتبويب تأكيد طلب الحجز المبدئي."}
               </p>
             </div>
           )}
 
-          {/* العرض الثاني: استمارة الحجز بدون طلاسم حقول التاريخ */}
+          {/* العرض الثاني: استمارة الحجز بإنقاذ الترتيب الصحيح والنظيف */}
           {viewMode === "book" && (
             <div className="mt-6 animate-fadeIn">
               <h2 className="text-lg font-bold text-right text-[#111827] mb-4">بيانات طلب الحجز الإقامة</h2>
@@ -165,23 +167,23 @@ export default function PropertyPage({ params }: any) {
               <div className="grid gap-4">
                 <input
                   type="text"
-                  placeholder="اسم المستأجر"
+                  placeholder="اسم المستأجر الكامل"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
                 />
                 <input
                   type="text"
-                  placeholder="رقم الهاتف"
+                  placeholder="رقم الهاتف أو الجوال"
                   value={guestPhone}
                   onChange={(e) => setGuestPhone(e.target.value)}
                   className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
                 />
 
-                {/* تم تعديل طريقة عرض التاريخ لتفادي ظهور الرموز الغريبة åååå */}
+                {/* ترتيب صحيح: تاريخ الوصول على اليمين أولاً، ثم تاريخ المغادرة على اليسار */}
                 <div className="grid gap-4 grid-cols-2">
                   <div>
-                    <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ الوصول</label>
+                    <label className="block mb-1 text-right text-[11px] text-[#6B7280] font-bold">تاريخ الوصول</label>
                     <input
                       type="date"
                       value={checkIn}
@@ -190,7 +192,7 @@ export default function PropertyPage({ params }: any) {
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ المغادرة</label>
+                    <label className="block mb-1 text-right text-[11px] text-[#6B7280] font-bold">تاريخ المغادرة</label>
                     <input
                       type="date"
                       value={checkOut}
@@ -205,7 +207,7 @@ export default function PropertyPage({ params }: any) {
                   disabled={loading}
                   className="mt-2 w-full rounded-xl bg-[#3FAF9B] py-3.5 text-sm font-bold text-white hover:bg-[#2F8E7D] transition shadow"
                 >
-                  {loading ? "جاري الإرسال..." : "تأكيد الطلب المبدئي"}
+                  {loading ? "جاري إرسال طلبك..." : "تأكيد الطلب المبدئي"}
                 </button>
 
                 <button
