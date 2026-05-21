@@ -78,22 +78,24 @@ export default function RootLayout({
             <Link href="/" className="flex items-center gap-4 group">
 
               {/* Logo */}
-              <div className="relative h-14 w-12 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-105">
+              <div className="relative h-14 w-14 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-105">
+
                 <img
                   src="/logo.jpg"
                   alt="Yalla Hala Logo"
                   className="h-full w-full object-contain p-1"
                 />
+
               </div>
 
-              {/* Text */}
+              {/* Brand Text */}
               <div className="text-right leading-tight">
 
-                <h1 className="text-3xl font-extrabold text-[#111827] tracking-tight group-hover:text-[#2D6A5F] transition">
+                <h1 className="text-2xl font-extrabold text-[#111827] tracking-tight group-hover:text-[#2D6A5F] transition">
                   Yalla Hala
                 </h1>
 
-                <p className="text-[11px] font-bold text-[#CF9E59] mt-1 tracking-wide">
+                <p className="text-[12px] font-bold text-[#CF9E59] mt-0.5 tracking-wide">
                   بيتك البعيد عن بيتك
                 </p>
 
@@ -186,11 +188,13 @@ export default function RootLayout({
               <div className="flex items-center gap-3 mb-3">
 
                 <div className="h-11 w-9 bg-white/10 rounded-lg p-1">
+
                   <img
                     src="/logo.jpg"
                     alt="Yalla Hala Logo"
                     className="h-full w-full object-contain brightness-110"
                   />
+
                 </div>
 
                 <h3 className="text-2xl font-extrabold text-white">
