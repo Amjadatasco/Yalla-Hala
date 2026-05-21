@@ -1,30 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function PropertyPage({ params }: any) {
+  // فك حزمة params بطريقة متوافقة تماماً مع Next.js الحديث لمنع أي تعليق
+  const resolvedParams = "then" in params ? use(params) : params;
+
   const [property, setProperty] = useState<any>(null);
   const [guestName, setGuestName] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true); // للتأكد من انتهاء جلب البيانات
 
   useEffect(() => {
-    loadProperty();
-  }, []);
+    if (resolvedParams?.id) {
+      loadProperty();
+    }
+  }, [resolvedParams?.id]); // جعل الكود ينتظر وصول الـ ID الفعلي من الرابط
 
   async function loadProperty() {
     try {
+      setPageLoading(true);
       const { data, error } = await supabase
         .from("properties")
         .select("*")
-        .eq("id", params.id)
+        .eq("id", resolvedParams.id)
         .single();
-      if (!error && data) setProperty(data);
+        
+      if (!error && data) {
+        setProperty(data);
+      }
     } catch (err) {
       console.error(err);
+    } finally {
+      setPageLoading(false); // إيقاف التحميل حتماً بعد انتهاء المحاولة
     }
   }
 
@@ -57,10 +69,23 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
-  if (!property) {
+  // إذا كان الموقع يقرأ البيانات من قاعدة البيانات حالياً
+  if (pageLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-sm font-bold text-[#3FAF9B]">جاري التحميل...</p>
+        <p className="text-sm font-bold text-[#3FAF9B] animate-pulse">جاري التحميل...</p>
+      </div>
+    );
+  }
+
+  // إذا انتهى التحميل ولم يجد العقار في قاعدة البيانات
+  if (!property) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+        <p className="text-sm font-bold text-red-500">العقار غير موجود أو تم حذفه</p>
+        <button onClick={() => window.location.href = "/"} className="text-xs bg-[#3FAF9B] text-white px-4 py-2 rounded-full">
+          العودة للرئيسية
+        </button>
       </div>
     );
   }
@@ -108,7 +133,6 @@ export default function PropertyPage({ params }: any) {
                 className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B]"
               />
 
-              {/* فرض لغة الإدخال العربية على عناصر التواريخ داخل الاستمارة هنا */}
               <div className="grid gap-4 grid-cols-2">
                 <div>
                   <label className="block mb-1 text-right text-[11px] text-[#6B7280]">تاريخ الوصول</label>
@@ -144,7 +168,7 @@ export default function PropertyPage({ params }: any) {
 
               <button
                 disabled
-                className="w-full rounded-xl bg-gray-300 py-3.5 text-sm font-bold text-gray-500 cursor-not-allowed text-center flex items-center justify-center gap-2"
+                className="w-full rounded-xl bg-gray-200 py-3.5 text-sm font-bold text-gray-500 cursor-not-allowed text-center flex items-center justify-center gap-2"
               >
                 الواتساب غير متوفر الآن
               </button>
