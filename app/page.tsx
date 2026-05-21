@@ -74,7 +74,7 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* شريط البحث المطور - ترتيب منطقي صحيح للتواريخ وبدون طلاسم */}
+      {/* شريط البحث المطور - تم قلب الترتيب الفعلي ليظهر الوصول أولاً دائماً */}
       <section className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
         <div className="bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 items-center">
@@ -105,24 +105,24 @@ export default function HomePage() {
               </select>
             </div>
 
-            {/* 3. تاريخ المغادرة (أصبح ثانياً من اليمين) */}
-            <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
-              <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ المغادرة</span>
-              <input
-                type="date"
-                value={checkOutDate}
-                onChange={(e) => setCheckOutDate(e.target.value)}
-                className="w-full bg-transparent text-right text-xs text-[#4B5563] outline-none cursor-pointer"
-              />
-            </div>
-
-            {/* 4. تاريخ الوصول (أصبح أولاً من اليمين بالنسبة لحقول التاريخ) */}
+            {/* 3. تاريخ الوصول (تم تقديمه هنا ليصبح قبل المغادرة في الترتيب الظاهري والعمودي) */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ الوصول</span>
               <input
                 type="date"
                 value={checkInDate}
                 onChange={(e) => setCheckInDate(e.target.value)}
+                className="w-full bg-transparent text-right text-xs text-[#4B5563] outline-none cursor-pointer"
+              />
+            </div>
+
+            {/* 4. تاريخ المغادرة (تأخر ليصبح بعد الوصول) */}
+            <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
+              <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ المغادرة</span>
+              <input
+                type="date"
+                value={checkOutDate}
+                onChange={(e) => setCheckOutDate(e.target.value)}
                 className="w-full bg-transparent text-right text-xs text-[#4B5563] outline-none cursor-pointer"
               />
             </div>
