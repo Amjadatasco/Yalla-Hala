@@ -35,7 +35,6 @@ export default function AddPropertyPage() {
 
   async function sendTelegramNewPropertyNotification() {
     try {
-      // تم تعديل الرسالة لترتيب البيانات وتوضيح رقم هاتف المؤجر
       const messageText = 
         `🆕 *إشعار: عقار جديد مضاف ينتظر المراجعة!* 🆕\n\n` +
         `🏠 *العقار:* ${title}\n` +
@@ -64,7 +63,6 @@ export default function AddPropertyPage() {
   }
 
   async function handleAddProperty() {
-    // التحقق البرمجي النهائي الصارم لضمان عدم إرسال أي حقل فارغ
     if (!ownerName.trim() || !ownerPhone.trim() || !title.trim() || !price || !selectedGov || !selectedType || !location.trim()) {
       alert("⚠️ خطأ: يرجى تعبئة كافة الحقول الإلزامية المطلوبة المحددة بالنجمة (*) أولاً.");
       return;
@@ -274,7 +272,7 @@ export default function AddPropertyPage() {
                 value={neighborhood}
                 onChange={(e) => setNeighborhood(e.target.value)}
                 className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-                placeholder="مثال: بجانب ساحة الكنيسة الرئيسي"
+                placeholder="مثال: بجانب الساحة الرئيسية"
               />
             </div>
 
