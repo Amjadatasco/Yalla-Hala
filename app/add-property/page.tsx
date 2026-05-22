@@ -12,7 +12,6 @@ const governorates = [
 const propertyTypes = ["شقة", "فيلا", "مزرعة", "غرفة", "شاليه"];
 
 export default function AddPropertyPage() {
-  // حالات برمجية لربط حقول المالك والبيانات الناقصة في الكود القديم
   const [ownerName, setOwnerName] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
@@ -31,22 +30,21 @@ export default function AddPropertyPage() {
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 🚀 دمج الحسابات الشخصية الخاصة بك لتلقي إشعارات العقارات الجديدة
   const TELEGRAM_BOT_TOKEN = "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
   const TELEGRAM_CHAT_ID = "629151535";
 
-  // دالة مخصصة لإرسال تقرير فوري إلى تليجرام عند رفع عقار جديد
   async function sendTelegramNewPropertyNotification() {
     try {
+      // تم تعديل الرسالة لترتيب البيانات وتوضيح رقم هاتف المؤجر
       const messageText = 
         `🆕 *إشعار: عقار جديد مضاف ينتظر المراجعة!* 🆕\n\n` +
-        `👤 *صاحب العقار:* ${ownerName}\n` +
-        `📞 *الهاتف:* ${ownerPhone}\n` +
-        `✉️ *الإيميل:* ${ownerEmail || "لا يوجد"}\n\n` +
-        `🏠 *عنوان العقار:* ${title}\n` +
+        `🏠 *العقار:* ${title}\n` +
         `🗂️ *النوع:* ${selectedType} | 📍 *المحافظة:* ${selectedGov}\n` +
         `🗺️ *المنطقة:* ${location} - ${neighborhood || "غير محدد"}\n` +
         `💰 *السعر المطلوب:* $${price} / ليلة\n\n` +
+        `👤 *صاحب العقار (المؤجر):* ${ownerName}\n` +
+        `📞 *رقم هاتف المؤجر:* ${ownerPhone}\n` +
+        `✉️ *الإيميل:* ${ownerEmail || "لا يوجد"}\n\n` +
         `🛏️ *المواصفات:* ${rooms || 0} غرف | ${beds || 0} أسرة | ${bathrooms || 0} حمامات\n` +
         `📝 *التجهيزات:* ${amenities || "لم تذكر"}\n\n` +
         `⏳ _يرجى الدخول للوحة التحكم لمراجعة العقار وتفعيل النشر._`;
@@ -66,8 +64,9 @@ export default function AddPropertyPage() {
   }
 
   async function handleAddProperty() {
-    if (!ownerName.trim() || !ownerPhone.trim() || !title.trim() || !price || !selectedGov || !selectedType) {
-      alert("يرجى ملء البيانات الأساسية: (اسم المالك، الهاتف، عنوان العقار، السعر، المحافظة، ونوع العقار).");
+    // التحقق البرمجي النهائي الصارم لضمان عدم إرسال أي حقل فارغ
+    if (!ownerName.trim() || !ownerPhone.trim() || !title.trim() || !price || !selectedGov || !selectedType || !location.trim()) {
+      alert("⚠️ خطأ: يرجى تعبئة كافة الحقول الإلزامية المطلوبة المحددة بالنجمة (*) أولاً.");
       return;
     }
 
@@ -133,7 +132,6 @@ export default function AddPropertyPage() {
         return;
       }
 
-      // تفعيل الإشعار الفوري وإرساله إلى حساب تليجرام الخاص بك
       await sendTelegramNewPropertyNotification();
 
       alert("🎉 تم إرسال عقارك بنجاح! سيتم مراجعته وتفعيله من قبل الإدارة فوراً.");
@@ -165,92 +163,135 @@ export default function AddPropertyPage() {
             أضف عقارك السكني
           </h1>
           <p className="mt-3 text-sm sm:text-base text-[#6B7280]">
-            أضف معلومات العقار بشكل احترافي دقيق، وسيتم مراجعته من قبل مسؤولي منصة يلا هلا قبل النشر الفعلي.
+            أضف معلومات العقار بشكل احترافي دقيق، وسيتم مراجعته من قبل مسؤولي منصة يلا هلا قبل النشر الفعلي. الحقول المميزة بـ (<span className="text-red-500">*</span>) هي حقول إجبارية.
           </p>
         </div>
 
         <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-5 sm:p-8 shadow-sm space-y-6">
           
-          <h2 className="text-lg font-bold text-[#111827] border-b pb-2 text-right">📋 بيانات مالك العقار للتواصل</h2>
+          <h2 className="text-lg font-bold text-[#111827] border-b pb-2 text-right">
+            📋 بيانات مالك العقار للتواصل <span className="text-red-500 text-xs font-normal">(إجباري)</span>
+          </h2>
           <div className="grid gap-4 md:grid-cols-3">
-            <input
-              type="text"
-              value={ownerName}
-              onChange={(e) => setOwnerName(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-              placeholder="اسم صاحب العقار الكامل"
-            />
-            <input
-              type="text"
-              value={ownerPhone}
-              onChange={(e) => setOwnerPhone(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-              placeholder="رقم الهاتف الفعال (واتساب)"
-            />
-            <input
-              type="email"
-              value={ownerEmail}
-              onChange={(e) => setOwnerEmail(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-              placeholder="البريد الإلكتروني (اختياري)"
-            />
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-700">اسم صاحب العقار الكامل <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                required
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B]"
+                placeholder="مثال: أحمد محمد"
+              />
+            </div>
+            
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-700">رقم الهاتف الفعال (واتساب) <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                required
+                value={ownerPhone}
+                onChange={(e) => setOwnerPhone(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B]"
+                placeholder="مثال: 0933xxxxxx"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-500">البريد الإلكتروني <span className="text-gray-400 font-normal">(اختياري)</span></label>
+              <input
+                type="email"
+                value={ownerEmail}
+                onChange={(e) => setOwnerEmail(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
+                placeholder="البريد الإلكتروني"
+              />
+            </div>
           </div>
 
-          <h2 className="text-lg font-bold text-[#111827] border-b pb-2 text-right">🏠 مواصفات وموقع المسكن</h2>
+          <h2 className="text-lg font-bold text-[#111827] border-b pb-2 text-right">
+            🏠 مواصفات وموقع المسكن <span className="text-red-500 text-xs font-normal">(إجباري)</span>
+          </h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-              placeholder="اسم العقار التجاري أو عنوان تسويقي مختصر"
-            />
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-700">عنوان العقار أو اسم تسويقي <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                required
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B]"
+                placeholder="مثال: شاليه الريحان السكني الفاخر"
+              />
+            </div>
 
-            <select 
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] text-gray-700 font-medium cursor-pointer"
-            >
-              <option value="">اختر نوع العقار</option>
-              {propertyTypes.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-700">نوع العقار من القائمة <span className="text-red-500">*</span></label>
+              <select 
+                required
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B] text-gray-700 font-medium cursor-pointer"
+              >
+                <option value="">اختر نوع العقار</option>
+                {propertyTypes.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
 
-            <select 
-              value={selectedGov}
-              onChange={(e) => setSelectedGov(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] text-gray-700 font-medium cursor-pointer"
-            >
-              <option value="">اختر المحافظة السورية</option>
-              {governorates.map((gov) => (
-                <option key={gov} value={gov}>{gov}</option>
-              ))}
-            </select>
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-700">المحافظة <span className="text-red-500">*</span></label>
+              <select 
+                required
+                value={selectedGov}
+                onChange={(e) => setSelectedGov(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B] text-gray-700 font-medium cursor-pointer"
+              >
+                <option value="">اختر المحافظة السورية</option>
+                {governorates.map((gov) => (
+                  <option key={gov} value={gov}>{gov}</option>
+                ))}
+              </select>
+            </div>
 
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-              placeholder="المدينة أو البلدة"
-            />
-            <input
-              type="text"
-              value={neighborhood}
-              onChange={(e) => setNeighborhood(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-              placeholder="الحي أو الشارع أو المعلم المقارب"
-            />
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
-              placeholder="التكلفة التقديرية بالدولار / ليلة"
-            />
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-700">المدينة أو البلدة <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                required
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B]"
+                placeholder="مثال: حمص، مشتى الحلو..."
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-500">الحي أو الشارع أو المعلم المقارب <span className="text-gray-400 font-normal">(اختياري)</span></label>
+              <input
+                type="text"
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B]"
+                placeholder="مثال: بجانب ساحة الكنيسة الرئيسي"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5 text-right">
+              <label className="text-xs font-bold text-gray-700">التكلفة لليلة بالدولار ($) <span className="text-red-500">*</span></label>
+              <input
+                type="number"
+                required
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none transition focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B]"
+                placeholder="مثال: 150"
+              />
+            </div>
           </div>
 
+          <h2 className="text-lg font-bold text-[#111827] border-b pb-2 text-right">📋 التجهيزات وعدد الغرف الداخلي <span className="text-gray-400 text-xs font-normal">(اختياري)</span></h2>
           <div className="grid gap-4 grid-cols-3">
             <input
               type="number"
@@ -290,7 +331,6 @@ export default function AddPropertyPage() {
             />
           </div>
 
-          {/* بوكس تحميل الصور */}
           <div className="mt-8 rounded-[24px] border border-[#E5E7EB] bg-white p-5 shadow-sm">
             <h2 className="mb-2 text-right text-lg font-bold text-[#111827]">🖼️ ألبوم صور العقار الحية</h2>
             <p className="mb-4 text-right text-xs text-[#6B7280]">يمكنك تحديد واختيار مجموعة صور واضحة وواقعية لرفع جاذبية العقار.</p>
