@@ -38,20 +38,17 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <head>
-        {/* Google Tag Manager */}
-        <Script id="google-tag-manager" strategy="afterInteractive">
+        {/* ✨ كود تتبع Google Analytics (GA4) الفعلي والمباشر لموقعك */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-V5QW92L6J0"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
           {`
-            (function(w,d,s,l,i){
-              w[l]=w[l]||[];
-              w[l].push({'gtm.start':
-              new Date().getTime(),event:'gtm.js'});
-              var f=d.getElementsByTagName(s)[0],
-              j=d.createElement(s),
-              dl=l!='dataLayer'?'&l='+l:'';
-              j.async=true;
-              j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-              f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-P6X6S7FK');
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-V5QW92L6J0');
           `}
         </Script>
       </head>
@@ -59,7 +56,7 @@ export default function RootLayout({
       <body className="bg-[#FAFAFA] text-[#1F2937] overflow-x-hidden antialiased">
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-P6X6S7FK"
+            src="https://www.googletagmanager.com/ns.html?id=G-V5QW92L6J0"
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
@@ -204,7 +201,6 @@ export default function RootLayout({
               </div>
             </div>
 
-            {/* تم الاكتفاء بالبريد الإلكتروني فقط هنا */}
             <div className="text-right">
               <h3 className="text-lg font-bold text-white mb-4">الدعم والتواصل</h3>
               <div className="space-y-3 text-sm text-gray-200">
