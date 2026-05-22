@@ -204,6 +204,9 @@ export default function RootLayout({
                 <Link href="/" className="hover:text-white transition">تصفح العقارات</Link>
                 <Link href="/add-property" className="hover:text-white transition">أضف عقارك</Link>
                 <Link href="/about" className="hover:text-white transition">من نحن</Link>
+                {/* 👇 حقن الروابط القانونية الجديدة بشكل متناسق */}
+                <Link href="/terms" className="hover:text-white transition">شروط الاستخدام</Link>
+                <Link href="/privacy" className="hover:text-white transition">سياسة الخصوصية</Link>
               </div>
             </div>
 
