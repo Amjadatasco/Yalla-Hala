@@ -29,6 +29,31 @@ export default function LoginPage() {
     }
   }
 
+  // دالة ذكية لإرسال رابط إعادة تعيين كلمة المرور عبر الإيميل تلقائياً
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      alert("⚠️ يرجى كتابة بريدك الإلكتروني أولاً في الحقل المخصص لتلقي رابط الاسترداد.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      setLoading(false);
+      if (error) {
+        alert("❌ فشل إرسال الرابط: " + error.message);
+      } else {
+        alert("📧 تم إرسال رابط آمن لإعادة تعيين كلمة المرور إلى بريدك الإلكتروني بنجاح! يرجى فحص صندوق الوارد (أو الرسائل غير المرغوب فيها).");
+      }
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-[32px] p-8 shadow-xl border border-[#E5E7EB]">
@@ -58,6 +83,17 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
             />
+            
+            {/* ✨ إضافة خيار نسيت كلمة المرور بمحاذاة اليمين */}
+            <div className="text-right mt-2">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-xs font-bold text-gray-500 hover:text-[#3FAF9B] transition underline cursor-pointer"
+              >
+                هل نسيت كلمة المرور؟
+              </button>
+            </div>
           </div>
 
           <button
