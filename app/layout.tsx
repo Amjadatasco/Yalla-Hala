@@ -38,6 +38,12 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <head>
+        {/* 📑 وسوم الأرشفة الفورية لمحركات البحث (SEO Meta Tags) */}
+        <title>منصة يلا هلا | حجوزات الشاليهات والعقارات السياحية في سوريا</title>
+        <meta name="description" content="بيتك البعيد عن بيتك. تصفح واحجز أفضل الشاليهات، الفلل، والمزارع للإقامات قصيرة الأجل في سوريا بكل سهولة وأمان ونظام إشعارات فوري." />
+        <meta name="keywords" content="يلا هلا, حجز شاليهات سوريا, شاليهات اللاذقية, شاليهات طرطوس, فلل حمص, مزارع دمشق, عقارات سياحية سوريا, إقامة قصيرة الأجل" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        
         {/* ✨ كود تتبع Google Analytics (GA4) الفعلي والمباشر لموقعك */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-V5QW92L6J0"
