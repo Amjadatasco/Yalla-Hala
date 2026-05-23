@@ -60,7 +60,7 @@ export default function PropertyPage({ params }: any) {
         const { data: bookingsData, error: bookingsError } = await supabase
           .from("bookings")
           .select("check_in, check_out")
-          .eq("property_id", String(resolvedParams.id))
+          .eq("property_id", Number(resolvedParams.id)) // 🟢 تم التعديل لرقم هنا أيضاً
           .eq("status", "confirmed"); // جلب الحجوزات المؤكدة فقط لمنع تداخل المواعيد الفعلي
 
         if (!bookingsError && bookingsData) {
@@ -148,15 +148,15 @@ export default function PropertyPage({ params }: any) {
 
     setLoading(true);
 
-    // 4. إدخال الحجز في جدول Supabase مع إرسال حقل الحالة صراحةً كـ pending ليظهر في لوحة التحكم
+    // 4. إدخال الحجز في جدول Supabase بصيغة رقمية مطابقة لقاعدة البيانات وعمود الـ status
     const { error } = await supabase.from("bookings").insert([
       {
-        property_id: String(property.id),
+        property_id: Number(property.id), // 🟢 تم التعديل الجذري هنا إلى الرقم الصحيح!
         guest_name: guestName.trim(),
         guest_phone: guestPhone.trim(),
         check_in: checkIn,
         check_out: checkOut,
-        status: "pending", // الإرسال الصريح لضمان القبول الفوري في لوحة الحجز كطلب معلق
+        status: "pending", 
       },
     ]);
 
