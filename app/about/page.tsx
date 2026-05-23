@@ -37,7 +37,7 @@ export default function AboutPage() {
             <div>
               <div className="mb-6 text-5xl">🔍</div>
               <h2 className="text-2xl font-black text-[#3FAF9B]">
-                لماذا تحجز عبرنا？
+                لماذا تحجز عبرنا؟
               </h2>
               <p className="text-xs text-gray-400 mt-1 mb-4 font-bold">للزوار والباحثين عن إقامة</p>
               <ul className="space-y-3 leading-7 text-[#4B5563] text-sm font-medium">
@@ -104,7 +104,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* ⚡ الـ Grid ثنائي البطاقات المحدث بنصوص احترافية */}
+          {/* ⚡ الـ Grid ثنائي البطاقات المثبت لمنع انقلاب علامة الزائد */}
           <div className="mt-12 max-w-3xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2">
             
             {/* بطاقة البريد الإلكتروني */}
@@ -129,7 +129,8 @@ export default function AboutPage() {
               <h3 className="text-lg font-bold text-[#111827]">
                 واتساب
               </h3>
-              <p className="mt-3 text-xl font-bold text-green-600 dir-ltr tracking-wide">
+              {/* 🟢 تم تثبيت اتجاه الرقم هنا لـ LTR ليظهر الزائد على اليسار بشكل مثالي */}
+              <p dir="ltr" className="mt-3 text-xl font-bold text-green-600 tracking-wide">
                 +46790081236
               </p>
             </a>
