@@ -190,7 +190,6 @@ export default function RootLayout({
                 <Link href="/" className="hover:text-white transition">تصفح العقارات</Link>
                 <Link href="/add-property" className="hover:text-white transition">أضف عقارك</Link>
                 <Link href="/about" className="hover:text-white transition">من نحن</Link>
-                {/* 👇 حقن الروابط القانونية الجديدة بشكل متناسق */}
                 <Link href="/terms" className="hover:text-white transition">شروط الاستخدام</Link>
                 <Link href="/privacy" className="hover:text-white transition">سياسة الخصوصية</Link>
               </div>
@@ -209,7 +208,7 @@ export default function RootLayout({
           </div>
         </footer>
 
-        {/* ✨ تم نقل سكربتات Google Analytics إلى نهاية الـ body لضمان تتبع تنقلات الزوار الفورية بنجاح */}
+        {/* 📉 سكربتات Google Analytics الاحتياطية */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-V5QW92L6J0"
           strategy="afterInteractive"
@@ -224,6 +223,13 @@ export default function RootLayout({
             });
           `}
         </Script>
+
+        {/* 🌟 كود التتبع الفوري لـ Umami المانع للحجب والسريع بمُعرِّف موقعك الصحيح */}
+        <Script
+          src="https://cloud.umami.is/script.js"
+          data-website-id="4754c078-41b3-472a-9d24-a04874d18646" 
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
