@@ -60,8 +60,8 @@ export default function PropertyPage({ params }: any) {
         const { data: bookingsData, error: bookingsError } = await supabase
           .from("bookings")
           .select("check_in, check_out")
-          .eq("property_id", Number(resolvedParams.id)) // 🟢 تم التعديل لرقم هنا أيضاً
-          .eq("status", "confirmed"); // جلب الحجوزات المؤكدة فقط لمنع تداخل المواعيد الفعلي
+          .eq("property_id", resolvedParams.id) // 🟢 إرسال الـ UUID النظيف مباشرة بدون تعديل ليتوافق مع قاعدة بياناتك
+          .eq("status", "confirmed");
 
         if (!bookingsError && bookingsData) {
           setExistingBookings(bookingsData);
@@ -148,10 +148,10 @@ export default function PropertyPage({ params }: any) {
 
     setLoading(true);
 
-    // 4. إدخال الحجز في جدول Supabase بصيغة رقمية مطابقة لقاعدة البيانات وعمود الـ status
+    // 4. إدخال الحجز في جدول Supabase بالصيغة النصية الخام للـ UUID المطابقة للجدول تماماً
     const { error } = await supabase.from("bookings").insert([
       {
-        property_id: Number(property.id), // 🟢 تم التعديل الجذري هنا إلى الرقم الصحيح!
+        property_id: property.id, // 🟢 تم التعديل الجذري هنا لإرسال الـ UUID كما هو لتفادي خطأ الـ null!
         guest_name: guestName.trim(),
         guest_phone: guestPhone.trim(),
         check_in: checkIn,
