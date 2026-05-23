@@ -37,7 +37,7 @@ export default function AboutPage() {
             <div>
               <div className="mb-6 text-5xl">🔍</div>
               <h2 className="text-2xl font-black text-[#3FAF9B]">
-                لماذا تحجز عبرنا؟
+                لماذا تحجز عبرنا？
               </h2>
               <p className="text-xs text-gray-400 mt-1 mb-4 font-bold">للزوار والباحثين عن إقامة</p>
               <ul className="space-y-3 leading-7 text-[#4B5563] text-sm font-medium">
@@ -104,7 +104,7 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* ⚡ الـ Grid الجديد ثنائي البطاقات لقنوات التواصل الفعالة */}
+          {/* ⚡ الـ Grid ثنائي البطاقات المحدث بنصوص احترافية */}
           <div className="mt-12 max-w-3xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2">
             
             {/* بطاقة البريد الإلكتروني */}
@@ -118,7 +118,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            {/* بطاقة واتساب العمل المباشر */}
+            {/* بطاقة واتساب المباشر */}
             <a 
               href="https://wa.me/46790081236"
               target="_blank"
@@ -126,11 +126,11 @@ export default function AboutPage() {
               className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-8 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center group"
             >
               <div className="mb-4 text-5xl group-hover:scale-105 transition duration-300">💬</div>
-              <h3 className="text-lg font-black text-[#111827]">
-                واتساب العمل الفوري
+              <h3 className="text-lg font-bold text-[#111827]">
+                واتساب
               </h3>
               <p className="mt-3 text-xl font-bold text-green-600 dir-ltr tracking-wide">
-                0046790081236
+                +46790081236
               </p>
             </a>
 
