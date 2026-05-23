@@ -54,28 +54,58 @@ export default function UsersPage() {
     fetchUsers();
   }, [router]);
 
-  // حذف مستخدم
+  // حذف مستخدم بالكامل
   async function handleDelete(id: string) {
     const confirmed = confirm(
-      "هل أنت متأكد من حذف المستخدم؟"
+      "هل أنت متأكد من حذف المستخدم نهائياً؟"
     );
 
     if (!confirmed) return;
 
-    const { error } = await supabase
-      .from("profiles")
-      .delete()
-      .eq("id", id);
+    try {
+      const response = await fetch(
+        "/api/delete-user",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            userId: id,
+          }),
+        }
+      );
 
-    if (error) {
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        alert(
+          result.error ||
+            "فشل حذف المستخدم"
+        );
+        return;
+      }
+
+      // حذف من الواجهة مباشرة
+      setUsers(
+        users.filter(
+          (u) => u.id !== id
+        )
+      );
+
+      alert(
+        "تم حذف المستخدم نهائياً"
+      );
+
+    } catch (error) {
       console.error(error);
-      alert("فشل حذف المستخدم");
-      return;
+
+      alert(
+        "حدث خطأ أثناء الحذف"
+      );
     }
-
-    setUsers(users.filter((u) => u.id !== id));
-
-    alert("تم حذف المستخدم");
   }
 
   if (loading) {
