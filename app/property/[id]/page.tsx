@@ -56,11 +56,12 @@ export default function PropertyPage({ params }: any) {
       if (!propertyError && propertyData) {
         setProperty(propertyData);
 
-        // 2. جلب الحجوزات الحالية الخاصة بهذا العقار لمنع تداخل التواريخ للمستأجرين
+        // 2. جلب الحجوزات الحالية الخاصة بهذا العقار (المؤكدة والمشغولة فقط)
         const { data: bookingsData, error: bookingsError } = await supabase
           .from("bookings")
           .select("check_in, check_out")
-          .eq("property_id", String(resolvedParams.id));
+          .eq("property_id", String(resolvedParams.id))
+          .eq("status", "confirmed"); // جلب الحجوزات المؤكدة فقط لمنع تداخل المواعيد الفعلي
 
         if (!bookingsError && bookingsData) {
           setExistingBookings(bookingsData);
@@ -90,7 +91,7 @@ export default function PropertyPage({ params }: any) {
     return false; // التواريخ متاحة وصالحة للاستخدام
   }
 
-  // 🛠️ دالة إرسال التقرير المحدثة والمطورة لجلب وعرض بيانات المؤجر والمستأجر معاً
+  // 🛠️ دالة إرسال التقرير مع توضيح حالة الحجز الجديدة بدقة كـ معلق
   async function sendTelegramNotification(name: string, phone: string, inDate: string, outDate: string) {
     try {
       const messageText = 
@@ -107,7 +108,8 @@ export default function PropertyPage({ params }: any) {
         
         `📅 *تاريخ الوصول:* ${inDate}\n` +
         `📅 *تاريخ المغادرة:* ${outDate}\n\n` +
-        `✨ _يرجى التواصل مع الطرفين لتأكيد الحجز المبدئي._`;
+        `⏳ *حالة طلب الحجز الحالي:* \`pending (بانتظار المراجعة)\`\n\n` +
+        `✨ _يرجى الدخول إلى لوحة التحكم للموافقة على الطلب أو التواصل مع الطرفين وتأكيده._`;
 
       await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: "POST",
@@ -146,7 +148,7 @@ export default function PropertyPage({ params }: any) {
 
     setLoading(true);
 
-    // 4. محاولة إدخال الحجز في جدول Supabase
+    // 4. إدخال الحجز في جدول Supabase مع إرسال حقل الحالة صراحةً كـ pending ليظهر في لوحة التحكم
     const { error } = await supabase.from("bookings").insert([
       {
         property_id: String(property.id),
@@ -154,6 +156,7 @@ export default function PropertyPage({ params }: any) {
         guest_phone: guestPhone.trim(),
         check_in: checkIn,
         check_out: checkOut,
+        status: "pending", // الإرسال الصريح لضمان القبول الفوري في لوحة الحجز كطلب معلق
       },
     ]);
 
@@ -163,7 +166,7 @@ export default function PropertyPage({ params }: any) {
       console.error("📋 [Supabase Database Error Details]:", error);
       alert(`⚠️ تعذر إرسال الطلب لقاعدة البيانات!\n\nالسبب البرمجي: ${error.message}`);
     } else {
-      // 🌟 تشغيل الإشعار الفوري وإرساله لهاتفك متضمناً بيانات الطرفين
+      // 🌟 تشغيل الإشعار الفوري وإرساله لهاتفك متضمناً بيانات الطرفين والحالة الدقيقة
       await sendTelegramNotification(guestName.trim(), guestPhone.trim(), checkIn, checkOut);
 
       alert("🎉 تم إرسال طلب حجزك بنجاح وسيتواصل معك المسؤول قريباً!");
@@ -252,7 +255,7 @@ export default function PropertyPage({ params }: any) {
                 </p>
               </div>
 
-              {/* واجهة إرشادية تعرض الفترات المحجوزة مسبقاً */}
+              {/* واجهة إرشادية تعرض الفترات المحجوزة مسبقاً والمؤكدة */}
               <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4">
                 <h3 className="text-sm font-bold text-amber-800 mb-2">📅 جدول الفترات المحجوزة وغير المتاحة:</h3>
                 {existingBookings.length === 0 ? (
