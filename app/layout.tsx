@@ -43,20 +43,6 @@ export default function RootLayout({
         <meta name="description" content="بيتك البعيد عن بيتك. تصفح واحجز أفضل الشاليهات، الفلل، والمزارع للإقامات قصيرة الأجل في سوريا بكل سهولة وأمان ونظام إشعارات فوري." />
         <meta name="keywords" content="يلا هلا, حجز شاليهات سوريا, شاليهات اللاذقية, شاليهات طرطوس, فلل حمص, مزارع دمشق, عقارات سياحية سوريا, إقامة قصيرة الأجل" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        
-        {/* ✨ كود تتبع Google Analytics (GA4) الفعلي والمباشر لموقعك */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-V5QW92L6J0"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-V5QW92L6J0');
-          `}
-        </Script>
       </head>
 
       <body className="bg-[#FAFAFA] text-[#1F2937] overflow-x-hidden antialiased">
@@ -222,6 +208,22 @@ export default function RootLayout({
             © 2026 Yalla Hala. All rights reserved.
           </div>
         </footer>
+
+        {/* ✨ تم نقل سكربتات Google Analytics إلى نهاية الـ body لضمان تتبع تنقلات الزوار الفورية بنجاح */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-V5QW92L6J0"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-V5QW92L6J0', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
       </body>
     </html>
   );
