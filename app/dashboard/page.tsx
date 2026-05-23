@@ -24,6 +24,10 @@ type Booking = {
   status: string; // 🟢 تم إضافة حقل الحالة لإدارته حياً من لوحة التحكم
 };
 
+<Link href="/admin/users" className="bg-[#3FAF9B] text-white p-4 rounded-xl font-bold">
+  إدارة المشتركين
+</Link>
+
 export default function DashboardPage() {
   const [authorized, setAuthorized] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false); // حالة فحص إذا كان الداخل هو الأدمن الرئيسي
@@ -370,5 +374,6 @@ export default function DashboardPage() {
 
       </section>
     </main>
+    
   );
 }
