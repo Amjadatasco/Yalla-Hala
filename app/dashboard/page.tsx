@@ -21,6 +21,7 @@ type Booking = {
   guest_phone: string;
   check_in: string;
   check_out: string;
+  status: string; // 🟢 تم إضافة حقل الحالة لإدارته حياً من لوحة التحكم
 };
 
 export default function DashboardPage() {
@@ -136,6 +137,22 @@ export default function DashboardPage() {
     refreshData();
   }
 
+  // 🟢 دالة تأكيد وقبول الحجز وتحويل حالته إلى مؤكد لحجز التواريخ رسمياً
+  async function approveBooking(id: number) {
+    const { error } = await supabase
+      .from("bookings")
+      .update({ status: "confirmed" })
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      alert("فشل تأكيد الحجز، يرجى التأكد من إضافة حقل status في السوبابيس أولاً.");
+    } else {
+      alert("🎉 تم تأكيد الحجز بنجاح، وتم احتلال هذه التواريخ في نتائج البحث!");
+      refreshData();
+    }
+  }
+
   async function deleteBooking(id: number) {
     const confirmed = window.confirm("هل أنت متأكد من حذف هذا الحجز نهائياً؟");
     if (!confirmed) return;
@@ -157,7 +174,7 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#F9FAFB] pb-24" dir="rtl">
       
-      {/* HEADER - هيدر ذكي يتغير عنوانه وشعاره حسب نوع الحساب المكتشف */}
+      {/* HEADER */}
       <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur-md shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-20 flex items-center justify-between">
           
@@ -194,7 +211,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* بطاقات الإحصائيات الذكية والمكيفة حسب نوع الحساب المكتشف */}
+            {/* بطاقات الإحصائيات */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-12">
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center justify-between">
                 <div className="text-right">
@@ -233,7 +250,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* قسم إدارة طلبات إعلانات العقارات */}
+            {/* قسم إدارة العقارات */}
             <div className="mb-14">
               <h2 className="text-xl font-black text-[#111827] mb-6 text-right border-r-4 border-[#2D6A5F] pr-3">
                 {isAdmin ? "طلبات إدراج العقارات العامة" : "حالة عقاراتي المعروضة على المنصة"}
@@ -262,7 +279,6 @@ export default function DashboardPage() {
                           <p className="text-lg font-black text-[#2D6A5F] mt-3">${property.price} <span className="text-[10px] text-gray-400 font-normal">/ ليلة</span></p>
                         </div>
 
-                        {/* التحكم بالأزرار الحساسة: تظهر للأدمن (أنت) فقط، وتختفي من شاشات المؤجرين حماية للموقع */}
                         <div className="flex flex-col sm:flex-row lg:flex-col gap-2">
                           {isAdmin && property.status !== "approved" && (
                             <button onClick={() => approveProperty(property.id)} className="w-full h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition">
@@ -286,9 +302,9 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* قسم تصفح وإدارة الحجوزات الواردة مصفاة آلياً حسب الهوية */}
+            {/* سجل طلبات الحجوزات */}
             <div>
-              <h2 className="text-xl font-black text-[#111827] mb-6 text-right border-r-4 border-[#CF9E59] pr-3">
+              <h2 className="text-xl font-black text-[#111827] mb-6 text-right border-r-4 border-[#Change_Here] pr-3 style={{ borderRightColor: '#CF9E59' }}">
                 {isAdmin ? "سجل طلبات الحجوزات العامة للمنصة" : "طلبات حجز الزبائن القادمة إليك"}
               </h2>
 
@@ -301,7 +317,11 @@ export default function DashboardPage() {
                       <div className="text-right">
                         <div className="flex items-center justify-between border-b pb-2 mb-3">
                           <span className="text-[10px] text-gray-400 font-bold">معرف الحجز #{booking.id}</span>
-                          <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md font-bold">حجز مؤكد</span>
+                          <span className={`px-2 py-0.5 rounded-md text-xs font-bold ${
+                            booking.status === "confirmed" ? "text-green-600 bg-green-50" : "text-amber-600 bg-amber-50"
+                          }`}>
+                            {booking.status === "confirmed" ? "حجز مؤكد" : "طلب معلق"}
+                          </span>
                         </div>
                         <h3 className="text-base font-bold text-[#111827]">{booking.guest_name}</h3>
                         <p className="text-xs text-[#6B7280] mt-1.5 flex items-center justify-end gap-1">
@@ -321,13 +341,25 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => deleteBooking(booking.id)}
-                        className="w-full h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition border border-red-100 flex items-center justify-center gap-1"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        حذف وإلغاء الحجز
-                      </button>
+                      {/* أزرار التحكم بالحجز: تفعيل زر قبول الحجز الذكي إذا كان معلقاً */}
+                      <div className="flex flex-col gap-2 mt-2">
+                        {booking.status !== "confirmed" && (
+                          <button
+                            onClick={() => approveBooking(booking.id)}
+                            className="w-full h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition flex items-center justify-center gap-1 shadow-sm"
+                          >
+                            ✅ تأكيد وقبول الحجز
+                          </button>
+                        )}
+                        <button
+                          onClick={() => deleteBooking(booking.id)}
+                          className="w-full h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition border border-red-100 flex items-center justify-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                          حذف وإلغاء الحجز
+                        </button>
+                      </div>
+
                     </div>
                   ))}
                 </div>

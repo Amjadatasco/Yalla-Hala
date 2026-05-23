@@ -28,15 +28,34 @@ export default function HomePage() {
     loadProperties();
   }, []);
 
+  // 🛠️ الهندسة الذكية المحدثة لمنع الحجوزات المزدوجة وإخفاء العقار المحجوز تلقائياً
   async function loadProperties() {
     setLoading(true);
     try {
+      let bookedPropertyIds: string[] = [];
+
+      // 1. إذا حدد المستخدم تاريخ وصول ومغادرة، نبحث أولاً عن العقارات المشغولة
+      if (checkInDate && checkOutDate) {
+        const { data: overlappedBookings, error: bookingError } = await supabase
+          .from("bookings")
+          .select("property_id")
+          .eq("status", "confirmed") // الحجوزات المقبولة والمؤكدة من الإدارة فقط
+          .or(`check_in.lte.${checkOutDate},check_out.gte.${checkInDate}`);
+
+        if (!bookingError && overlappedBookings) {
+          // استخراج الـ IDs الفريدة للعقارات المحجوزة في هذه الفترة
+          bookedPropertyIds = overlappedBookings.map((b: any) => String(b.property_id));
+        }
+      }
+
+      // 2. بناء استعلام جلب العقارات المعتمد
       let query = supabase
         .from("properties")
         .select("*")
-        .eq("status", "approved")
+        .eq("status", "approved") // العقارات المعتمدة من الإدارة فقط
         .order("created_at", { ascending: false });
 
+      // فلاتر المحافظة والنوع العادية
       if (selectedGovernorate) {
         query = query.eq("governorate", selectedGovernorate);
       }
@@ -44,12 +63,17 @@ export default function HomePage() {
         query = query.eq("type", selectedType);
       }
 
+      // 3. السحر التقني: إذا كان هناك عقارات محجوزة ومستخرجة، نقوم باستبعادها كلياً من القائمة (NOT IN)
+      if (bookedPropertyIds.length > 0) {
+        query = query.not("id", "in", `(${bookedPropertyIds.join(",")})`);
+      }
+
       const { data, error } = await query;
       if (!error && data) {
         setProperties(data);
       }
     } catch (err) {
-      console.error(err);
+      console.error("خطأ أثناء فلترة وجلب العقارات المتاحة:", err);
     } finally {
       setLoading(false);
     }
@@ -74,7 +98,7 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* شريط البحث المطور - تم قلب الترتيب الفعلي ليظهر الوصول أولاً دائماً وبدون طلاسم */}
+      {/* شريط البحث المطور */}
       <section className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
         <div className="bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 items-center">
@@ -105,7 +129,7 @@ export default function HomePage() {
               </select>
             </div>
 
-            {/* 3. تاريخ الوصول (تم تقديمه ليظهر أولاً بشكل عمي وأفقي) */}
+            {/* 3. تاريخ الوصول */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ الوصول</span>
               <input
@@ -116,7 +140,7 @@ export default function HomePage() {
               />
             </div>
 
-            {/* 4. تاريخ المغادرة (تأخر ليصبح بعد الوصول منطقياً) */}
+            {/* 4. تاريخ المغادرة */}
             <div className="lg:col-span-2 bg-white rounded-xl px-3 h-12 flex flex-col justify-center shadow-sm">
               <span className="text-[9px] text-gray-400 text-right font-bold">تاريخ المغادرة</span>
               <input
@@ -171,7 +195,7 @@ export default function HomePage() {
         ) : properties.length === 0 ? (
           <div className="bg-white border border-[#E5E7EB] rounded-2xl p-12 text-center shadow-sm max-w-xl mx-auto">
             <h3 className="text-xl font-bold text-[#111827]">لا يوجد عقارات متاحة حالياً</h3>
-            <p className="mt-2 text-sm text-[#6B7280]">يرجى المحاولة مجدداً في وقت لاحق.</p>
+            <p className="mt-2 text-sm text-[#6B7280]">يرجى تعديل تواريخ البحث أو المحاولة مجدداً في وقت لاحق.</p>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
