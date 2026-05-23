@@ -57,7 +57,6 @@ export default function PropertyPage({ params }: any) {
         setProperty(propertyData);
 
         // 2. جلب الحجوزات الحالية الخاصة بهذا العقار لمنع تداخل التواريخ للمستأجرين
-        // 💡 تم تحويل المعامل إلى نص متوافق مع جدولك
         const { data: bookingsData, error: bookingsError } = await supabase
           .from("bookings")
           .select("check_in, check_out")
@@ -91,7 +90,7 @@ export default function PropertyPage({ params }: any) {
     return false; // التواريخ متاحة وصالحة للاستخدام
   }
 
-  // دالة إرسال التقرير المنسق الفاخر لبوت تليجرام الخاص بك
+  // 🛠️ دالة إرسال التقرير المحدثة والمطورة لجلب وعرض بيانات المؤجر والمستأجر معاً
   async function sendTelegramNotification(name: string, phone: string, inDate: string, outDate: string) {
     try {
       const messageText = 
@@ -99,11 +98,16 @@ export default function PropertyPage({ params }: any) {
         `🏠 *العقار:* ${property?.title || "غير محدد"}\n` +
         `📍 *الموقع:* ${property?.location || "غير محدد"} - ${property?.governorate || ""}\n` +
         `💰 *السعر:* $${property?.price || "0"} / ليلة\n\n` +
+        
         `👤 *اسم المستأجر:* ${name}\n` +
-        `📞 *رقم الهاتف:* [${phone}](tel:${phone})\n\n` +
+        `📞 *رقم هاتف المستأجر:* \`${phone}\`\n\n` +
+        
+        `👤 *صاحب العقار (المؤجر):* ${property?.owner_name || "غير مسجل"}\n` +
+        `📞 *رقم هاتف المؤجر:* \`${property?.owner_phone || "غير مسجل"}\`\n\n` +
+        
         `📅 *تاريخ الوصول:* ${inDate}\n` +
         `📅 *تاريخ المغادرة:* ${outDate}\n\n` +
-        `✨ _يرجى التواصل مع الزبون لتأكيد الحجز المبدئي._`;
+        `✨ _يرجى التواصل مع الطرفين لتأكيد الحجز المبدئي._`;
 
       await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: "POST",
@@ -143,7 +147,6 @@ export default function PropertyPage({ params }: any) {
     setLoading(true);
 
     // 4. محاولة إدخال الحجز في جدول Supabase
-    // 🚀 التعديل الجوهري السحري: String(property.id) لإرسال قيمة نصية تطابق عمود قاعدة بياناتك تماماً وتفك الـ RLS
     const { error } = await supabase.from("bookings").insert([
       {
         property_id: String(property.id),
@@ -157,20 +160,10 @@ export default function PropertyPage({ params }: any) {
     setLoading(false);
 
     if (error) {
-      console.error("📋 [Supabase Database Error Details]:", {
-        Message: error.message,
-        Details: error.details,
-        Hint: error.hint,
-        Code: error.code
-      });
-
-      alert(
-        `⚠️ تعذر إرسال الطلب لقاعدة البيانات!\n\n` +
-        `السبب البرمجي: ${error.message}\n` +
-        `تلميح الحل: يرجى التأكد من مطابقة أسماء الأعمدة وصلاحيات الـ RLS في جدول bookings داخل Supabase.`
-      );
+      console.error("📋 [Supabase Database Error Details]:", error);
+      alert(`⚠️ تعذر إرسال الطلب لقاعدة البيانات!\n\nالسبب البرمجي: ${error.message}`);
     } else {
-      // 🌟 تشغيل الإشعار الفوري وإرساله لهاتفك مباشرة بعد نجاح التخزين
+      // 🌟 تشغيل الإشعار الفوري وإرساله لهاتفك متضمناً بيانات الطرفين
       await sendTelegramNotification(guestName.trim(), guestPhone.trim(), checkIn, checkOut);
 
       alert("🎉 تم إرسال طلب حجزك بنجاح وسيتواصل معك المسؤول قريباً!");
@@ -229,7 +222,7 @@ export default function PropertyPage({ params }: any) {
             </div>
           </div>
 
-          {/* أزرار التبديل العلوية الاحترافية */}
+          {/* أزرار التبديل العلوية */}
           <div className="flex border-b border-gray-100 mt-4">
             <button
               onClick={() => setViewMode("details")}
@@ -255,11 +248,11 @@ export default function PropertyPage({ params }: any) {
               <div>
                 <h2 className="text-lg font-bold text-[#111827] mb-2">الوصف والمواصفات</h2>
                 <p className="text-sm text-gray-600 leading-7 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  {property.description || "مرحباً بك في منصة يلا هلا، هذا العقار مجهز بالخدمات الأساسية لضمان إقامة مريحة وسعيدة. للمزيد من الاستفسارات يمكنك التوجه مباشرة لتبويب تأكيد طلب الحجز المبدئي."}
+                  {property.description || "مرحباً بك في منصة يلا هلا، هذا العقار مجهز بالخدمات الأساسية لضمان إقامة مريحة وسعيدة."}
                 </p>
               </div>
 
-              {/* واجهة إرشادية تعرض الفترات المحجوزة مسبقاً للمستأجر قبل الحجز */}
+              {/* واجهة إرشادية تعرض الفترات المحجوزة مسبقاً */}
               <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4">
                 <h3 className="text-sm font-bold text-amber-800 mb-2">📅 جدول الفترات المحجوزة وغير المتاحة:</h3>
                 {existingBookings.length === 0 ? (
@@ -277,7 +270,7 @@ export default function PropertyPage({ params }: any) {
             </div>
           )}
 
-          {/* العرض الثاني: استمارة الحجز بإنقاذ الترتيب الصحيح والنظيف والقيود الزهرية */}
+          {/* العرض الثاني: استمارة الحجز */}
           {viewMode === "book" && (
             <div className="mt-6">
               <h2 className="text-lg font-bold text-right text-[#111827] mb-4">بيانات طلب الحجز الإقامة</h2>
@@ -298,13 +291,12 @@ export default function PropertyPage({ params }: any) {
                   className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B] transition"
                 />
 
-                {/* حقول التواريخ المدعومة بقيود عدم التداخل البرمجي */}
                 <div className="grid gap-4 grid-cols-2">
                   <div>
                     <label className="block mb-1 text-right text-[11px] text-[#6B7280] font-bold">تاريخ الوصول</label>
                     <input
                       type="date"
-                      min={todayStr} // حظر اختيار أي يوم مضى في الماضي
+                      min={todayStr} 
                       value={checkIn}
                       onChange={(e) => setCheckIn(e.target.value)}
                       className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B] text-right cursor-pointer"
@@ -314,7 +306,7 @@ export default function PropertyPage({ params }: any) {
                     <label className="block mb-1 text-right text-[11px] text-[#6B7280] font-bold">تاريخ المغادرة</label>
                     <input
                       type="date"
-                      min={checkIn || todayStr} // منع المغادرة قبل يوم الوصول حتماً
+                      min={checkIn || todayStr} 
                       value={checkOut}
                       onChange={(e) => setCheckOut(e.target.value)}
                       className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B] text-right cursor-pointer"
