@@ -100,20 +100,40 @@ export default function AboutPage() {
               تواصل معنا
             </h2>
             <p className="mt-5 text-sm sm:text-base leading-8 text-[#6B7280] max-w-2xl mx-auto font-medium">
-              سواء كنت مستأجراً يبحث عن إجابة، أو صاحب عقار ترغب في توثيق شراكتك معنا، يسعدنا جداً تواصلك المباشر مع فريق الدعم الفني.
+              سواء كنت مستأجراً يبحث عن إجابة، أو صاحب عقار ترغب في توثيق شراكتك معنا، يسعدنا جداً تواصلك المباشر مع فريق الدعم الفني عبر القنوات الرسمية:
             </p>
           </div>
 
-          <div className="mt-12 max-w-xl mx-auto">
-            <div className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-8 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300">
-              <div className="mb-5 text-5xl">📧</div>
-              <h3 className="text-xl font-black text-[#111827]">
+          {/* ⚡ الـ Grid الجديد ثنائي البطاقات لقنوات التواصل الفعالة */}
+          <div className="mt-12 max-w-3xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2">
+            
+            {/* بطاقة البريد الإلكتروني */}
+            <div className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-8 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center">
+              <div className="mb-4 text-5xl">📧</div>
+              <h3 className="text-lg font-black text-[#111827]">
                 البريد الإلكتروني الرسمي
               </h3>
-              <p className="mt-4 text-lg sm:text-2xl font-bold text-[#2D6A5F] hover:text-[#3FAF9B] cursor-pointer transition">
+              <p className="mt-3 text-base sm:text-lg font-bold text-[#2D6A5F] hover:text-[#3FAF9B] cursor-pointer transition break-all">
                 contact@yallahala.com
               </p>
             </div>
+
+            {/* بطاقة واتساب العمل المباشر */}
+            <a 
+              href="https://wa.me/46790081236"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-8 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center group"
+            >
+              <div className="mb-4 text-5xl group-hover:scale-105 transition duration-300">💬</div>
+              <h3 className="text-lg font-black text-[#111827]">
+                واتساب العمل الفوري
+              </h3>
+              <p className="mt-3 text-xl font-bold text-green-600 dir-ltr tracking-wide">
+                0046790081236
+              </p>
+            </a>
+
           </div>
         </section>
 
