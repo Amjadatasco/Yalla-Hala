@@ -10,31 +10,50 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState(""); // 🟢 حقل الهاتف الجديد
   const [loading, setLoading] = useState(false);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !password || !fullName) {
+    if (!email || !password || !fullName || !phone) {
       alert("يرجى ملء جميع الحقول المطلوبة.");
       return;
     }
     setLoading(true);
 
+    // 1. إنشاء الحساب في نظام التوثيق (Auth)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName }
-      }
     });
 
-    setLoading(false);
     if (error) {
       alert("حدث خطأ أثناء التسجيل: " + error.message);
-    } else {
-      alert("تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.");
-      router.push("/login");
+      setLoading(false);
+      return;
     }
+
+    // 2. إذا نجح الإنشاء، نحفظ الاسم والهاتف في جدول profiles
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert([
+          {
+            id: data.user.id, // نربط بنفس الـ ID الذي أنشأته الـ Auth
+            full_name: fullName,
+            phone: phone,
+          },
+        ]);
+
+      if (profileError) {
+        console.error("خطأ في حفظ بيانات الملف الشخصي:", profileError);
+        alert("تم إنشاء الحساب ولكن حدث خطأ في حفظ بياناتك الشخصية.");
+      } else {
+        alert("تم إنشاء الحساب بنجاح! أهلاً بك في يلا هلا.");
+        router.push("/login");
+      }
+    }
+    setLoading(false);
   }
 
   return (
@@ -53,6 +72,17 @@ export default function RegisterPage() {
               placeholder="الاسم الثلاثي"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-right outline-none focus:border-[#3FAF9B]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">رقم الهاتف</label>
+            <input
+              type="tel"
+              placeholder="09xxxxxxxx"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-right outline-none focus:border-[#3FAF9B]"
             />
           </div>
