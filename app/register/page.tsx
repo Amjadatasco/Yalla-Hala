@@ -1,25 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
 
 export default function RegisterPage() {
 
   const router = useRouter();
 
   // البيانات
-  const [email, setEmail] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
   const [fullName, setFullName] =
     useState("");
 
   const [phone, setPhone] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
     useState("");
 
   // تحميل
@@ -35,10 +35,10 @@ export default function RegisterPage() {
 
     // تحقق
     if (
-      !fullName ||
-      !phone ||
-      !email ||
-      !password
+      !fullName.trim() ||
+      !phone.trim() ||
+      !email.trim() ||
+      !password.trim()
     ) {
 
       alert(
@@ -48,19 +48,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // كلمة المرور
-    if (
-      password.length < 6
-    ) {
-
-      alert(
-        "كلمة المرور يجب أن تكون 6 أحرف على الأقل."
-      );
-
-      return;
-    }
-
-    // الهاتف السوري
+    // تحقق الهاتف
     if (
       !/^09\d{8}$/.test(
         phone
@@ -69,6 +57,18 @@ export default function RegisterPage() {
 
       alert(
         "رقم الهاتف غير صالح."
+      );
+
+      return;
+    }
+
+    // تحقق كلمة المرور
+    if (
+      password.length < 6
+    ) {
+
+      alert(
+        "كلمة المرور يجب أن تكون 6 أحرف على الأقل."
       );
 
       return;
@@ -86,11 +86,6 @@ export default function RegisterPage() {
         await supabase.auth.signUp({
           email,
           password,
-
-          options: {
-            emailRedirectTo:
-              "https://yallahala.com/login",
-          },
         });
 
       // خطأ
@@ -104,7 +99,7 @@ export default function RegisterPage() {
       if (!data.user) {
 
         throw new Error(
-          "لم يتم إنشاء المستخدم."
+          "فشل إنشاء المستخدم."
         );
 
       }
@@ -114,7 +109,7 @@ export default function RegisterPage() {
         error: profileError,
       } = await supabase
         .from("profiles")
-        .upsert([
+        .insert([
           {
             id:
               data.user.id,
@@ -128,23 +123,29 @@ export default function RegisterPage() {
             phone:
               phone,
 
-            created_at:
-              new Date().toISOString(),
+            role:
+              "user",
           },
         ]);
 
-      // خطأ profile
+      // خطأ profiles
       if (profileError) {
 
         console.error(
+          "PROFILE ERROR:",
           profileError
         );
 
+        alert(
+          profileError.message
+        );
+
+        return;
       }
 
       // نجاح
       alert(
-        "تم إنشاء الحساب بنجاح. تحقق من بريدك الإلكتروني لتأكيد الحساب."
+        "تم إنشاء الحساب بنجاح."
       );
 
       // تحويل
@@ -160,7 +161,7 @@ export default function RegisterPage() {
 
       alert(
         error?.message ||
-          "حدث خطأ غير متوقع أثناء التسجيل."
+          "حدث خطأ أثناء إنشاء الحساب."
       );
 
     } finally {
@@ -171,14 +172,17 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4 py-12">
+    <main
+      className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4 py-12"
+      dir="rtl"
+    >
 
       <div className="w-full max-w-md bg-white rounded-[32px] p-8 shadow-xl border border-[#E5E7EB]">
 
         {/* العنوان */}
         <div className="text-center mb-8">
 
-          <h1 className="text-3xl font-extrabold text-[#111827]">
+          <h1 className="text-3xl font-black text-[#111827]">
 
             إنشاء حساب جديد
 
@@ -186,7 +190,7 @@ export default function RegisterPage() {
 
           <p className="mt-2 text-sm text-[#6B7280]">
 
-            أنشئ حسابك وابدأ بالحجز أو إضافة عقارك
+            سجل الآن وابدأ باستخدام المنصة
 
           </p>
 
@@ -203,7 +207,7 @@ export default function RegisterPage() {
           {/* الاسم */}
           <div>
 
-            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-bold text-gray-700">
 
               الاسم الكامل
 
@@ -211,14 +215,14 @@ export default function RegisterPage() {
 
             <input
               type="text"
-              placeholder="الاسم الثلاثي"
+              placeholder="الاسم الكامل"
               value={fullName}
               onChange={(e) =>
                 setFullName(
                   e.target.value
                 )
               }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-right outline-none focus:border-[#3FAF9B]"
+              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
             />
 
           </div>
@@ -226,7 +230,7 @@ export default function RegisterPage() {
           {/* الهاتف */}
           <div>
 
-            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-bold text-gray-700">
 
               رقم الهاتف
 
@@ -241,7 +245,7 @@ export default function RegisterPage() {
                   e.target.value
                 )
               }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-right outline-none focus:border-[#3FAF9B]"
+              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
             />
 
           </div>
@@ -249,7 +253,7 @@ export default function RegisterPage() {
           {/* الإيميل */}
           <div>
 
-            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-bold text-gray-700">
 
               البريد الإلكتروني
 
@@ -257,14 +261,14 @@ export default function RegisterPage() {
 
             <input
               type="email"
-              placeholder="example@domain.com"
+              placeholder="example@email.com"
               value={email}
               onChange={(e) =>
                 setEmail(
                   e.target.value
                 )
               }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
+              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
             />
 
           </div>
@@ -272,7 +276,7 @@ export default function RegisterPage() {
           {/* كلمة المرور */}
           <div>
 
-            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">
+            <label className="block mb-2 text-sm font-bold text-gray-700">
 
               كلمة المرور
 
@@ -280,28 +284,28 @@ export default function RegisterPage() {
 
             <input
               type="password"
-              placeholder="••••••••"
+              placeholder="********"
               value={password}
               onChange={(e) =>
                 setPassword(
                   e.target.value
                 )
               }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
+              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
             />
 
           </div>
 
-          {/* زر */}
+          {/* الزر */}
           <button
             type="submit"
             disabled={loading}
-            className="h-14 mt-2 rounded-2xl bg-[#3FAF9B] text-white font-bold text-lg hover:bg-[#2F8E7D] transition shadow-md disabled:opacity-50"
+            className="h-14 rounded-2xl bg-[#3FAF9B] text-white font-black text-lg hover:bg-[#2F8E7D] transition disabled:opacity-50"
           >
 
             {loading
               ? "جاري إنشاء الحساب..."
-              : "تأكيد التسجيل"}
+              : "إنشاء الحساب"}
 
           </button>
 
@@ -317,7 +321,7 @@ export default function RegisterPage() {
             className="text-[#3FAF9B] font-bold hover:underline"
           >
 
-            تسجيل الدخول هنا
+            تسجيل الدخول
 
           </Link>
 
