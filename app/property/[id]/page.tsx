@@ -43,12 +43,14 @@ export default function PropertyPage({ params }: any) {
     .toISOString()
     .split("T")[0];
 
+  // تيليغرام
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
 
   const TELEGRAM_CHAT_ID =
     "629151535";
 
+  // تحميل العقار
   useEffect(() => {
 
     if (resolvedParams?.id) {
@@ -63,6 +65,7 @@ export default function PropertyPage({ params }: any) {
 
       setPageLoading(true);
 
+      // تحميل العقار
       const {
         data: propertyData,
         error: propertyError,
@@ -86,6 +89,7 @@ export default function PropertyPage({ params }: any) {
 
       setProperty(propertyData);
 
+      // تحميل الحجوزات
       const {
         data: bookingsData,
         error: bookingsError,
@@ -125,6 +129,7 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
+  // فحص التداخل
   function isDatesOverlapping(
     newIn: string,
     newOut: string
@@ -163,6 +168,7 @@ export default function PropertyPage({ params }: any) {
     return false;
   }
 
+  // إشعار تيليغرام
   async function sendTelegramNotification(
     name: string,
     phone: string,
@@ -172,16 +178,37 @@ export default function PropertyPage({ params }: any) {
 
     try {
 
+      const cleanPhone =
+        property?.owner_phone
+          ?.replace(
+            /\D/g,
+            ""
+          ) || "";
+
+      const whatsappMessage =
+        `مرحباً ${property?.owner_name || ""} 👋\n\n` +
+
+        `يوجد طلب حجز جديد على عقارك:\n\n` +
+
+        `🏠 ${property?.title}\n` +
+
+        `📅 من ${inDate} إلى ${outDate}\n\n` +
+
+        `👤 اسم المستأجر: ${name}\n` +
+
+        `📞 رقم المستأجر: ${phone}`;
+
+      const whatsappLink =
+        `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+          whatsappMessage
+        )}`;
+
       const messageText =
         `🚨 طلب حجز جديد\n\n` +
 
-        `🏠 العقار:\n${
-          property?.title || ""
-        }\n\n` +
+        `🏠 العقار:\n${property?.title || ""}\n\n` +
 
-        `📍 الموقع:\n${
-          property?.location || ""
-        }\n\n` +
+        `📍 الموقع:\n${property?.location || ""}\n\n` +
 
         `👤 المستأجر:\n${name}\n\n` +
 
@@ -189,7 +216,9 @@ export default function PropertyPage({ params }: any) {
 
         `📅 الوصول:\n${inDate}\n\n` +
 
-        `📅 المغادرة:\n${outDate}`;
+        `📅 المغادرة:\n${outDate}\n\n` +
+
+        `📲 رابط مراسلة المؤجر:\n${whatsappLink}`;
 
       await fetch(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -217,6 +246,7 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
+  // تنفيذ الحجز
   async function handleBooking() {
 
     if (
@@ -259,7 +289,7 @@ export default function PropertyPage({ params }: any) {
     ) {
 
       alert(
-        "هذه التواريخ محجوزة."
+        "هذه التواريخ محجوزة بالفعل."
       );
 
       return;
@@ -269,6 +299,7 @@ export default function PropertyPage({ params }: any) {
 
       setLoading(true);
 
+      // المستخدم الحالي
       const {
         data: { user },
       } =
@@ -285,6 +316,7 @@ export default function PropertyPage({ params }: any) {
         return;
       }
 
+      // حفظ الحجز
       const { error } =
         await supabase
           .from("bookings")
@@ -315,8 +347,10 @@ export default function PropertyPage({ params }: any) {
 
       if (error) {
 
+        console.error(error);
+
         alert(
-          error.message
+          `فشل الحجز: ${error.message}`
         );
 
         setLoading(false);
@@ -324,6 +358,7 @@ export default function PropertyPage({ params }: any) {
         return;
       }
 
+      // تيليغرام
       await sendTelegramNotification(
         guestName.trim(),
         guestPhone.trim(),
@@ -331,10 +366,12 @@ export default function PropertyPage({ params }: any) {
         checkOut
       );
 
+      // رسالة نجاح
       alert(
         "تم استلام طلب الحجز بنجاح، وسيتم مراجعة الطلب والتواصل معك قريباً."
       );
 
+      // تنظيف الحقول
       setGuestName("");
       setGuestPhone("");
       setCheckIn("");
@@ -346,6 +383,10 @@ export default function PropertyPage({ params }: any) {
 
       console.error(err);
 
+      alert(
+        "حدث خطأ أثناء إرسال الطلب."
+      );
+
     } finally {
 
       setLoading(false);
@@ -353,17 +394,19 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
+  // تحميل
   if (pageLoading) {
 
     return (
       <div className="min-h-screen flex items-center justify-center">
 
-        جاري التحميل...
+        جاري تحميل العقار...
 
       </div>
     );
   }
 
+  // غير موجود
   if (!property) {
 
     return (
