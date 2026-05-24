@@ -4,339 +4,862 @@ import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 
 export default function PropertyPage({ params }: any) {
-  // فك حزمة params بطريقة متوافقة تماماً مع إصدارات Next.js الحديثة لمنع أي تعليق
-  const resolvedParams = "then" in params ? use(params) : params;
 
-  const [property, setProperty] = useState<any>(null);
-  const [existingBookings, setExistingBookings] = useState<any[]>([]); // لتخزين الحجوزات السابقة ومنع تكرارها
-  const [guestName, setGuestName] = useState("");
-  const [guestPhone, setGuestPhone] = useState("");
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
-  
-  // حالة ذكية لتحديد واجهة العرض (تفاصيل العقار أو استمارة الحجز)
-  const [viewMode, setViewMode] = useState<"details" | "book">("details");
+  // دعم Next.js الحديثة
+  const resolvedParams =
+    "then" in params ? use(params) : params;
 
-  // الحصول على تاريخ اليوم الحالي بصيغة YYYY-MM-DD لمنع الحجز في الماضي
-  const todayStr = new Date().toISOString().split("T")[0];
+  const [property, setProperty] =
+    useState<any>(null);
 
-  // 🚀 حسابات بوت تليجرام الخاصة بك لإرسال إشعارات الحجوزات الفورية
-  const TELEGRAM_BOT_TOKEN = "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
-  const TELEGRAM_CHAT_ID = "629151535";
+  const [existingBookings, setExistingBookings] =
+    useState<any[]>([]);
+
+  const [guestName, setGuestName] =
+    useState("");
+
+  const [guestPhone, setGuestPhone] =
+    useState("");
+
+  const [checkIn, setCheckIn] =
+    useState("");
+
+  const [checkOut, setCheckOut] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [pageLoading, setPageLoading] =
+    useState(true);
+
+  const [viewMode, setViewMode] =
+    useState<"details" | "book">(
+      "details"
+    );
+
+  const todayStr = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  const TELEGRAM_BOT_TOKEN =
+    "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
+
+  const TELEGRAM_CHAT_ID =
+    "629151535";
 
   useEffect(() => {
+
     if (resolvedParams?.id) {
       loadPropertyAndBookings();
     }
+
   }, [resolvedParams?.id]);
 
   useEffect(() => {
-    // التقاط الإجراء المطلق من أزرار الصفحة الرئيسية (زر احجز الآن يمرر ?action=book)
+
     if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get("action") === "book") {
+
+      const searchParams =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      if (
+        searchParams.get("action") ===
+        "book"
+      ) {
         setViewMode("book");
       }
     }
+
   }, []);
 
   async function loadPropertyAndBookings() {
+
     try {
+
       setPageLoading(true);
-      
-      // 1. جلب بيانات العقار الأساسية
-      const { data: propertyData, error: propertyError } = await supabase
+
+      // تحميل العقار
+      const {
+        data: propertyData,
+        error: propertyError,
+      } = await supabase
         .from("properties")
         .select("*")
         .eq("id", resolvedParams.id)
         .single();
-        
-      if (!propertyError && propertyData) {
-        setProperty(propertyData);
 
-        // 2. جلب الحجوزات الحالية الخاصة بهذا العقار (المؤكدة والمشغولة فقط)
-        const { data: bookingsData, error: bookingsError } = await supabase
-          .from("bookings")
-          .select("check_in, check_out")
-          .eq("property_id", resolvedParams.id) // 🟢 إرسال الـ UUID النظيف مباشرة بدون تعديل ليتوافق مع قاعدة بياناتك
-          .eq("status", "confirmed");
-
-        if (!bookingsError && bookingsData) {
-          setExistingBookings(bookingsData);
-        }
+      if (propertyError) {
+        console.error(propertyError);
+        return;
       }
+
+      setProperty(propertyData);
+
+      // تحميل الحجوزات المؤكدة
+      const {
+        data: bookingsData,
+        error: bookingsError,
+      } = await supabase
+        .from("bookings")
+        .select("check_in, check_out")
+        .eq(
+          "property_id",
+          resolvedParams.id
+        )
+        .eq("status", "confirmed");
+
+      if (!bookingsError && bookingsData) {
+        setExistingBookings(bookingsData);
+      }
+
     } catch (err) {
-      console.error("Error loading data:", err);
+
+      console.error(
+        "Error loading property:",
+        err
+      );
+
     } finally {
+
       setPageLoading(false);
+
     }
   }
 
-  // دالة برمجية تفحص إذا كان نطاق التاريخ المختار يتقاطع مع حجز قديم ومؤكد
-  function isDatesOverlapping(newIn: string, newOut: string) {
-    const startNew = new Date(newIn).getTime();
-    const endNew = new Date(newOut).getTime();
+  // فحص التداخل
+  function isDatesOverlapping(
+    newIn: string,
+    newOut: string
+  ) {
+
+    const startNew =
+      new Date(newIn).getTime();
+
+    const endNew =
+      new Date(newOut).getTime();
 
     for (const booking of existingBookings) {
-      const startExisting = new Date(booking.check_in).getTime();
-      const endExisting = new Date(booking.check_out).getTime();
 
-      // معادلة فحص التداخل الزمني القياسية
-      if (startNew < endExisting && endNew > startExisting) {
-        return true; // يوجد تداخل مباشر مع حجز آخر
+      const startExisting =
+        new Date(
+          booking.check_in
+        ).getTime();
+
+      const endExisting =
+        new Date(
+          booking.check_out
+        ).getTime();
+
+      if (
+        startNew < endExisting &&
+        endNew > startExisting
+      ) {
+        return true;
       }
     }
-    return false; // التواريخ متاحة وصالحة للاستخدام
+
+    return false;
   }
 
-  // 🛠️ دالة إرسال التقرير مع توضيح حالة الحجز الجديدة بدقة كـ معلق
-  async function sendTelegramNotification(name: string, phone: string, inDate: string, outDate: string) {
-    try {
-      const messageText = 
-        `🚨 *طلب حجز جديد على منصة يلا هلا!* 🚨\n\n` +
-        `🏠 *العقار:* ${property?.title || "غير محدد"}\n` +
-        `📍 *الموقع:* ${property?.location || "غير محدد"} - ${property?.governorate || ""}\n` +
-        `💰 *السعر:* $${property?.price || "0"} / ليلة\n\n` +
-        
-        `👤 *اسم المستأجر:* ${name}\n` +
-        `📞 *رقم هاتف المستأجر:* \`${phone}\`\n\n` +
-        
-        `👤 *صاحب العقار (المؤجر):* ${property?.owner_name || "غير مسجل"}\n` +
-        `📞 *رقم هاتف المؤجر:* \`${property?.owner_phone || "غير مسجل"}\`\n\n` +
-        
-        `📅 *تاريخ الوصول:* ${inDate}\n` +
-        `📅 *تاريخ المغادرة:* ${outDate}\n\n` +
-        `⏳ *حالة طلب الحجز الحالي:* \`pending (بانتظار المراجعة)\`\n\n` +
-        `✨ _يرجى الدخول إلى لوحة التحكم للموافقة على الطلب أو التواصل مع الطرفين وتأكيده._`;
+  async function sendTelegramNotification(
+    name: string,
+    phone: string,
+    inDate: string,
+    outDate: string
+  ) {
 
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: messageText,
-          parse_mode: "Markdown"
-        })
-      });
+    try {
+
+      const messageText =
+        `🚨 طلب حجز جديد!\n\n` +
+        `🏠 العقار: ${
+          property?.title || ""
+        }\n` +
+        `📍 الموقع: ${
+          property?.location || ""
+        }\n\n` +
+        `👤 المستأجر: ${name}\n` +
+        `📞 الهاتف: ${phone}\n\n` +
+        `📅 الوصول: ${inDate}\n` +
+        `📅 المغادرة: ${outDate}`;
+
+      await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            chat_id:
+              TELEGRAM_CHAT_ID,
+            text: messageText,
+          }),
+        }
+      );
+
     } catch (err) {
-      console.error("Failed to send Telegram notification:", err);
+
+      console.error(
+        "Telegram Error:",
+        err
+      );
+
     }
   }
 
   async function handleBooking() {
-    // 1. التحقق من ملء البيانات
-    if (!guestName.trim() || !guestPhone.trim() || !checkIn || !checkOut) {
-      alert("يرجى ملء جميع البيانات لإرسال طلب الحجز المبدئي.");
+
+    if (
+      !guestName.trim() ||
+      !guestPhone.trim() ||
+      !checkIn ||
+      !checkOut
+    ) {
+
+      alert(
+        "يرجى تعبئة جميع بيانات الحجز."
+      );
+
       return;
     }
 
-    // 2. التحقق من منطقية التواريخ
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    if (checkOutDate <= checkInDate) {
-      alert("خطأ: يجب أن يكون تاريخ المغادرة بعد تاريخ الوصول.");
+    const checkInDate =
+      new Date(checkIn);
+
+    const checkOutDate =
+      new Date(checkOut);
+
+    if (
+      checkOutDate <= checkInDate
+    ) {
+
+      alert(
+        "يجب أن يكون تاريخ المغادرة بعد الوصول."
+      );
+
       return;
     }
 
-    // 3. الفحص الذكي لتداخل التواريخ قبل الإرسال لمنع التكرار
-    if (isDatesOverlapping(checkIn, checkOut)) {
-      alert("⚠️ عذراً، هذا العقار محجوز بالفعل في التواريخ التي اخترتها. يرجى مراجعة جدول التوفر واختيار أيام أخرى.");
+    if (
+      isDatesOverlapping(
+        checkIn,
+        checkOut
+      )
+    ) {
+
+      alert(
+        "هذه التواريخ محجوزة بالفعل."
+      );
+
       return;
     }
 
-    setLoading(true);
+    try {
 
-    // 4. إدخال الحجز في جدول Supabase بالصيغة النصية الخام للـ UUID المطابقة للجدول تماماً
-    const { error } = await supabase.from("bookings").insert([
-      {
-        property_id: property.id, // 🟢 تم التعديل الجذري هنا لإرسال الـ UUID كما هو لتفادي خطأ الـ null!
-        guest_name: guestName.trim(),
-        guest_phone: guestPhone.trim(),
-        check_in: checkIn,
-        check_out: checkOut,
-        status: "pending", 
-      },
-    ]);
+      setLoading(true);
 
-    setLoading(false);
+      // 🟢 جلب المستخدم الحالي
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (error) {
-      console.error("📋 [Supabase Database Error Details]:", error);
-      alert(`⚠️ تعذر إرسال الطلب لقاعدة البيانات!\n\nالسبب البرمجي: ${error.message}`);
-    } else {
-      // 🌟 تشغيل الإشعار الفوري وإرساله لهاتفك متضمناً بيانات الطرفين والحالة الدقيقة
-      await sendTelegramNotification(guestName.trim(), guestPhone.trim(), checkIn, checkOut);
+      // 🟢 منع الحجز بدون تسجيل دخول
+      if (!user) {
 
-      alert("🎉 تم إرسال طلب حجزك بنجاح وسيتواصل معك المسؤول قريباً!");
+        alert(
+          "يجب تسجيل الدخول أولاً للحجز."
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+      // 🟢 حفظ الحجز
+      const { error } =
+        await supabase
+          .from("bookings")
+          .insert([
+            {
+              property_id:
+                property.id,
+
+              guest_name:
+                guestName.trim(),
+
+              guest_phone:
+                guestPhone.trim(),
+
+              check_in:
+                checkIn,
+
+              check_out:
+                checkOut,
+
+              status:
+                "pending",
+
+              // ✅ ربط الحجز بالمستخدم
+              user_id:
+                user.id,
+            },
+          ]);
+
+      if (error) {
+
+        console.error(error);
+
+        alert(
+          `فشل إرسال الحجز: ${error.message}`
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+      await sendTelegramNotification(
+        guestName.trim(),
+        guestPhone.trim(),
+        checkIn,
+        checkOut
+      );
+
+      alert(
+        "🎉 تم إرسال طلب الحجز بنجاح."
+      );
+
       setGuestName("");
       setGuestPhone("");
       setCheckIn("");
       setCheckOut("");
-      setViewMode("details"); // إعادة المستخدم لتبويب التفاصيل
-      loadPropertyAndBookings(); // إعادة جلب البيانات لتحديث جدول الفترات فوراً
+
+      setViewMode("details");
+
+      loadPropertyAndBookings();
+
+    } catch (err) {
+
+      console.error(err);
+
+      alert(
+        "حدث خطأ أثناء إرسال الحجز."
+      );
+
+    } finally {
+
+      setLoading(false);
+
     }
   }
 
   if (pageLoading) {
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-[#3FAF9B] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-sm font-bold text-[#3FAF9B]">جاري تحميل بيانات العقار وتحديث المفكرة...</p>
+
+        <div className="w-12 h-12 border-4 border-[#3FAF9B] border-t-transparent rounded-full animate-spin mb-5"></div>
+
+        <p className="text-sm font-bold text-[#3FAF9B]">
+          جاري تحميل العقار...
+        </p>
+
       </div>
     );
   }
 
   if (!property) {
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
-        <p className="text-sm font-bold text-red-500">العقار غير موجود أو تم حذفه</p>
-        <button onClick={() => window.location.href = "/"} className="text-xs bg-[#3FAF9B] text-white px-4 py-2 rounded-full shadow">
+
+        <p className="text-red-500 font-bold">
+          العقار غير موجود
+        </p>
+
+        <button
+          onClick={() =>
+            (window.location.href =
+              "/")
+          }
+          className="bg-[#3FAF9B] text-white px-5 py-2 rounded-full"
+        >
           العودة للرئيسية
         </button>
+
       </div>
     );
   }
 
   return (
-    <main className="bg-[#FAFAFA] min-h-screen px-4 py-10" dir="rtl">
-      <div className="max-w-4xl mx-auto">
-        
-        {/* صورة العقار الرئيسية */}
-        <div className="rounded-2xl overflow-hidden shadow-sm mb-6 bg-gray-100 border border-gray-200">
+    <main
+      className="bg-[#FAFAFA] min-h-screen px-4 py-10"
+      dir="rtl"
+    >
+
+      <div className="max-w-5xl mx-auto">
+
+        {/* الصورة الرئيسية */}
+        <div className="rounded-3xl overflow-hidden border border-gray-200 shadow-sm mb-8 bg-white">
+
           <img
-            src={property.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"}
+            src={
+              property.image ||
+              "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200"
+            }
             alt={property.title}
-            className="w-full h-96 object-cover"
+            className="w-full h-[500px] object-cover"
           />
+
         </div>
 
-        {/* الكارت الأساسي لمعلومات العقار */}
-        <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-6">
+        {/* الكارد الرئيسي */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
+
+          {/* الهيدر */}
+          <div className="flex flex-wrap items-start justify-between gap-5 border-b border-gray-100 pb-6">
+
             <div className="text-right">
-              <h1 className="text-2xl font-black text-[#111827]">{property.title}</h1>
-              <p className="text-xs text-[#6B7280] mt-1">{property.location} - {property.governorate}</p>
+
+              <h1 className="text-3xl font-black text-[#111827]">
+                {property.title}
+              </h1>
+
+              <p className="text-sm text-[#6B7280] mt-2">
+                {property.location}{" "}
+                -{" "}
+                {
+                  property.governorate
+                }
+              </p>
+
             </div>
-            <div className="rounded-xl bg-[#E6F4F1] px-4 py-2 text-center border border-emerald-50">
-              <p className="text-xl font-black text-[#3FAF9B]">${property.price}</p>
-              <p className="text-[10px] text-[#6B7280] font-bold">ليلة واحدة</p>
+
+            <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center border border-emerald-100">
+
+              <p className="text-3xl font-black text-[#2D6A5F]">
+                $
+                {property.price}
+              </p>
+
+              <p className="text-xs font-bold text-[#6B7280] mt-1">
+                ليلة واحدة
+              </p>
+
             </div>
+
           </div>
 
-          {/* أزرار التبديل العلوية */}
-          <div className="flex border-b border-gray-100 mt-4">
+          {/* Tabs */}
+          <div className="flex mt-6 border-b border-gray-100">
+
             <button
-              onClick={() => setViewMode("details")}
-              className={`flex-1 py-3 text-center text-sm font-bold border-b-2 transition ${
-                viewMode === "details" ? "border-[#3FAF9B] text-[#3FAF9B]" : "border-transparent text-gray-400 hover:text-gray-600"
+              onClick={() =>
+                setViewMode(
+                  "details"
+                )
+              }
+              className={`flex-1 py-4 text-sm font-black border-b-2 transition ${
+                viewMode ===
+                "details"
+                  ? "border-[#3FAF9B] text-[#3FAF9B]"
+                  : "border-transparent text-gray-400"
               }`}
             >
-              تفاصيل ومزايا العقار
+              تفاصيل العقار
             </button>
+
             <button
-              onClick={() => setViewMode("book")}
-              className={`flex-1 py-3 text-center text-sm font-bold border-b-2 transition ${
-                viewMode === "book" ? "border-[#3FAF9B] text-[#3FAF9B]" : "border-transparent text-gray-400 hover:text-gray-600"
+              onClick={() =>
+                setViewMode(
+                  "book"
+                )
+              }
+              className={`flex-1 py-4 text-sm font-black border-b-2 transition ${
+                viewMode ===
+                "book"
+                  ? "border-[#3FAF9B] text-[#3FAF9B]"
+                  : "border-transparent text-gray-400"
               }`}
             >
-              طلب حجز الإقامة الآن
+              طلب حجز الإقامة
             </button>
+
           </div>
 
-          {/* العرض الأول: تفاصيل ومواصفات المسكن + جدول الأيام غير المتوفرة */}
-          {viewMode === "details" && (
-            <div className="mt-6 text-right space-y-6">
-              <div>
-                <h2 className="text-lg font-bold text-[#111827] mb-2">الوصف والمواصفات</h2>
-                <p className="text-sm text-gray-600 leading-7 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  {property.description || "مرحباً بك في منصة يلا هلا، هذا العقار مجهز بالخدمات الأساسية لضمان إقامة مريحة وسعيدة."}
-                </p>
-              </div>
+          {/* تفاصيل العقار */}
+          {viewMode ===
+            "details" && (
 
-              {/* واجهة إرشادية تعرض الفترات المحجوزة مسبقاً والمؤكدة */}
-              <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4">
-                <h3 className="text-sm font-bold text-amber-800 mb-2">📅 جدول الفترات المحجوزة وغير المتاحة:</h3>
-                {existingBookings.length === 0 ? (
-                  <p className="text-xs text-amber-700">هذا المسكن متاح بالكامل ومجهز لاستقبالكم في أي وقت!</p>
-                ) : (
-                  <ul className="space-y-1">
-                    {existingBookings.map((b, idx) => (
-                      <li key={idx} className="text-xs text-amber-900 font-medium">
-                        • تم تأكيد حجز من تاريخ <span className="underline font-bold text-amber-950">{b.check_in}</span> إلى تاريخ <span className="underline font-bold text-amber-950">{b.check_out}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          )}
+            <div className="mt-10 space-y-8">
 
-          {/* العرض الثاني: استمارة الحجز */}
-          {viewMode === "book" && (
-            <div className="mt-6">
-              <h2 className="text-lg font-bold text-right text-[#111827] mb-4">بيانات طلب الحجز الإقامة</h2>
-              
-              <div className="grid gap-4">
-                <input
-                  type="text"
-                  placeholder="اسم المستأجر الكامل"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B] transition"
-                />
-                <input
-                  type="text"
-                  placeholder="رقم الهاتف أو الجوال (مثال: 09xxxxxxxx)"
-                  value={guestPhone}
-                  onChange={(e) => setGuestPhone(e.target.value)}
-                  className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-sm outline-none focus:border-[#3FAF9B] transition"
-                />
+              {/* الوصف */}
+              <section>
 
-                <div className="grid gap-4 grid-cols-2">
-                  <div>
-                    <label className="block mb-1 text-right text-[11px] text-[#6B7280] font-bold">تاريخ الوصول</label>
-                    <input
-                      type="date"
-                      min={todayStr} 
-                      value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B] text-right cursor-pointer"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1 text-right text-[11px] text-[#6B7280] font-bold">تاريخ المغادرة</label>
-                    <input
-                      type="date"
-                      min={checkIn || todayStr} 
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className="w-full rounded-xl border border-[#E5E7EB] px-3 py-2.5 text-xs outline-none focus:border-[#3FAF9B] text-right cursor-pointer"
-                    />
-                  </div>
+                <div className="flex items-center gap-2 mb-4">
+
+                  <div className="w-1.5 h-7 rounded-full bg-[#3FAF9B]"></div>
+
+                  <h2 className="text-2xl font-black text-[#111827]">
+                    الوصف والمواصفات
+                  </h2>
+
                 </div>
 
-                <button
-                  onClick={handleBooking}
-                  disabled={loading}
-                  className="mt-2 w-full rounded-xl bg-[#3FAF9B] py-3.5 text-sm font-bold text-white hover:bg-[#2F8E7D] transition shadow disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {loading ? "جاري فحص التواريخ وإرسال طلبك..." : "تأكيد الطلب المبدئي"}
-                </button>
+                <div className="rounded-3xl border border-gray-100 bg-[#F9FAFB] p-6 sm:p-7 shadow-sm">
 
-                <button
-                  disabled
-                  className="w-full rounded-xl bg-gray-100 py-3.5 text-sm font-bold text-gray-400 cursor-not-allowed text-center flex items-center justify-center gap-2 border border-gray-200"
-                >
-                  بوابة الدفع الإلكتروني والواتساب قيد التطوير
-                </button>
+                  <p className="leading-[2.3] text-[15px] sm:text-base text-[#374151] whitespace-pre-line">
+
+                    {property.description?.trim()
+                      ? property.description
+                      : "لا يوجد وصف مضاف لهذا العقار حالياً."}
+
+                  </p>
+
+                </div>
+
+              </section>
+
+              {/* التجهيزات */}
+              <section>
+
+                <div className="flex items-center gap-2 mb-4">
+
+                  <div className="w-1.5 h-7 rounded-full bg-[#CF9E59]"></div>
+
+                  <h2 className="text-2xl font-black text-[#111827]">
+                    التجهيزات والخدمات
+                  </h2>
+
+                </div>
+
+                <div className="rounded-3xl border border-[#F3E4C8] bg-[#FFF9EE] p-6 sm:p-7 shadow-sm">
+
+                  {property.amenities?.trim() ? (
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+
+                      {property.amenities
+                        .split(",")
+                        .map(
+                          (
+                            item: string,
+                            index: number
+                          ) => (
+
+                            <div
+                              key={
+                                index
+                              }
+                              className="flex items-center gap-3 rounded-2xl border border-[#F3E4C8] bg-white px-4 py-3"
+                            >
+
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#E6F4F1] text-[#2D6A5F] font-black">
+                                ✓
+                              </div>
+
+                              <p className="text-sm sm:text-[15px] font-semibold text-[#374151]">
+
+                                {item.trim()}
+
+                              </p>
+
+                            </div>
+
+                          )
+                        )}
+
+                    </div>
+
+                  ) : (
+
+                    <div className="rounded-2xl bg-white border border-dashed border-[#E5E7EB] py-10 text-center">
+
+                      <p className="text-sm text-[#9CA3AF] font-medium">
+
+                        لا توجد تجهيزات مضافة.
+
+                      </p>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              </section>
+
+              {/* معلومات إضافية */}
+              <section>
+
+                <div className="flex items-center gap-2 mb-4">
+
+                  <div className="w-1.5 h-7 rounded-full bg-[#2D6A5F]"></div>
+
+                  <h2 className="text-2xl font-black text-[#111827]">
+                    معلومات العقار
+                  </h2>
+
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-3">
+
+                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm text-center">
+
+                    <p className="text-xs font-bold text-[#9CA3AF] mb-2">
+
+                      عدد الغرف
+
+                    </p>
+
+                    <h3 className="text-3xl font-black text-[#111827]">
+
+                      {property.rooms_count ||
+                        0}
+
+                    </h3>
+
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm text-center">
+
+                    <p className="text-xs font-bold text-[#9CA3AF] mb-2">
+
+                      عدد الأسرة
+
+                    </p>
+
+                    <h3 className="text-3xl font-black text-[#111827]">
+
+                      {property.beds_count ||
+                        0}
+
+                    </h3>
+
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm text-center">
+
+                    <p className="text-xs font-bold text-[#9CA3AF] mb-2">
+
+                      عدد الحمامات
+
+                    </p>
+
+                    <h3 className="text-3xl font-black text-[#111827]">
+
+                      {property.bathrooms_count ||
+                        0}
+
+                    </h3>
+
+                  </div>
+
+                </div>
+
+              </section>
+
+              {/* الحجوزات */}
+              <section>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6">
+
+                  <h3 className="text-base font-black text-amber-900 mb-4">
+
+                    📅 الفترات المحجوزة
+
+                  </h3>
+
+                  {existingBookings.length ===
+                  0 ? (
+
+                    <p className="text-sm text-amber-700">
+
+                      العقار متاح بالكامل حالياً.
+
+                    </p>
+
+                  ) : (
+
+                    <div className="space-y-2">
+
+                      {existingBookings.map(
+                        (
+                          booking,
+                          index
+                        ) => (
+
+                          <div
+                            key={
+                              index
+                            }
+                            className="bg-white rounded-xl border border-amber-100 px-4 py-3 text-sm"
+                          >
+
+                            من{" "}
+                            <span className="font-black">
+
+                              {
+                                booking.check_in
+                              }
+
+                            </span>
+
+                            {" "}إلى{" "}
+
+                            <span className="font-black">
+
+                              {
+                                booking.check_out
+                              }
+
+                            </span>
+
+                          </div>
+
+                        )
+                      )}
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              </section>
+
+            </div>
+          )}
+
+          {/* الحجز */}
+          {viewMode ===
+            "book" && (
+
+            <div className="mt-8 grid gap-4">
+
+              <input
+                type="text"
+                placeholder="اسم المستأجر الكامل"
+                value={
+                  guestName
+                }
+                onChange={(e) =>
+                  setGuestName(
+                    e.target
+                      .value
+                  )
+                }
+                className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-right outline-none focus:border-[#3FAF9B]"
+              />
+
+              <input
+                type="text"
+                placeholder="رقم الهاتف"
+                value={
+                  guestPhone
+                }
+                onChange={(e) =>
+                  setGuestPhone(
+                    e.target
+                      .value
+                  )
+                }
+                className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-right outline-none focus:border-[#3FAF9B]"
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+
+                <div>
+
+                  <label className="block mb-2 text-xs font-bold text-[#6B7280]">
+
+                    تاريخ الوصول
+
+                  </label>
+
+                  <input
+                    type="date"
+                    min={
+                      todayStr
+                    }
+                    value={
+                      checkIn
+                    }
+                    onChange={(
+                      e
+                    ) =>
+                      setCheckIn(
+                        e
+                          .target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-4"
+                  />
+
+                </div>
+
+                <div>
+
+                  <label className="block mb-2 text-xs font-bold text-[#6B7280]">
+
+                    تاريخ المغادرة
+
+                  </label>
+
+                  <input
+                    type="date"
+                    min={
+                      checkIn ||
+                      todayStr
+                    }
+                    value={
+                      checkOut
+                    }
+                    onChange={(
+                      e
+                    ) =>
+                      setCheckOut(
+                        e
+                          .target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-4"
+                  />
+
+                </div>
+
               </div>
+
+              <button
+                onClick={
+                  handleBooking
+                }
+                disabled={
+                  loading
+                }
+                className="mt-2 w-full rounded-2xl bg-[#3FAF9B] hover:bg-[#2F8E7D] py-4 text-base font-black text-white transition disabled:bg-gray-400"
+              >
+
+                {loading
+                  ? "جاري إرسال الطلب..."
+                  : "تأكيد طلب الحجز"}
+
+              </button>
+
             </div>
           )}
 
         </div>
+
       </div>
+
     </main>
   );
 }
