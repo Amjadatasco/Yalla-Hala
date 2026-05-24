@@ -5,21 +5,26 @@ import { supabase } from "@/lib/supabase";
 
 export default function PropertyPage({ params }: any) {
 
-  // دعم Next.js الحديثة
   const resolvedParams =
-    "then" in params ? use(params) : params;
+    "then" in params
+      ? use(params)
+      : params;
 
   const [property, setProperty] =
     useState<any>(null);
 
-  const [existingBookings, setExistingBookings] =
-    useState<any[]>([]);
+  const [
+    existingBookings,
+    setExistingBookings,
+  ] = useState<any[]>([]);
 
   const [guestName, setGuestName] =
     useState("");
 
-  const [guestPhone, setGuestPhone] =
-    useState("");
+  const [
+    guestPhone,
+    setGuestPhone,
+  ] = useState("");
 
   const [checkIn, setCheckIn] =
     useState("");
@@ -30,18 +35,21 @@ export default function PropertyPage({ params }: any) {
   const [loading, setLoading] =
     useState(false);
 
-  const [pageLoading, setPageLoading] =
-    useState(true);
+  const [
+    pageLoading,
+    setPageLoading,
+  ] = useState(true);
 
   const [viewMode, setViewMode] =
-    useState<"details" | "book">(
-      "details"
-    );
+    useState<
+      "details" | "book"
+    >("details");
 
   const todayStr = new Date()
     .toISOString()
     .split("T")[0];
 
+  // ⚠️ لا تترك التوكن هنا بالإنتاج
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
 
@@ -58,7 +66,10 @@ export default function PropertyPage({ params }: any) {
 
   useEffect(() => {
 
-    if (typeof window !== "undefined") {
+    if (
+      typeof window !==
+      "undefined"
+    ) {
 
       const searchParams =
         new URLSearchParams(
@@ -66,8 +77,9 @@ export default function PropertyPage({ params }: any) {
         );
 
       if (
-        searchParams.get("action") ===
-        "book"
+        searchParams.get(
+          "action"
+        ) === "book"
       ) {
         setViewMode("book");
       }
@@ -88,11 +100,18 @@ export default function PropertyPage({ params }: any) {
       } = await supabase
         .from("properties")
         .select("*")
-        .eq("id", resolvedParams.id)
+        .eq(
+          "id",
+          resolvedParams.id
+        )
         .single();
 
       if (propertyError) {
-        console.error(propertyError);
+
+        console.error(
+          propertyError
+        );
+
         return;
       }
 
@@ -104,15 +123,25 @@ export default function PropertyPage({ params }: any) {
         error: bookingsError,
       } = await supabase
         .from("bookings")
-        .select("check_in, check_out")
+        .select(
+          "check_in, check_out"
+        )
         .eq(
           "property_id",
           resolvedParams.id
         )
-        .eq("status", "confirmed");
+        .eq(
+          "status",
+          "confirmed"
+        );
 
-      if (!bookingsError && bookingsData) {
-        setExistingBookings(bookingsData);
+      if (
+        !bookingsError &&
+        bookingsData
+      ) {
+        setExistingBookings(
+          bookingsData
+        );
       }
 
     } catch (err) {
@@ -129,7 +158,7 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
-  // فحص التداخل
+  // فحص تداخل الحجوزات
   function isDatesOverlapping(
     newIn: string,
     newOut: string
@@ -154,8 +183,10 @@ export default function PropertyPage({ params }: any) {
         ).getTime();
 
       if (
-        startNew < endExisting &&
-        endNew > startExisting
+        startNew <
+          endExisting &&
+        endNew >
+          startExisting
       ) {
         return true;
       }
@@ -164,6 +195,7 @@ export default function PropertyPage({ params }: any) {
     return false;
   }
 
+  // إشعار تيليغرام
   async function sendTelegramNotification(
     name: string,
     phone: string,
@@ -212,6 +244,7 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
+  // تنفيذ الحجز
   async function handleBooking() {
 
     if (
@@ -235,7 +268,8 @@ export default function PropertyPage({ params }: any) {
       new Date(checkOut);
 
     if (
-      checkOutDate <= checkInDate
+      checkOutDate <=
+      checkInDate
     ) {
 
       alert(
@@ -263,12 +297,13 @@ export default function PropertyPage({ params }: any) {
 
       setLoading(true);
 
-      // 🟢 جلب المستخدم الحالي
+      // جلب المستخدم الحالي
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } =
+        await supabase.auth.getUser();
 
-      // 🟢 منع الحجز بدون تسجيل دخول
+      // منع الحجز بدون تسجيل دخول
       if (!user) {
 
         alert(
@@ -280,7 +315,7 @@ export default function PropertyPage({ params }: any) {
         return;
       }
 
-      // 🟢 حفظ الحجز
+      // حفظ الحجز
       const { error } =
         await supabase
           .from("bookings")
@@ -304,7 +339,6 @@ export default function PropertyPage({ params }: any) {
               status:
                 "pending",
 
-              // ✅ ربط الحجز بالمستخدم
               user_id:
                 user.id,
             },
@@ -312,7 +346,9 @@ export default function PropertyPage({ params }: any) {
 
       if (error) {
 
-        console.error(error);
+        console.error(
+          error
+        );
 
         alert(
           `فشل إرسال الحجز: ${error.message}`
@@ -323,6 +359,7 @@ export default function PropertyPage({ params }: any) {
         return;
       }
 
+      // إشعار تيليغرام
       await sendTelegramNotification(
         guestName.trim(),
         guestPhone.trim(),
@@ -330,17 +367,53 @@ export default function PropertyPage({ params }: any) {
         checkOut
       );
 
-      alert(
-        "🎉 تم إرسال طلب الحجز بنجاح."
+      // رسالة واتساب
+      const whatsappMessage =
+        `مرحباً ${
+          property.owner_name ||
+          ""
+        } 👋\n\n` +
+        `يوجد طلب حجز جديد على عقارك:\n\n` +
+        `🏠 ${property.title}\n` +
+        `📅 من ${checkIn} إلى ${checkOut}\n\n` +
+        `👤 اسم المستأجر: ${guestName}\n` +
+        `📞 رقم المستأجر: ${guestPhone}\n\n` +
+        `يرجى الدخول إلى لوحة التحكم لتأكيد الحجز.`;
+
+      const cleanPhone =
+        property.owner_phone
+          ?.replace(
+            /\D/g,
+            ""
+          ) || "";
+
+      const whatsappUrl =
+        `https://wa.me/${cleanPhone}` +
+        `?text=${encodeURIComponent(
+          whatsappMessage
+        )}`;
+
+      // فتح واتساب
+      window.open(
+        whatsappUrl,
+        "_blank"
       );
 
+      alert(
+        "تم إرسال طلب الحجز بنجاح."
+      );
+
+      // تنظيف الحقول
       setGuestName("");
       setGuestPhone("");
       setCheckIn("");
       setCheckOut("");
 
-      setViewMode("details");
+      setViewMode(
+        "details"
+      );
 
+      // إعادة تحميل الحجوزات
       loadPropertyAndBookings();
 
     } catch (err) {
@@ -358,6 +431,7 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
+  // تحميل الصفحة
   if (pageLoading) {
 
     return (
@@ -373,6 +447,7 @@ export default function PropertyPage({ params }: any) {
     );
   }
 
+  // العقار غير موجود
   if (!property) {
 
     return (
@@ -404,7 +479,7 @@ export default function PropertyPage({ params }: any) {
 
       <div className="max-w-5xl mx-auto">
 
-        {/* الصورة الرئيسية */}
+        {/* الصورة */}
         <div className="rounded-3xl overflow-hidden border border-gray-200 shadow-sm mb-8 bg-white">
 
           <img
@@ -412,13 +487,15 @@ export default function PropertyPage({ params }: any) {
               property.image ||
               "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200"
             }
-            alt={property.title}
+            alt={
+              property.title
+            }
             className="w-full h-[500px] object-cover"
           />
 
         </div>
 
-        {/* الكارد الرئيسي */}
+        {/* الكارد */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
 
           {/* الهيدر */}
@@ -431,11 +508,13 @@ export default function PropertyPage({ params }: any) {
               </h1>
 
               <p className="text-sm text-[#6B7280] mt-2">
-                {property.location}{" "}
-                -{" "}
+
+                {property.location}
+                {" - "}
                 {
                   property.governorate
                 }
+
               </p>
 
             </div>
@@ -443,12 +522,18 @@ export default function PropertyPage({ params }: any) {
             <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center border border-emerald-100">
 
               <p className="text-3xl font-black text-[#2D6A5F]">
+
                 $
-                {property.price}
+                {
+                  property.price
+                }
+
               </p>
 
               <p className="text-xs font-bold text-[#6B7280] mt-1">
+
                 ليلة واحدة
+
               </p>
 
             </div>
@@ -492,246 +577,23 @@ export default function PropertyPage({ params }: any) {
 
           </div>
 
-          {/* تفاصيل العقار */}
+          {/* تفاصيل */}
           {viewMode ===
             "details" && (
 
-            <div className="mt-10 space-y-8">
+            <div className="mt-10">
 
-              {/* الوصف */}
-              <section>
+              <div className="rounded-3xl border border-gray-100 bg-[#F9FAFB] p-6">
 
-                <div className="flex items-center gap-2 mb-4">
+                <p className="leading-[2.2] text-[#374151] whitespace-pre-line">
 
-                  <div className="w-1.5 h-7 rounded-full bg-[#3FAF9B]"></div>
+                  {property.description?.trim()
+                    ? property.description
+                    : "لا يوجد وصف حالياً."}
 
-                  <h2 className="text-2xl font-black text-[#111827]">
-                    الوصف والمواصفات
-                  </h2>
+                </p>
 
-                </div>
-
-                <div className="rounded-3xl border border-gray-100 bg-[#F9FAFB] p-6 sm:p-7 shadow-sm">
-
-                  <p className="leading-[2.3] text-[15px] sm:text-base text-[#374151] whitespace-pre-line">
-
-                    {property.description?.trim()
-                      ? property.description
-                      : "لا يوجد وصف مضاف لهذا العقار حالياً."}
-
-                  </p>
-
-                </div>
-
-              </section>
-
-              {/* التجهيزات */}
-              <section>
-
-                <div className="flex items-center gap-2 mb-4">
-
-                  <div className="w-1.5 h-7 rounded-full bg-[#CF9E59]"></div>
-
-                  <h2 className="text-2xl font-black text-[#111827]">
-                    التجهيزات والخدمات
-                  </h2>
-
-                </div>
-
-                <div className="rounded-3xl border border-[#F3E4C8] bg-[#FFF9EE] p-6 sm:p-7 shadow-sm">
-
-                  {property.amenities?.trim() ? (
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-
-                      {property.amenities
-                        .split(",")
-                        .map(
-                          (
-                            item: string,
-                            index: number
-                          ) => (
-
-                            <div
-                              key={
-                                index
-                              }
-                              className="flex items-center gap-3 rounded-2xl border border-[#F3E4C8] bg-white px-4 py-3"
-                            >
-
-                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#E6F4F1] text-[#2D6A5F] font-black">
-                                ✓
-                              </div>
-
-                              <p className="text-sm sm:text-[15px] font-semibold text-[#374151]">
-
-                                {item.trim()}
-
-                              </p>
-
-                            </div>
-
-                          )
-                        )}
-
-                    </div>
-
-                  ) : (
-
-                    <div className="rounded-2xl bg-white border border-dashed border-[#E5E7EB] py-10 text-center">
-
-                      <p className="text-sm text-[#9CA3AF] font-medium">
-
-                        لا توجد تجهيزات مضافة.
-
-                      </p>
-
-                    </div>
-
-                  )}
-
-                </div>
-
-              </section>
-
-              {/* معلومات إضافية */}
-              <section>
-
-                <div className="flex items-center gap-2 mb-4">
-
-                  <div className="w-1.5 h-7 rounded-full bg-[#2D6A5F]"></div>
-
-                  <h2 className="text-2xl font-black text-[#111827]">
-                    معلومات العقار
-                  </h2>
-
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-
-                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm text-center">
-
-                    <p className="text-xs font-bold text-[#9CA3AF] mb-2">
-
-                      عدد الغرف
-
-                    </p>
-
-                    <h3 className="text-3xl font-black text-[#111827]">
-
-                      {property.rooms_count ||
-                        0}
-
-                    </h3>
-
-                  </div>
-
-                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm text-center">
-
-                    <p className="text-xs font-bold text-[#9CA3AF] mb-2">
-
-                      عدد الأسرة
-
-                    </p>
-
-                    <h3 className="text-3xl font-black text-[#111827]">
-
-                      {property.beds_count ||
-                        0}
-
-                    </h3>
-
-                  </div>
-
-                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm text-center">
-
-                    <p className="text-xs font-bold text-[#9CA3AF] mb-2">
-
-                      عدد الحمامات
-
-                    </p>
-
-                    <h3 className="text-3xl font-black text-[#111827]">
-
-                      {property.bathrooms_count ||
-                        0}
-
-                    </h3>
-
-                  </div>
-
-                </div>
-
-              </section>
-
-              {/* الحجوزات */}
-              <section>
-
-                <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6">
-
-                  <h3 className="text-base font-black text-amber-900 mb-4">
-
-                    📅 الفترات المحجوزة
-
-                  </h3>
-
-                  {existingBookings.length ===
-                  0 ? (
-
-                    <p className="text-sm text-amber-700">
-
-                      العقار متاح بالكامل حالياً.
-
-                    </p>
-
-                  ) : (
-
-                    <div className="space-y-2">
-
-                      {existingBookings.map(
-                        (
-                          booking,
-                          index
-                        ) => (
-
-                          <div
-                            key={
-                              index
-                            }
-                            className="bg-white rounded-xl border border-amber-100 px-4 py-3 text-sm"
-                          >
-
-                            من{" "}
-                            <span className="font-black">
-
-                              {
-                                booking.check_in
-                              }
-
-                            </span>
-
-                            {" "}إلى{" "}
-
-                            <span className="font-black">
-
-                              {
-                                booking.check_out
-                              }
-
-                            </span>
-
-                          </div>
-
-                        )
-                      )}
-
-                    </div>
-
-                  )}
-
-                </div>
-
-              </section>
+              </div>
 
             </div>
           )}
@@ -790,12 +652,9 @@ export default function PropertyPage({ params }: any) {
                     value={
                       checkIn
                     }
-                    onChange={(
-                      e
-                    ) =>
+                    onChange={(e) =>
                       setCheckIn(
-                        e
-                          .target
+                        e.target
                           .value
                       )
                     }
@@ -821,12 +680,9 @@ export default function PropertyPage({ params }: any) {
                     value={
                       checkOut
                     }
-                    onChange={(
-                      e
-                    ) =>
+                    onChange={(e) =>
                       setCheckOut(
-                        e
-                          .target
+                        e.target
                           .value
                       )
                     }
