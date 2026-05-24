@@ -5,7 +5,6 @@ import { supabase } from "@/lib/supabase";
 
 export default function PropertyPage({ params }: any) {
 
-  // دعم Next.js الحديثة
   const resolvedParams =
     "then" in params
       ? use(params)
@@ -44,7 +43,6 @@ export default function PropertyPage({ params }: any) {
     .toISOString()
     .split("T")[0];
 
-  // ⚠️ لاحقاً انقلهم إلى env
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
 
@@ -59,39 +57,12 @@ export default function PropertyPage({ params }: any) {
 
   }, [resolvedParams?.id]);
 
-  useEffect(() => {
-
-    if (
-      typeof window !==
-      "undefined"
-    ) {
-
-      const searchParams =
-        new URLSearchParams(
-          window.location.search
-        );
-
-      if (
-        searchParams.get(
-          "action"
-        ) === "book"
-      ) {
-
-        setViewMode("book");
-
-      }
-    }
-
-  }, []);
-
-  // تحميل العقار والحجوزات
   async function loadPropertyAndBookings() {
 
     try {
 
       setPageLoading(true);
 
-      // تحميل العقار
       const {
         data: propertyData,
         error: propertyError,
@@ -115,7 +86,6 @@ export default function PropertyPage({ params }: any) {
 
       setProperty(propertyData);
 
-      // تحميل الحجوزات المؤكدة
       const {
         data: bookingsData,
         error: bookingsError,
@@ -146,10 +116,7 @@ export default function PropertyPage({ params }: any) {
 
     } catch (err) {
 
-      console.error(
-        "Error loading property:",
-        err
-      );
+      console.error(err);
 
     } finally {
 
@@ -158,7 +125,6 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
-  // فحص تداخل الحجوزات
   function isDatesOverlapping(
     newIn: string,
     newOut: string
@@ -197,7 +163,6 @@ export default function PropertyPage({ params }: any) {
     return false;
   }
 
-  // إشعار تيليغرام
   async function sendTelegramNotification(
     name: string,
     phone: string,
@@ -218,15 +183,13 @@ export default function PropertyPage({ params }: any) {
           property?.location || ""
         }\n\n` +
 
-        `👤 اسم المستأجر:\n${name}\n\n` +
+        `👤 المستأجر:\n${name}\n\n` +
 
-        `📞 رقم الهاتف:\n${phone}\n\n` +
+        `📞 الهاتف:\n${phone}\n\n` +
 
         `📅 الوصول:\n${inDate}\n\n` +
 
-        `📅 المغادرة:\n${outDate}\n\n` +
-
-        `🟡 الحالة:\nPending`;
+        `📅 المغادرة:\n${outDate}`;
 
       await fetch(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
@@ -249,18 +212,13 @@ export default function PropertyPage({ params }: any) {
 
     } catch (err) {
 
-      console.error(
-        "Telegram Error:",
-        err
-      );
+      console.error(err);
 
     }
   }
 
-  // تنفيذ الحجز
   async function handleBooking() {
 
-    // تحقق من الحقول
     if (
       !guestName.trim() ||
       !guestPhone.trim() ||
@@ -269,7 +227,7 @@ export default function PropertyPage({ params }: any) {
     ) {
 
       alert(
-        "يرجى تعبئة جميع بيانات الحجز."
+        "يرجى تعبئة جميع البيانات."
       );
 
       return;
@@ -281,20 +239,18 @@ export default function PropertyPage({ params }: any) {
     const checkOutDate =
       new Date(checkOut);
 
-    // تحقق من التواريخ
     if (
       checkOutDate <=
       checkInDate
     ) {
 
       alert(
-        "يجب أن يكون تاريخ المغادرة بعد الوصول."
+        "تاريخ المغادرة يجب أن يكون بعد الوصول."
       );
 
       return;
     }
 
-    // تحقق من التداخل
     if (
       isDatesOverlapping(
         checkIn,
@@ -303,7 +259,7 @@ export default function PropertyPage({ params }: any) {
     ) {
 
       alert(
-        "هذه التواريخ محجوزة بالفعل."
+        "هذه التواريخ محجوزة."
       );
 
       return;
@@ -313,17 +269,15 @@ export default function PropertyPage({ params }: any) {
 
       setLoading(true);
 
-      // جلب المستخدم الحالي
       const {
         data: { user },
       } =
         await supabase.auth.getUser();
 
-      // منع الحجز بدون تسجيل دخول
       if (!user) {
 
         alert(
-          "يجب تسجيل الدخول أولاً للحجز."
+          "يجب تسجيل الدخول أولاً."
         );
 
         setLoading(false);
@@ -331,7 +285,6 @@ export default function PropertyPage({ params }: any) {
         return;
       }
 
-      // حفظ الحجز
       const { error } =
         await supabase
           .from("bookings")
@@ -362,10 +315,8 @@ export default function PropertyPage({ params }: any) {
 
       if (error) {
 
-        console.error(error);
-
         alert(
-          `فشل إرسال الحجز: ${error.message}`
+          error.message
         );
 
         setLoading(false);
@@ -373,7 +324,6 @@ export default function PropertyPage({ params }: any) {
         return;
       }
 
-      // إشعار تيليغرام
       await sendTelegramNotification(
         guestName.trim(),
         guestPhone.trim(),
@@ -381,30 +331,20 @@ export default function PropertyPage({ params }: any) {
         checkOut
       );
 
-      // رسالة نجاح
       alert(
         "تم استلام طلب الحجز بنجاح، وسيتم مراجعة الطلب والتواصل معك قريباً."
       );
 
-      // تنظيف الحقول
       setGuestName("");
       setGuestPhone("");
       setCheckIn("");
       setCheckOut("");
 
-      // العودة للتفاصيل
       setViewMode("details");
-
-      // إعادة تحميل الحجوزات
-      loadPropertyAndBookings();
 
     } catch (err) {
 
       console.error(err);
-
-      alert(
-        "حدث خطأ أثناء إرسال الحجز."
-      );
 
     } finally {
 
@@ -413,47 +353,23 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
-  // تحميل الصفحة
   if (pageLoading) {
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center">
 
-        <div className="w-12 h-12 border-4 border-[#3FAF9B] border-t-transparent rounded-full animate-spin mb-5"></div>
-
-        <p className="text-sm font-bold text-[#3FAF9B]">
-
-          جاري تحميل العقار...
-
-        </p>
+        جاري التحميل...
 
       </div>
     );
   }
 
-  // العقار غير موجود
   if (!property) {
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+      <div className="min-h-screen flex items-center justify-center">
 
-        <p className="text-red-500 font-bold">
-
-          العقار غير موجود
-
-        </p>
-
-        <button
-          onClick={() =>
-            (window.location.href =
-              "/")
-          }
-          className="bg-[#3FAF9B] text-white px-5 py-2 rounded-full"
-        >
-
-          العودة للرئيسية
-
-        </button>
+        العقار غير موجود
 
       </div>
     );
@@ -467,37 +383,45 @@ export default function PropertyPage({ params }: any) {
 
       <div className="max-w-5xl mx-auto">
 
-        {/* الصورة */}
-        <div className="rounded-3xl overflow-hidden border border-gray-200 shadow-sm mb-8 bg-white">
+        {/* الصور */}
+        <div className="grid gap-4 mb-8">
 
-          <img
-            src={
-              property.image ||
-              "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200"
-            }
-            alt={
-              property.title
-            }
-            className="w-full h-[500px] object-cover"
-          />
+          {(property.images_list?.length
+            ? property.images_list
+            : [property.image]
+          ).map(
+            (
+              image: string,
+              index: number
+            ) => (
+
+              <img
+                key={index}
+                src={image}
+                alt={property.title}
+                className="w-full rounded-3xl border h-[500px] object-cover"
+              />
+
+            )
+          )}
 
         </div>
 
         {/* الكارد */}
-        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
+        <div className="bg-white rounded-3xl border p-6 sm:p-8 shadow-sm">
 
           {/* الهيدر */}
-          <div className="flex flex-wrap items-start justify-between gap-5 border-b border-gray-100 pb-6">
+          <div className="flex flex-wrap items-start justify-between gap-5 border-b pb-6">
 
-            <div className="text-right">
+            <div>
 
-              <h1 className="text-3xl font-black text-[#111827]">
+              <h1 className="text-3xl font-black">
 
                 {property.title}
 
               </h1>
 
-              <p className="text-sm text-[#6B7280] mt-2">
+              <p className="mt-2 text-sm text-gray-500">
 
                 {property.location}
                 {" - "}
@@ -509,20 +433,18 @@ export default function PropertyPage({ params }: any) {
 
             </div>
 
-            <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center border border-emerald-100">
+            <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center">
 
               <p className="text-3xl font-black text-[#2D6A5F]">
 
                 $
-                {
-                  property.price
-                }
+                {property.price}
 
               </p>
 
-              <p className="text-xs font-bold text-[#6B7280] mt-1">
+              <p className="text-xs mt-1">
 
-                ليلة واحدة
+                USD / ليلة
 
               </p>
 
@@ -531,7 +453,7 @@ export default function PropertyPage({ params }: any) {
           </div>
 
           {/* Tabs */}
-          <div className="flex mt-6 border-b border-gray-100">
+          <div className="flex mt-6 border-b">
 
             <button
               onClick={() =>
@@ -539,11 +461,11 @@ export default function PropertyPage({ params }: any) {
                   "details"
                 )
               }
-              className={`flex-1 py-4 text-sm font-black border-b-2 transition ${
+              className={`flex-1 py-4 border-b-2 ${
                 viewMode ===
                 "details"
                   ? "border-[#3FAF9B] text-[#3FAF9B]"
-                  : "border-transparent text-gray-400"
+                  : "border-transparent"
               }`}
             >
 
@@ -557,37 +479,151 @@ export default function PropertyPage({ params }: any) {
                   "book"
                 )
               }
-              className={`flex-1 py-4 text-sm font-black border-b-2 transition ${
+              className={`flex-1 py-4 border-b-2 ${
                 viewMode ===
                 "book"
                   ? "border-[#3FAF9B] text-[#3FAF9B]"
-                  : "border-transparent text-gray-400"
+                  : "border-transparent"
               }`}
             >
 
-              طلب حجز الإقامة
+              طلب حجز
 
             </button>
 
           </div>
 
-          {/* تفاصيل */}
+          {/* التفاصيل */}
           {viewMode ===
             "details" && (
 
-            <div className="mt-10">
+            <div className="mt-10 space-y-8">
 
-              <div className="rounded-3xl border border-gray-100 bg-[#F9FAFB] p-6">
+              {/* الوصف */}
+              <section>
 
-                <p className="leading-[2.2] text-[#374151] whitespace-pre-line">
+                <h2 className="text-2xl font-black mb-4">
 
-                  {property.description?.trim()
-                    ? property.description
-                    : "لا يوجد وصف حالياً."}
+                  الوصف
 
-                </p>
+                </h2>
 
-              </div>
+                <div className="rounded-3xl bg-[#F9FAFB] p-6">
+
+                  <p className="leading-[2.2] whitespace-pre-line">
+
+                    {property.description ||
+                      "لا يوجد وصف"}
+
+                  </p>
+
+                </div>
+
+              </section>
+
+              {/* التجهيزات */}
+              <section>
+
+                <h2 className="text-2xl font-black mb-4">
+
+                  التجهيزات والخدمات
+
+                </h2>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+
+                  {property.amenities
+                    ?.split(",")
+                    .map(
+                      (
+                        item: string,
+                        index: number
+                      ) => (
+
+                        <div
+                          key={index}
+                          className="rounded-2xl border bg-white px-4 py-3"
+                        >
+
+                          ✓ {item.trim()}
+
+                        </div>
+
+                      )
+                    )}
+
+                </div>
+
+              </section>
+
+              {/* المعلومات */}
+              <section>
+
+                <h2 className="text-2xl font-black mb-4">
+
+                  معلومات العقار
+
+                </h2>
+
+                <div className="grid grid-cols-3 gap-4">
+
+                  <div className="rounded-2xl border p-5 text-center">
+
+                    <p className="text-sm text-gray-500">
+
+                      الغرف
+
+                    </p>
+
+                    <h3 className="text-3xl font-black">
+
+                      {
+                        property.rooms_count
+                      }
+
+                    </h3>
+
+                  </div>
+
+                  <div className="rounded-2xl border p-5 text-center">
+
+                    <p className="text-sm text-gray-500">
+
+                      الأسرة
+
+                    </p>
+
+                    <h3 className="text-3xl font-black">
+
+                      {
+                        property.beds_count
+                      }
+
+                    </h3>
+
+                  </div>
+
+                  <div className="rounded-2xl border p-5 text-center">
+
+                    <p className="text-sm text-gray-500">
+
+                      الحمامات
+
+                    </p>
+
+                    <h3 className="text-3xl font-black">
+
+                      {
+                        property.bathrooms_count
+                      }
+
+                    </h3>
+
+                  </div>
+
+                </div>
+
+              </section>
 
             </div>
           )}
@@ -600,90 +636,56 @@ export default function PropertyPage({ params }: any) {
 
               <input
                 type="text"
-                placeholder="اسم المستأجر الكامل"
-                value={
-                  guestName
-                }
+                placeholder="اسم المستأجر"
+                value={guestName}
                 onChange={(e) =>
                   setGuestName(
-                    e.target
-                      .value
+                    e.target.value
                   )
                 }
-                className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-right outline-none focus:border-[#3FAF9B]"
+                className="rounded-2xl border px-4 py-4"
               />
 
               <input
                 type="text"
                 placeholder="رقم الهاتف"
-                value={
-                  guestPhone
-                }
+                value={guestPhone}
                 onChange={(e) =>
                   setGuestPhone(
-                    e.target
-                      .value
+                    e.target.value
                   )
                 }
-                className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-right outline-none focus:border-[#3FAF9B]"
+                className="rounded-2xl border px-4 py-4"
               />
 
               <div className="grid grid-cols-2 gap-4">
 
-                <div>
+                <input
+                  type="date"
+                  min={todayStr}
+                  value={checkIn}
+                  onChange={(e) =>
+                    setCheckIn(
+                      e.target.value
+                    )
+                  }
+                  className="rounded-2xl border px-4 py-4"
+                />
 
-                  <label className="block mb-2 text-xs font-bold text-[#6B7280]">
-
-                    تاريخ الوصول
-
-                  </label>
-
-                  <input
-                    type="date"
-                    min={
-                      todayStr
-                    }
-                    value={
-                      checkIn
-                    }
-                    onChange={(e) =>
-                      setCheckIn(
-                        e.target
-                          .value
-                      )
-                    }
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-4"
-                  />
-
-                </div>
-
-                <div>
-
-                  <label className="block mb-2 text-xs font-bold text-[#6B7280]">
-
-                    تاريخ المغادرة
-
-                  </label>
-
-                  <input
-                    type="date"
-                    min={
-                      checkIn ||
-                      todayStr
-                    }
-                    value={
-                      checkOut
-                    }
-                    onChange={(e) =>
-                      setCheckOut(
-                        e.target
-                          .value
-                      )
-                    }
-                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-4"
-                  />
-
-                </div>
+                <input
+                  type="date"
+                  min={
+                    checkIn ||
+                    todayStr
+                  }
+                  value={checkOut}
+                  onChange={(e) =>
+                    setCheckOut(
+                      e.target.value
+                    )
+                  }
+                  className="rounded-2xl border px-4 py-4"
+                />
 
               </div>
 
@@ -691,15 +693,13 @@ export default function PropertyPage({ params }: any) {
                 onClick={
                   handleBooking
                 }
-                disabled={
-                  loading
-                }
-                className="mt-2 w-full rounded-2xl bg-[#3FAF9B] hover:bg-[#2F8E7D] py-4 text-base font-black text-white transition disabled:bg-gray-400"
+                disabled={loading}
+                className="w-full rounded-2xl bg-[#3FAF9B] py-4 text-white font-black"
               >
 
                 {loading
-                  ? "جاري إرسال الطلب..."
-                  : "تأكيد طلب الحجز"}
+                  ? "جاري الإرسال..."
+                  : "إرسال طلب الحجز"}
 
               </button>
 
