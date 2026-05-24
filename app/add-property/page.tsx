@@ -328,7 +328,7 @@ export default function AddPropertyPage() {
         <div className="mb-10 text-right">
 
           <h1 className="text-4xl sm:text-5xl font-black text-[#111827] leading-tight">
-            أضف عقارك السكني
+            أضف عقارك هنا
           </h1>
 
           <p className="mt-3 text-sm sm:text-base text-[#6B7280]">
