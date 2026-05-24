@@ -1,121 +1,286 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 
-const governorates = [
-  "دمشق",
-  "ريف دمشق",
-  "حلب",
-  "حمص",
-  "حماة",
-  "اللاذقية",
-  "طرطوس",
-  "إدلب",
-  "درعا",
-  "السويداء",
-  "القنيطرة",
-  "دير الزور",
-  "الرقة",
-  "الحسكة",
-];
+export default function PropertyPage({ params }: any) {
 
-const propertyTypes = [
-  "شقة",
-  "فيلا",
-  "مزرعة",
-  "غرفة",
-  "شاليه",
-];
+  // دعم Next.js الحديثة
+  const resolvedParams =
+    "then" in params ? use(params) : params;
 
-export default function AddPropertyPage() {
+  const [property, setProperty] =
+    useState<any>(null);
 
-  const [ownerName, setOwnerName] = useState("");
-  const [ownerPhone, setOwnerPhone] = useState("");
-  const [ownerEmail, setOwnerEmail] = useState("");
+  const [existingBookings, setExistingBookings] =
+    useState<any[]>([]);
 
-  const [title, setTitle] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedGov, setSelectedGov] = useState("");
+  const [guestName, setGuestName] =
+    useState("");
 
-  const [location, setLocation] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
+  const [guestPhone, setGuestPhone] =
+    useState("");
 
-  const [price, setPrice] = useState("");
+  const [checkIn, setCheckIn] =
+    useState("");
 
-  const [rooms, setRooms] = useState("");
-  const [beds, setBeds] = useState("");
-  const [bathrooms, setBathrooms] = useState("");
+  const [checkOut, setCheckOut] =
+    useState("");
 
-  const [description, setDescription] = useState("");
-  const [amenities, setAmenities] = useState("");
+  const [loading, setLoading] =
+    useState(false);
 
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [pageLoading, setPageLoading] =
+    useState(true);
 
-  const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] =
+    useState<"details" | "book">(
+      "details"
+    );
 
+  const todayStr = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  // ⚠️ لاحقاً انقلهم إلى env
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
 
-  const TELEGRAM_CHAT_ID = "629151535";
+  const TELEGRAM_CHAT_ID =
+    "629151535";
 
-  async function sendTelegramNewPropertyNotification() {
+  useEffect(() => {
+
+    if (resolvedParams?.id) {
+      loadPropertyAndBookings();
+    }
+
+  }, [resolvedParams?.id]);
+
+  useEffect(() => {
+
+    if (typeof window !== "undefined") {
+
+      const searchParams =
+        new URLSearchParams(
+          window.location.search
+        );
+
+      if (
+        searchParams.get("action") ===
+        "book"
+      ) {
+        setViewMode("book");
+      }
+    }
+
+  }, []);
+
+  // تحميل العقار والحجوزات
+  async function loadPropertyAndBookings() {
+
+    try {
+
+      setPageLoading(true);
+
+      // تحميل العقار
+      const {
+        data: propertyData,
+        error: propertyError,
+      } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("id", resolvedParams.id)
+        .single();
+
+      if (propertyError) {
+
+        console.error(propertyError);
+
+        return;
+      }
+
+      setProperty(propertyData);
+
+      // تحميل الحجوزات المؤكدة
+      const {
+        data: bookingsData,
+        error: bookingsError,
+      } = await supabase
+        .from("bookings")
+        .select("check_in, check_out")
+        .eq(
+          "property_id",
+          resolvedParams.id
+        )
+        .eq("status", "confirmed");
+
+      if (
+        !bookingsError &&
+        bookingsData
+      ) {
+
+        setExistingBookings(
+          bookingsData
+        );
+      }
+
+    } catch (err) {
+
+      console.error(
+        "Error loading property:",
+        err
+      );
+
+    } finally {
+
+      setPageLoading(false);
+
+    }
+  }
+
+  // فحص تداخل الحجوزات
+  function isDatesOverlapping(
+    newIn: string,
+    newOut: string
+  ) {
+
+    const startNew =
+      new Date(newIn).getTime();
+
+    const endNew =
+      new Date(newOut).getTime();
+
+    for (const booking of existingBookings) {
+
+      const startExisting =
+        new Date(
+          booking.check_in
+        ).getTime();
+
+      const endExisting =
+        new Date(
+          booking.check_out
+        ).getTime();
+
+      if (
+        startNew < endExisting &&
+        endNew > startExisting
+      ) {
+
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // إشعار تيليغرام
+  async function sendTelegramNotification(
+    name: string,
+    phone: string,
+    inDate: string,
+    outDate: string
+  ) {
 
     try {
 
       const messageText =
-        `🆕 *إشعار: عقار جديد مضاف ينتظر المراجعة!* 🆕\n\n` +
-        `🏠 *العقار:* ${title}\n` +
-        `🗂️ *النوع:* ${selectedType}\n` +
-        `📍 *المحافظة:* ${selectedGov}\n` +
-        `🗺️ *المنطقة:* ${location}\n\n` +
-        `💰 *السعر:* $${price}\n\n` +
-        `👤 *اسم المؤجر:* ${ownerName}\n` +
-        `📞 *رقم الهاتف:* ${ownerPhone}\n` +
-        `✉️ *الإيميل:* ${ownerEmail || "لا يوجد"}\n\n` +
-        `🛏️ *الغرف:* ${rooms || 0}\n` +
-        `🛌 *الأسرة:* ${beds || 0}\n` +
-        `🚿 *الحمامات:* ${bathrooms || 0}\n`;
+        `🚨 طلب حجز جديد\n\n` +
+
+        `🏠 العقار:\n${
+          property?.title || ""
+        }\n\n` +
+
+        `📍 الموقع:\n${
+          property?.location || ""
+        }\n\n` +
+
+        `👤 اسم المستأجر:\n${name}\n\n` +
+
+        `📞 رقم الهاتف:\n${phone}\n\n` +
+
+        `📅 الوصول:\n${inDate}\n\n` +
+
+        `📅 المغادرة:\n${outDate}\n\n` +
+
+        `🟡 الحالة:\nPending`;
 
       await fetch(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
           method: "POST",
+
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
+
           body: JSON.stringify({
-            chat_id: TELEGRAM_CHAT_ID,
+            chat_id:
+              TELEGRAM_CHAT_ID,
+
             text: messageText,
-            parse_mode: "Markdown",
           }),
         }
       );
 
-    } catch (error) {
+    } catch (err) {
 
       console.error(
-        "Telegram notification error:",
-        error
+        "Telegram Error:",
+        err
       );
 
     }
   }
 
-  async function handleAddProperty() {
+  // تنفيذ الحجز
+  async function handleBooking() {
 
+    // تحقق من الحقول
     if (
-      !ownerName.trim() ||
-      !ownerPhone.trim() ||
-      !title.trim() ||
-      !selectedType ||
-      !selectedGov ||
-      !location.trim() ||
-      !price
+      !guestName.trim() ||
+      !guestPhone.trim() ||
+      !checkIn ||
+      !checkOut
     ) {
 
       alert(
-        "يرجى تعبئة جميع الحقول الإلزامية أولاً."
+        "يرجى تعبئة جميع بيانات الحجز."
+      );
+
+      return;
+    }
+
+    const checkInDate =
+      new Date(checkIn);
+
+    const checkOutDate =
+      new Date(checkOut);
+
+    // تحقق من التواريخ
+    if (
+      checkOutDate <= checkInDate
+    ) {
+
+      alert(
+        "يجب أن يكون تاريخ المغادرة بعد الوصول."
+      );
+
+      return;
+    }
+
+    // تحقق من التداخل
+    if (
+      isDatesOverlapping(
+        checkIn,
+        checkOut
+      )
+    ) {
+
+      alert(
+        "هذه التواريخ محجوزة بالفعل."
       );
 
       return;
@@ -125,16 +290,16 @@ export default function AddPropertyPage() {
 
       setLoading(true);
 
-      // ✅ جلب المستخدم الحالي
+      // جلب المستخدم الحالي
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // ✅ منع الإضافة بدون تسجيل دخول
+      // منع الحجز بدون تسجيل دخول
       if (!user) {
 
         alert(
-          "يجب تسجيل الدخول أولاً لإضافة عقار."
+          "يجب تسجيل الدخول أولاً للحجز."
         );
 
         setLoading(false);
@@ -142,123 +307,41 @@ export default function AddPropertyPage() {
         return;
       }
 
-      let imageUrls: string[] = [];
+      // حفظ الحجز
+      const { error } =
+        await supabase
+          .from("bookings")
+          .insert([
+            {
+              property_id:
+                property.id,
 
-      // ✅ رفع الصور
-      if (imageFiles.length > 0) {
+              guest_name:
+                guestName.trim(),
 
-        for (const imageFile of imageFiles) {
+              guest_phone:
+                guestPhone.trim(),
 
-          const fileExt =
-            imageFile.name.split(".").pop();
+              check_in:
+                checkIn,
 
-          const fileName =
-            `${Date.now()}-${Math.random()}.${fileExt}`;
+              check_out:
+                checkOut,
 
-          const {
-            data: uploadData,
-            error: uploadError,
-          } = await supabase.storage
-            .from("property-images")
-            .upload(
-              fileName,
-              imageFile,
-              {
-                cacheControl: "3600",
-                upsert: false,
-              }
-            );
+              status:
+                "pending",
 
-          if (uploadError) {
-
-            console.error(uploadError);
-
-            alert(
-              `فشل رفع الصورة: ${imageFile.name}`
-            );
-
-            setLoading(false);
-
-            return;
-          }
-
-          const { data: publicUrlData } =
-            supabase.storage
-              .from("property-images")
-              .getPublicUrl(uploadData.path);
-
-          imageUrls.push(
-            publicUrlData.publicUrl
-          );
-        }
-      }
-
-      // ✅ حفظ العقار وربطه بالمستخدم الحالي
-      const { error } = await supabase
-        .from("properties")
-        .insert([
-          {
-            title: title.trim(),
-
-            type: selectedType,
-
-            governorate: selectedGov,
-
-            location: location.trim(),
-
-            neighborhood:
-              neighborhood.trim(),
-
-            price: Number(price),
-
-            description:
-              description.trim(),
-
-            amenities:
-              amenities.trim(),
-
-            rooms_count: rooms
-              ? Number(rooms)
-              : null,
-
-            beds_count: beds
-              ? Number(beds)
-              : null,
-
-            bathrooms_count: bathrooms
-              ? Number(bathrooms)
-              : null,
-
-            owner_name:
-              ownerName.trim(),
-
-            owner_phone:
-              ownerPhone.trim(),
-
-            owner_email:
-              ownerEmail.trim(),
-
-            image:
-              imageUrls[0] || "",
-
-            images_list: imageUrls,
-
-            status: "pending",
-
-            // ✅ أهم تعديل
-            user_id: user.id,
-          },
-        ]);
+              user_id:
+                user.id,
+            },
+          ]);
 
       if (error) {
 
-        console.error(
-          "Supabase insert error:",
-          error
-        );
+        console.error(error);
 
         alert(
-          `حدث خطأ أثناء حفظ العقار: ${error.message}`
+          `فشل إرسال الحجز: ${error.message}`
         );
 
         setLoading(false);
@@ -266,23 +349,37 @@ export default function AddPropertyPage() {
         return;
       }
 
-      // ✅ إرسال إشعار تلغرام
-      await sendTelegramNewPropertyNotification();
-
-      alert(
-        "🎉 تم إرسال العقار بنجاح وسيتم مراجعته من الإدارة."
+      // إرسال إشعار تيليغرام
+      await sendTelegramNotification(
+        guestName.trim(),
+        guestPhone.trim(),
+        checkIn,
+        checkOut
       );
 
-      clearForm();
+      // رسالة نجاح
+      alert(
+        "تم إرسال طلب الحجز بنجاح، سيتم مراجعة الطلب والتواصل لاحقاً."
+      );
 
-      window.location.href = "/owner-dashboard";
+      // تنظيف الحقول
+      setGuestName("");
+      setGuestPhone("");
+      setCheckIn("");
+      setCheckOut("");
 
-    } catch (error) {
+      // العودة للتفاصيل
+      setViewMode("details");
 
-      console.error(error);
+      // إعادة تحميل الحجوزات
+      loadPropertyAndBookings();
+
+    } catch (err) {
+
+      console.error(err);
 
       alert(
-        "حدث خطأ غير متوقع، حاول مجدداً."
+        "حدث خطأ أثناء إرسال الحجز."
       );
 
     } finally {
@@ -292,216 +389,387 @@ export default function AddPropertyPage() {
     }
   }
 
-  function clearForm() {
+  // تحميل الصفحة
+  if (pageLoading) {
 
-    setOwnerName("");
-    setOwnerPhone("");
-    setOwnerEmail("");
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
 
-    setTitle("");
-    setSelectedType("");
-    setSelectedGov("");
+        <div className="w-12 h-12 border-4 border-[#3FAF9B] border-t-transparent rounded-full animate-spin mb-5"></div>
 
-    setLocation("");
-    setNeighborhood("");
+        <p className="text-sm font-bold text-[#3FAF9B]">
 
-    setPrice("");
+          جاري تحميل العقار...
 
-    setRooms("");
-    setBeds("");
-    setBathrooms("");
+        </p>
 
-    setDescription("");
-    setAmenities("");
+      </div>
+    );
+  }
 
-    setImageFiles([]);
+  // العقار غير موجود
+  if (!property) {
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
+
+        <p className="text-red-500 font-bold">
+
+          العقار غير موجود
+
+        </p>
+
+        <button
+          onClick={() =>
+            (window.location.href =
+              "/")
+          }
+          className="bg-[#3FAF9B] text-white px-5 py-2 rounded-full"
+        >
+
+          العودة للرئيسية
+
+        </button>
+
+      </div>
+    );
   }
 
   return (
     <main
-      className="min-h-screen bg-[#FAFAFA] px-4 sm:px-6 py-10 sm:py-14"
+      className="bg-[#FAFAFA] min-h-screen px-4 py-10"
       dir="rtl"
     >
 
-      <div className="mx-auto max-w-5xl">
+      <div className="max-w-5xl mx-auto">
 
-        <div className="mb-10 text-right">
+        {/* الصورة الرئيسية */}
+        <div className="rounded-3xl overflow-hidden border border-gray-200 shadow-sm mb-8 bg-white">
 
-          <h1 className="text-4xl sm:text-5xl font-black text-[#111827] leading-tight">
-            أضف عقارك هنا
-          </h1>
-
-          <p className="mt-3 text-sm sm:text-base text-[#6B7280]">
-            أضف عقارك وسيتم مراجعته من الإدارة قبل النشر.
-          </p>
+          <img
+            src={
+              property.image ||
+              "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200"
+            }
+            alt={property.title}
+            className="w-full h-[500px] object-cover"
+          />
 
         </div>
 
-        <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-5 sm:p-8 shadow-sm space-y-6">
+        {/* الكارد */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 sm:p-8">
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* الهيدر */}
+          <div className="flex flex-wrap items-start justify-between gap-5 border-b border-gray-100 pb-6">
 
-            <input
-              type="text"
-              value={ownerName}
-              onChange={(e) =>
-                setOwnerName(e.target.value)
-              }
-              placeholder="اسم صاحب العقار"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            />
+            <div className="text-right">
 
-            <input
-              type="text"
-              value={ownerPhone}
-              onChange={(e) =>
-                setOwnerPhone(e.target.value)
-              }
-              placeholder="رقم الهاتف"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            />
+              <h1 className="text-3xl font-black text-[#111827]">
 
-            <input
-              type="email"
-              value={ownerEmail}
-              onChange={(e) =>
-                setOwnerEmail(e.target.value)
-              }
-              placeholder="البريد الإلكتروني"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            />
+                {property.title}
 
-            <input
-              type="text"
-              value={title}
-              onChange={(e) =>
-                setTitle(e.target.value)
-              }
-              placeholder="اسم العقار"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            />
+              </h1>
 
-            <select
-              value={selectedType}
-              onChange={(e) =>
-                setSelectedType(e.target.value)
-              }
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            >
+              <p className="text-sm text-[#6B7280] mt-2">
 
-              <option value="">
-                اختر نوع العقار
-              </option>
+                {property.location}
+                {" - "}
+                {
+                  property.governorate
+                }
 
-              {propertyTypes.map((type) => (
-                <option
-                  key={type}
-                  value={type}
-                >
-                  {type}
-                </option>
-              ))}
+              </p>
 
-            </select>
+            </div>
 
-            <select
-              value={selectedGov}
-              onChange={(e) =>
-                setSelectedGov(e.target.value)
-              }
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            >
+            <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center border border-emerald-100">
 
-              <option value="">
-                اختر المحافظة
-              </option>
+              <p className="text-3xl font-black text-[#2D6A5F]">
 
-              {governorates.map((gov) => (
-                <option
-                  key={gov}
-                  value={gov}
-                >
-                  {gov}
-                </option>
-              ))}
+                $
+                {property.price}
 
-            </select>
+              </p>
 
-            <input
-              type="text"
-              value={location}
-              onChange={(e) =>
-                setLocation(e.target.value)
-              }
-              placeholder="المدينة أو المنطقة"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            />
+              <p className="text-xs font-bold text-[#6B7280] mt-1">
 
-            <input
-              type="text"
-              value={neighborhood}
-              onChange={(e) =>
-                setNeighborhood(e.target.value)
-              }
-              placeholder="الحي أو الشارع"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            />
+                ليلة واحدة
 
-            <input
-              type="number"
-              value={price}
-              onChange={(e) =>
-                setPrice(e.target.value)
-              }
-              placeholder="السعر بالدولار"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3"
-            />
+              </p>
+
+            </div>
 
           </div>
 
-          <textarea
-            value={description}
-            onChange={(e) =>
-              setDescription(e.target.value)
-            }
-            placeholder="وصف العقار"
-            className="w-full min-h-[120px] rounded-xl border border-[#E5E7EB] px-4 py-3"
-          />
+          {/* Tabs */}
+          <div className="flex mt-6 border-b border-gray-100">
 
-          <textarea
-            value={amenities}
-            onChange={(e) =>
-              setAmenities(e.target.value)
-            }
-            placeholder="التجهيزات"
-            className="w-full min-h-[100px] rounded-xl border border-[#E5E7EB] px-4 py-3"
-          />
-
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={(e) =>
-              setImageFiles(
-                Array.from(
-                  e.target.files || []
+            <button
+              onClick={() =>
+                setViewMode(
+                  "details"
                 )
-              )
-            }
-            className="w-full"
-          />
+              }
+              className={`flex-1 py-4 text-sm font-black border-b-2 transition ${
+                viewMode ===
+                "details"
+                  ? "border-[#3FAF9B] text-[#3FAF9B]"
+                  : "border-transparent text-gray-400"
+              }`}
+            >
 
-          <button
-            onClick={handleAddProperty}
-            disabled={loading}
-            className="w-full rounded-2xl bg-[#3FAF9B] hover:bg-[#2F8E7D] py-4 text-base font-bold text-white transition disabled:bg-gray-400"
-          >
+              تفاصيل العقار
 
-            {loading
-              ? "جاري رفع العقار..."
-              : "إرسال العقار"}
+            </button>
 
-          </button>
+            <button
+              onClick={() =>
+                setViewMode(
+                  "book"
+                )
+              }
+              className={`flex-1 py-4 text-sm font-black border-b-2 transition ${
+                viewMode ===
+                "book"
+                  ? "border-[#3FAF9B] text-[#3FAF9B]"
+                  : "border-transparent text-gray-400"
+              }`}
+            >
+
+              طلب حجز الإقامة
+
+            </button>
+
+          </div>
+
+          {/* تفاصيل العقار */}
+          {viewMode ===
+            "details" && (
+
+            <div className="mt-10 space-y-8">
+
+              {/* الوصف */}
+              <section>
+
+                <div className="flex items-center gap-2 mb-4">
+
+                  <div className="w-1.5 h-7 rounded-full bg-[#3FAF9B]"></div>
+
+                  <h2 className="text-2xl font-black text-[#111827]">
+
+                    الوصف والمواصفات
+
+                  </h2>
+
+                </div>
+
+                <div className="rounded-3xl border border-gray-100 bg-[#F9FAFB] p-6 sm:p-7 shadow-sm">
+
+                  <p className="leading-[2.3] text-[15px] sm:text-base text-[#374151] whitespace-pre-line">
+
+                    {property.description?.trim()
+                      ? property.description
+                      : "لا يوجد وصف مضاف لهذا العقار حالياً."}
+
+                  </p>
+
+                </div>
+
+              </section>
+
+              {/* الحجوزات */}
+              <section>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6">
+
+                  <h3 className="text-base font-black text-amber-900 mb-4">
+
+                    📅 الفترات المحجوزة
+
+                  </h3>
+
+                  {existingBookings.length ===
+                  0 ? (
+
+                    <p className="text-sm text-amber-700">
+
+                      العقار متاح بالكامل حالياً.
+
+                    </p>
+
+                  ) : (
+
+                    <div className="space-y-2">
+
+                      {existingBookings.map(
+                        (
+                          booking,
+                          index
+                        ) => (
+
+                          <div
+                            key={
+                              index
+                            }
+                            className="bg-white rounded-xl border border-amber-100 px-4 py-3 text-sm"
+                          >
+
+                            من{" "}
+
+                            <span className="font-black">
+
+                              {
+                                booking.check_in
+                              }
+
+                            </span>
+
+                            {" "}إلى{" "}
+
+                            <span className="font-black">
+
+                              {
+                                booking.check_out
+                              }
+
+                            </span>
+
+                          </div>
+
+                        )
+                      )}
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              </section>
+
+            </div>
+          )}
+
+          {/* قسم الحجز */}
+          {viewMode ===
+            "book" && (
+
+            <div className="mt-8 grid gap-4">
+
+              <input
+                type="text"
+                placeholder="اسم المستأجر الكامل"
+                value={
+                  guestName
+                }
+                onChange={(e) =>
+                  setGuestName(
+                    e.target
+                      .value
+                  )
+                }
+                className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-right outline-none focus:border-[#3FAF9B]"
+              />
+
+              <input
+                type="text"
+                placeholder="رقم الهاتف"
+                value={
+                  guestPhone
+                }
+                onChange={(e) =>
+                  setGuestPhone(
+                    e.target
+                      .value
+                  )
+                }
+                className="rounded-2xl border border-[#E5E7EB] px-4 py-4 text-right outline-none focus:border-[#3FAF9B]"
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+
+                <div>
+
+                  <label className="block mb-2 text-xs font-bold text-[#6B7280]">
+
+                    تاريخ الوصول
+
+                  </label>
+
+                  <input
+                    type="date"
+                    min={
+                      todayStr
+                    }
+                    value={
+                      checkIn
+                    }
+                    onChange={(
+                      e
+                    ) =>
+                      setCheckIn(
+                        e
+                          .target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-4"
+                  />
+
+                </div>
+
+                <div>
+
+                  <label className="block mb-2 text-xs font-bold text-[#6B7280]">
+
+                    تاريخ المغادرة
+
+                  </label>
+
+                  <input
+                    type="date"
+                    min={
+                      checkIn ||
+                      todayStr
+                    }
+                    value={
+                      checkOut
+                    }
+                    onChange={(
+                      e
+                    ) =>
+                      setCheckOut(
+                        e
+                          .target
+                          .value
+                      )
+                    }
+                    className="w-full rounded-2xl border border-[#E5E7EB] px-4 py-4"
+                  />
+
+                </div>
+
+              </div>
+
+              <button
+                onClick={
+                  handleBooking
+                }
+                disabled={
+                  loading
+                }
+                className="mt-2 w-full rounded-2xl bg-[#3FAF9B] hover:bg-[#2F8E7D] py-4 text-base font-black text-white transition disabled:bg-gray-400"
+              >
+
+                {loading
+                  ? "جاري إرسال الطلب..."
+                  : "تأكيد طلب الحجز"}
+
+              </button>
+
+            </div>
+          )}
 
         </div>
 
