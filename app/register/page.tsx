@@ -41,6 +41,10 @@ export default function RegisterPage() {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo:
+            "https://yallahala.com/login",
+        },
       });
 
       if (error) {
@@ -51,23 +55,23 @@ export default function RegisterPage() {
         throw new Error("لم يتم إنشاء المستخدم.");
       }
 
-      // إنشاء profile
+      // إنشاء profile مباشرة
       const { error: profileError } = await supabase
         .from("profiles")
-        .insert([
-          {
-            id: data.user.id,
-            full_name: fullName,
-            phone: phone,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        .upsert({
+          id: data.user.id,
+          full_name: fullName,
+          phone: phone,
+          created_at: new Date().toISOString(),
+        });
 
       if (profileError) {
-        throw profileError;
+        console.error(profileError);
       }
 
-      alert("تم إنشاء الحساب بنجاح.");
+      alert(
+        "تم إنشاء الحساب. تحقق من بريدك الإلكتروني لتأكيد الحساب."
+      );
 
       router.push("/login");
 
@@ -75,7 +79,8 @@ export default function RegisterPage() {
       console.error(error);
 
       alert(
-        error?.message || "حدث خطأ غير متوقع أثناء التسجيل."
+        error?.message ||
+          "حدث خطأ غير متوقع أثناء التسجيل."
       );
     } finally {
       setLoading(false);
@@ -96,7 +101,10 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <form onSubmit={handleRegister} className="grid gap-5">
+        <form
+          onSubmit={handleRegister}
+          className="grid gap-5"
+        >
 
           <div>
             <label className="block text-right text-sm font-semibold text-gray-700 mb-2">
@@ -107,7 +115,9 @@ export default function RegisterPage() {
               type="text"
               placeholder="الاسم الثلاثي"
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              onChange={(e) =>
+                setFullName(e.target.value)
+              }
               className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-right outline-none focus:border-[#3FAF9B]"
             />
           </div>
@@ -121,7 +131,9 @@ export default function RegisterPage() {
               type="tel"
               placeholder="09xxxxxxxx"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) =>
+                setPhone(e.target.value)
+              }
               className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-right outline-none focus:border-[#3FAF9B]"
             />
           </div>
@@ -135,7 +147,9 @@ export default function RegisterPage() {
               type="email"
               placeholder="example@domain.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
             />
           </div>
@@ -149,7 +163,9 @@ export default function RegisterPage() {
               type="password"
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(e.target.value)
+              }
               className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
             />
           </div>
