@@ -30,7 +30,7 @@ const propertyTypes = [
 
 export default function AddPropertyPage() {
 
-  // بيانات المالك
+  // بيانات المؤجر
   const [ownerName, setOwnerName] =
     useState("");
 
@@ -111,7 +111,7 @@ export default function AddPropertyPage() {
 
         `📞 رقم الهاتف:\n${ownerPhone}\n\n` +
 
-        `💰 السعر:\n$${price}\n\n` +
+        `💰 السعر:\n$${price} USD\n\n` +
 
         `🟡 الحالة:\nPending`;
 
@@ -172,7 +172,6 @@ export default function AddPropertyPage() {
   // إضافة العقار
   async function handleAddProperty() {
 
-    // تحقق من الحقول
     if (
       !ownerName.trim() ||
       !ownerPhone.trim() ||
@@ -243,7 +242,6 @@ export default function AddPropertyPage() {
               }
             );
 
-          // فشل رفع الصورة
           if (uploadError) {
 
             console.error(
@@ -280,7 +278,6 @@ export default function AddPropertyPage() {
           .from("properties")
           .insert([
             {
-              // معلومات العقار
               title:
                 title.trim(),
 
@@ -299,14 +296,12 @@ export default function AddPropertyPage() {
               price:
                 Number(price),
 
-              // وصف
               description:
                 description.trim(),
 
               amenities:
                 amenities.trim(),
 
-              // مواصفات
               rooms_count:
                 rooms
                   ? Number(
@@ -328,7 +323,6 @@ export default function AddPropertyPage() {
                     )
                   : null,
 
-              // المالك
               owner_name:
                 ownerName.trim(),
 
@@ -338,7 +332,6 @@ export default function AddPropertyPage() {
               owner_email:
                 ownerEmail.trim(),
 
-              // الصور
               image:
                 imageUrls[0] ||
                 "",
@@ -346,7 +339,6 @@ export default function AddPropertyPage() {
               images_list:
                 imageUrls,
 
-              // الحالة
               status:
                 "pending",
 
@@ -380,7 +372,7 @@ export default function AddPropertyPage() {
         "تم استلام العقار بنجاح، وسيتم مراجعة الطلب قبل نشره على المنصة."
       );
 
-      // تنظيف الحقول
+      // تنظيف الفورم
       clearForm();
 
       // العودة للرئيسية
@@ -431,10 +423,10 @@ export default function AddPropertyPage() {
         {/* الفورم */}
         <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-5 sm:p-8 shadow-sm space-y-6">
 
-          {/* بيانات المالك */}
+          {/* بيانات المؤجر */}
           <h2 className="text-lg font-bold text-[#111827] border-b pb-2 text-right">
 
-            📋 بيانات المالك
+            📋 بيانات المؤجر
 
           </h2>
 
@@ -448,7 +440,7 @@ export default function AddPropertyPage() {
                   e.target.value
                 )
               }
-              placeholder="اسم المالك"
+              placeholder="اسم المؤجر الكامل"
               className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
             />
 
@@ -478,7 +470,7 @@ export default function AddPropertyPage() {
 
           </div>
 
-          {/* العقار */}
+          {/* بيانات العقار */}
           <h2 className="text-lg font-bold text-[#111827] border-b pb-2 text-right">
 
             🏠 بيانات العقار
@@ -577,17 +569,28 @@ export default function AddPropertyPage() {
               className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
             />
 
-            <input
-              type="number"
-              value={price}
-              onChange={(e) =>
-                setPrice(
-                  e.target.value
-                )
-              }
-              placeholder="السعر لليلة"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
-            />
+            {/* السعر */}
+            <div className="flex flex-col gap-1.5 text-right">
+
+              <label className="text-xs font-bold text-gray-700">
+
+                السعر بالدولار الأمريكي ($)
+
+              </label>
+
+              <input
+                type="number"
+                value={price}
+                onChange={(e) =>
+                  setPrice(
+                    e.target.value
+                  )
+                }
+                placeholder="مثال: 120"
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              />
+
+            </div>
 
           </div>
 
@@ -682,6 +685,12 @@ export default function AddPropertyPage() {
 
               </h3>
 
+              <p className="mt-2 text-xs text-[#6B7280]">
+
+                يمكنك اختيار عدة صور للعقار
+
+              </p>
+
               <input
                 id="property-image"
                 type="file"
@@ -699,6 +708,43 @@ export default function AddPropertyPage() {
               />
 
             </label>
+
+            {/* عرض الصور المختارة */}
+            {imageFiles.length > 0 && (
+
+              <div className="mt-5 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] p-4 text-right">
+
+                <p className="text-sm font-black text-[#166534] mb-3">
+
+                  ✅ تم اختيار {imageFiles.length} صورة بنجاح
+
+                </p>
+
+                <div className="space-y-2">
+
+                  {imageFiles.map(
+                    (
+                      file,
+                      index
+                    ) => (
+
+                      <div
+                        key={index}
+                        className="rounded-xl bg-white border border-[#DCFCE7] px-3 py-2 text-xs text-[#374151] truncate"
+                      >
+
+                        📎 {file.name}
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </div>
+
+            )}
 
           </div>
 
