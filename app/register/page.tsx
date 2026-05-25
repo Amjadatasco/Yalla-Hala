@@ -49,26 +49,37 @@ export default function RegisterPage() {
 
         `🟢 الحالة:\nتم إنشاء الحساب`;
 
-      await fetch(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          method: "POST",
+      const response =
+        await fetch(
+          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-          body: JSON.stringify({
+            body: JSON.stringify({
 
-            chat_id:
-              TELEGRAM_CHAT_ID,
+              chat_id:
+                TELEGRAM_CHAT_ID,
 
-            text:
-              messageText,
-          }),
-        }
+              text:
+                messageText,
+            }),
+          }
+        );
+
+      const result =
+        await response.json();
+
+      console.log(
+        "TELEGRAM API:",
+        result
       );
+
+      return result;
 
     } catch (err) {
 
@@ -76,6 +87,8 @@ export default function RegisterPage() {
         "Telegram Error:",
         err
       );
+
+      return null;
 
     }
   }
@@ -176,7 +189,13 @@ export default function RegisterPage() {
       }
 
       // إشعار تيليغرام
-      await sendTelegramNotification();
+      const telegramResult =
+        await sendTelegramNotification();
+
+      console.log(
+        "FINAL TELEGRAM RESULT:",
+        telegramResult
+      );
 
       // نجاح
       alert(
