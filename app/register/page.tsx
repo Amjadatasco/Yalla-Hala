@@ -26,6 +26,60 @@ export default function RegisterPage() {
   const [loading, setLoading] =
     useState(false);
 
+  // تيليغرام
+  const TELEGRAM_BOT_TOKEN =
+    "YOUR_BOT_TOKEN";
+
+  const TELEGRAM_CHAT_ID =
+    "YOUR_CHAT_ID";
+
+  // إشعار تيليغرام
+  async function sendTelegramNotification() {
+
+    try {
+
+      const messageText =
+        `🆕 تسجيل مستخدم جديد\n\n` +
+
+        `👤 الاسم:\n${fullName}\n\n` +
+
+        `📧 الإيميل:\n${email}\n\n` +
+
+        `📞 الهاتف:\n${phone}\n\n` +
+
+        `🟢 الحالة:\nتم إنشاء الحساب`;
+
+      await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+
+            chat_id:
+              TELEGRAM_CHAT_ID,
+
+            text:
+              messageText,
+          }),
+        }
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Telegram Error:",
+        err
+      );
+
+    }
+  }
+
   // التسجيل
   async function handleRegister(
     e: React.FormEvent
@@ -78,7 +132,7 @@ export default function RegisterPage() {
 
       setLoading(true);
 
-      // إنشاء الحساب فقط
+      // إنشاء الحساب
       const {
         data,
         error,
@@ -120,6 +174,9 @@ export default function RegisterPage() {
         );
 
       }
+
+      // إشعار تيليغرام
+      await sendTelegramNotification();
 
       // نجاح
       alert(
