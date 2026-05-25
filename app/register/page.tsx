@@ -28,10 +28,10 @@ export default function RegisterPage() {
 
   // تيليغرام
   const TELEGRAM_BOT_TOKEN =
-    "YOUR_BOT_TOKEN";
+    "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
 
   const TELEGRAM_CHAT_ID =
-    "YOUR_CHAT_ID";
+    "629151535";
 
   // إشعار تيليغرام
   async function sendTelegramNotification() {
