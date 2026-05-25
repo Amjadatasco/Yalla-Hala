@@ -78,14 +78,31 @@ export default function RegisterPage() {
 
       setLoading(true);
 
-      // إنشاء الحساب
+      // إنشاء الحساب فقط
       const {
         data,
         error,
       } =
         await supabase.auth.signUp({
+
           email,
+
           password,
+
+          options: {
+
+            data: {
+
+              full_name:
+                fullName,
+
+              phone:
+                phone,
+
+              role:
+                "user",
+            },
+          },
         });
 
       // خطأ
@@ -102,45 +119,6 @@ export default function RegisterPage() {
           "فشل إنشاء المستخدم."
         );
 
-      }
-
-      // إنشاء profile
-      const {
-        error: profileError,
-      } = await supabase
-        .from("profiles")
-        .insert([
-          {
-            id:
-              data.user.id,
-
-            full_name:
-              fullName,
-
-            email:
-              email,
-
-            phone:
-              phone,
-
-            role:
-              "user",
-          },
-        ]);
-
-      // خطأ profiles
-      if (profileError) {
-
-        console.error(
-          "PROFILE ERROR:",
-          profileError
-        );
-
-        alert(
-          profileError.message
-        );
-
-        return;
       }
 
       // نجاح
@@ -161,7 +139,7 @@ export default function RegisterPage() {
 
       alert(
         error?.message ||
-          "حدث خطأ أثناء إنشاء الحساب."
+        "حدث خطأ أثناء إنشاء الحساب."
       );
 
     } finally {
