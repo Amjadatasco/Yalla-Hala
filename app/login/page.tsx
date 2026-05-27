@@ -12,6 +12,9 @@ export default function LoginPage() {
   const [phone, setPhone] =
     useState("");
 
+  const [password, setPassword] =
+    useState("");
+
   const [loading, setLoading] =
     useState(false);
 
@@ -35,14 +38,23 @@ export default function LoginPage() {
       return;
     }
 
+    // تحقق كلمة المرور
+    if (
+      !password.trim()
+    ) {
+
+      alert(
+        "يرجى إدخال كلمة المرور"
+      );
+
+      return;
+    }
+
     setLoading(true);
 
-    // إنشاء إيميل وكلمة مرور مخفية
+    // إنشاء إيميل مخفي
     const generatedEmail =
       `${phone}@yallahala.local`;
-
-    const generatedPassword =
-      `YH-${phone}-2026`;
 
     const { error } =
       await supabase.auth.signInWithPassword({
@@ -51,7 +63,7 @@ export default function LoginPage() {
           generatedEmail,
 
         password:
-          generatedPassword,
+          password,
       });
 
     setLoading(false);
@@ -110,6 +122,28 @@ export default function LoginPage() {
               value={phone}
               onChange={(e) =>
                 setPhone(
+                  e.target.value
+                )
+              }
+              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
+            />
+
+          </div>
+
+          <div>
+
+            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">
+
+              كلمة المرور
+
+            </label>
+
+            <input
+              type="password"
+              placeholder="********"
+              value={password}
+              onChange={(e) =>
+                setPassword(
                   e.target.value
                 )
               }
