@@ -36,7 +36,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const ADMIN_EMAIL = "amjad.atassi@outlook.com";
+  const ADMIN_EMAIL = "0995688838@yallahala.local";
 
   useEffect(() => {
     checkUser();

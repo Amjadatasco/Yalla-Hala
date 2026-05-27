@@ -40,7 +40,7 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   // مؤقتاً — لاحقاً يجب نقله إلى نظام Roles داخل قاعدة البيانات
-  const ADMIN_EMAIL = "amjad.atassi@outlook.com";
+  const ADMIN_EMAIL = "0995688838@yallahala.local";
 
   useEffect(() => {
     checkUser();
