@@ -16,11 +16,12 @@ export default function RegisterPage() {
   const [phone, setPhone] =
     useState("");
 
-  const [email, setEmail] =
-    useState("");
+  // إيميل وكلمة مرور مخفية داخلياً
+  const generatedEmail =
+    `${phone}@yallahala.local`;
 
-  const [password, setPassword] =
-    useState("");
+  const generatedPassword =
+    `YH-${phone}-2026`;
 
   // تحميل
   const [loading, setLoading] =
@@ -42,8 +43,6 @@ export default function RegisterPage() {
         `🆕 تسجيل مستخدم جديد\n\n` +
 
         `👤 الاسم:\n${fullName}\n\n` +
-
-        `📧 الإيميل:\n${email}\n\n` +
 
         `📞 الهاتف:\n${phone}\n\n` +
 
@@ -90,9 +89,7 @@ export default function RegisterPage() {
     // تحقق
     if (
       !fullName.trim() ||
-      !phone.trim() ||
-      !email.trim() ||
-      !password.trim()
+      !phone.trim()
     ) {
 
       alert(
@@ -116,18 +113,6 @@ export default function RegisterPage() {
       return;
     }
 
-    // تحقق كلمة المرور
-    if (
-      password.length < 6
-    ) {
-
-      alert(
-        "كلمة المرور يجب أن تكون 6 أحرف على الأقل."
-      );
-
-      return;
-    }
-
     try {
 
       setLoading(true);
@@ -139,9 +124,11 @@ export default function RegisterPage() {
       } =
         await supabase.auth.signUp({
 
-          email,
+          email:
+            generatedEmail,
 
-          password,
+          password:
+            generatedPassword,
 
           options: {
 
@@ -277,52 +264,6 @@ export default function RegisterPage() {
               value={phone}
               onChange={(e) =>
                 setPhone(
-                  e.target.value
-                )
-              }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
-            />
-
-          </div>
-
-          {/* الإيميل */}
-          <div>
-
-            <label className="block mb-2 text-sm font-bold text-gray-700">
-
-              البريد الإلكتروني
-
-            </label>
-
-            <input
-              type="email"
-              placeholder="example@email.com"
-              value={email}
-              onChange={(e) =>
-                setEmail(
-                  e.target.value
-                )
-              }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
-            />
-
-          </div>
-
-          {/* كلمة المرور */}
-          <div>
-
-            <label className="block mb-2 text-sm font-bold text-gray-700">
-
-              كلمة المرور
-
-            </label>
-
-            <input
-              type="password"
-              placeholder="********"
-              value={password}
-              onChange={(e) =>
-                setPassword(
                   e.target.value
                 )
               }

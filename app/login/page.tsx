@@ -6,94 +6,116 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function LoginPage() {
+
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  const [phone, setPhone] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+  async function handleLogin(
+    e: React.FormEvent
+  ) {
+
     e.preventDefault();
-    setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // تحقق الهاتف
+    if (
+      !/^09\d{8}$/.test(
+        phone
+      )
+    ) {
 
-    setLoading(false);
-    if (error) {
-      alert("خطأ في البيانات: " + error.message);
-    } else {
-      router.push("/");
-      router.refresh();
-    }
-  }
+      alert(
+        "رقم الهاتف غير صالح"
+      );
 
-  // دالة ذكية لإرسال رابط إعادة تعيين كلمة المرور عبر الإيميل تلقائياً
-  async function handleForgotPassword() {
-    if (!email.trim()) {
-      alert("⚠️ يرجى كتابة بريدك الإلكتروني أولاً في الحقل المخصص لتلقي رابط الاسترداد.");
       return;
     }
 
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+    setLoading(true);
+
+    // إنشاء إيميل وكلمة مرور مخفية
+    const generatedEmail =
+      `${phone}@yallahala.local`;
+
+    const generatedPassword =
+      `YH-${phone}-2026`;
+
+    const { error } =
+      await supabase.auth.signInWithPassword({
+
+        email:
+          generatedEmail,
+
+        password:
+          generatedPassword,
       });
 
-      setLoading(false);
-      if (error) {
-        alert("❌ فشل إرسال الرابط: " + error.message);
-      } else {
-        alert("📧 تم إرسال رابط آمن لإعادة تعيين كلمة المرور إلى بريدك الإلكتروني بنجاح! يرجى فحص صندوق الوارد (أو الرسائل غير المرغوب فيها).");
-      }
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
+    setLoading(false);
+
+    if (error) {
+
+      alert(
+        "خطأ في تسجيل الدخول"
+      );
+
+    } else {
+
+      router.push("/");
+
+      router.refresh();
     }
   }
 
   return (
     <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4">
+
       <div className="w-full max-w-md bg-white rounded-[32px] p-8 shadow-xl border border-[#E5E7EB]">
+
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-[#111827]">تسجيل الدخول</h1>
-          <p className="mt-2 text-sm text-[#6B7280]">أهلاً بك مجدداً في يلا هلا</p>
+
+          <h1 className="text-3xl font-extrabold text-[#111827]">
+
+            تسجيل الدخول
+
+          </h1>
+
+          <p className="mt-2 text-sm text-[#6B7280]">
+
+            أهلاً بك مجدداً في يلا هلا
+
+          </p>
+
         </div>
 
-        <form onSubmit={handleLogin} className="grid gap-5">
-          <div>
-            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">البريد الإلكتروني</label>
-            <input
-              type="email"
-              placeholder="example@domain.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
-            />
-          </div>
+        <form
+          onSubmit={handleLogin}
+          className="grid gap-5"
+        >
 
           <div>
-            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">كلمة المرور</label>
+
+            <label className="block text-right text-sm font-semibold text-gray-700 mb-2">
+
+              رقم الهاتف
+
+            </label>
+
             <input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="tel"
+              placeholder="09xxxxxxxx"
+              value={phone}
+              onChange={(e) =>
+                setPhone(
+                  e.target.value
+                )
+              }
               className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
             />
-            
-            {/* ✨ إضافة خيار نسيت كلمة المرور بمحاذاة اليمين */}
-            <div className="text-right mt-2">
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                className="text-xs font-bold text-gray-500 hover:text-[#3FAF9B] transition underline cursor-pointer"
-              >
-                هل نسيت كلمة المرور؟
-              </button>
-            </div>
+
           </div>
 
           <button
@@ -101,17 +123,32 @@ export default function LoginPage() {
             disabled={loading}
             className="h-14 mt-2 rounded-2xl bg-[#3FAF9B] text-white font-bold text-lg hover:bg-[#2F8E7D] transition shadow-md"
           >
-            {loading ? "جاري التحقق..." : "دخول"}
+
+            {loading
+              ? "جاري التحقق..."
+              : "دخول"}
+
           </button>
+
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
+
           ليس لديك حساب؟{" "}
-          <Link href="/register" className="text-[#3FAF9B] font-bold hover:underline">
+
+          <Link
+            href="/register"
+            className="text-[#3FAF9B] font-bold hover:underline"
+          >
+
             أنشئ حساباً الآن
+
           </Link>
+
         </div>
+
       </div>
+
     </main>
   );
 }
