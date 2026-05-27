@@ -16,13 +16,6 @@ export default function RegisterPage() {
   const [phone, setPhone] =
     useState("");
 
-  // إيميل وكلمة مرور مخفية داخلياً
-  const generatedEmail =
-    `${phone}@yallahala.local`;
-
-  const generatedPassword =
-    `YH-${phone}-2026`;
-
   // تحميل
   const [loading, setLoading] =
     useState(false);
@@ -116,6 +109,13 @@ export default function RegisterPage() {
     try {
 
       setLoading(true);
+
+      // إنشاء إيميل وكلمة مرور مخفية
+      const generatedEmail =
+        `${phone}@yallahala.local`;
+
+      const generatedPassword =
+        `YH-${phone}-2026`;
 
       // إنشاء الحساب
       const {
