@@ -3,6 +3,9 @@
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 export default function PropertyPage({ params }: any) {
 
   const resolvedParams =
@@ -23,10 +26,10 @@ export default function PropertyPage({ params }: any) {
     useState("");
 
   const [checkIn, setCheckIn] =
-    useState("");
+    useState<any>("");
 
   const [checkOut, setCheckOut] =
-    useState("");
+    useState<any>("");
 
   const [loading, setLoading] =
     useState(false);
@@ -39,18 +42,12 @@ export default function PropertyPage({ params }: any) {
       "details" | "book"
     >("details");
 
-  const todayStr = new Date()
-    .toISOString()
-    .split("T")[0];
-
-  // تيليغرام
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
 
   const TELEGRAM_CHAT_ID =
     "629151535";
 
-  // تحميل العقار
   useEffect(() => {
 
     if (resolvedParams?.id) {
@@ -65,7 +62,6 @@ export default function PropertyPage({ params }: any) {
 
       setPageLoading(true);
 
-      // تحميل العقار
       const {
         data: propertyData,
         error: propertyError,
@@ -89,7 +85,6 @@ export default function PropertyPage({ params }: any) {
 
       setProperty(propertyData);
 
-      // تحميل الحجوزات
       const {
         data: bookingsData,
         error: bookingsError,
@@ -129,7 +124,42 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
-  // فحص التداخل
+  function getBlockedDates() {
+
+    const blockedDates: Date[] = [];
+
+    existingBookings.forEach((booking) => {
+
+      const start =
+        new Date(
+          booking.check_in
+        );
+
+      const end =
+        new Date(
+          booking.check_out
+        );
+
+      const current =
+        new Date(start);
+
+      while (current <= end) {
+
+        blockedDates.push(
+          new Date(current)
+        );
+
+        current.setDate(
+          current.getDate() + 1
+        );
+
+      }
+
+    });
+
+    return blockedDates;
+  }
+
   function isDatesOverlapping(
     newIn: string,
     newOut: string
@@ -168,7 +198,6 @@ export default function PropertyPage({ params }: any) {
     return false;
   }
 
-  // إشعار تيليغرام
   async function sendTelegramNotification(
     name: string,
     phone: string,
@@ -187,15 +216,10 @@ export default function PropertyPage({ params }: any) {
 
       const whatsappMessage =
         `مرحباً ${property?.owner_name || ""} 👋\n\n` +
-
         `يوجد طلب حجز جديد على عقارك:\n\n` +
-
         `🏠 ${property?.title}\n` +
-
         `📅 من ${inDate} إلى ${outDate}\n\n` +
-
         `👤 اسم المستأجر: ${name}\n` +
-
         `📞 رقم المستأجر: ${phone}`;
 
       const whatsappLink =
@@ -205,19 +229,12 @@ export default function PropertyPage({ params }: any) {
 
       const messageText =
         `🚨 طلب حجز جديد\n\n` +
-
         `🏠 العقار:\n${property?.title || ""}\n\n` +
-
         `📍 الموقع:\n${property?.location || ""}\n\n` +
-
         `👤 المستأجر:\n${name}\n\n` +
-
         `📞 الهاتف:\n${phone}\n\n` +
-
         `📅 الوصول:\n${inDate}\n\n` +
-
         `📅 المغادرة:\n${outDate}\n\n` +
-
         `📲 رابط مراسلة المؤجر:\n${whatsappLink}`;
 
       await fetch(
@@ -246,7 +263,6 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
-  // تنفيذ الحجز
   async function handleBooking() {
 
     if (
@@ -299,24 +315,6 @@ export default function PropertyPage({ params }: any) {
 
       setLoading(true);
 
-      // المستخدم الحالي
-      const {
-        data: { user },
-      } =
-        await supabase.auth.getUser();
-
-      if (!user) {
-
-        alert(
-          "يجب تسجيل الدخول أولاً."
-        );
-
-        setLoading(false);
-
-        return;
-      }
-
-      // حفظ الحجز
       const { error } =
         await supabase
           .from("bookings")
@@ -339,9 +337,6 @@ export default function PropertyPage({ params }: any) {
 
               status:
                 "pending",
-
-              user_id:
-                user.id,
             },
           ]);
 
@@ -358,7 +353,6 @@ export default function PropertyPage({ params }: any) {
         return;
       }
 
-      // تيليغرام
       await sendTelegramNotification(
         guestName.trim(),
         guestPhone.trim(),
@@ -366,12 +360,10 @@ export default function PropertyPage({ params }: any) {
         checkOut
       );
 
-      // رسالة نجاح
       alert(
-        "تم استلام طلب الحجز بنجاح، وسيتم مراجعة الطلب والتواصل معك قريباً."
+        "تم استلام طلب الحجز بنجاح."
       );
 
-      // تنظيف الحقول
       setGuestName("");
       setGuestPhone("");
       setCheckIn("");
@@ -394,7 +386,6 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
-  // تحميل
   if (pageLoading) {
 
     return (
@@ -406,7 +397,6 @@ export default function PropertyPage({ params }: any) {
     );
   }
 
-  // غير موجود
   if (!property) {
 
     return (
@@ -675,7 +665,7 @@ export default function PropertyPage({ params }: any) {
           {viewMode ===
             "book" && (
 
-            <div className="mt-8 grid gap-4">
+            <div className="mt-8 grid gap-5">
 
               <input
                 type="text"
@@ -701,34 +691,83 @@ export default function PropertyPage({ params }: any) {
                 className="rounded-2xl border px-4 py-4"
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                <input
-                  type="date"
-                  min={todayStr}
-                  value={checkIn}
-                  onChange={(e) =>
-                    setCheckIn(
-                      e.target.value
-                    )
-                  }
-                  className="rounded-2xl border px-4 py-4"
-                />
+                <div>
 
-                <input
-                  type="date"
-                  min={
-                    checkIn ||
-                    todayStr
-                  }
-                  value={checkOut}
-                  onChange={(e) =>
-                    setCheckOut(
-                      e.target.value
-                    )
-                  }
-                  className="rounded-2xl border px-4 py-4"
-                />
+                  <label className="block mb-2 font-bold">
+
+                    تاريخ الوصول
+
+                  </label>
+
+                  <DatePicker
+                    selected={
+                      checkIn
+                        ? new Date(checkIn)
+                        : null
+                    }
+                    onChange={(date: any) =>
+                      setCheckIn(
+                        date
+                          ?.toISOString()
+                          ?.split("T")[0]
+                      )
+                    }
+                    excludeDates={
+                      getBlockedDates()
+                    }
+                    minDate={
+                      new Date()
+                    }
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText="اختر تاريخ الوصول"
+                    className="w-full rounded-2xl border px-4 py-4"
+                  />
+
+                </div>
+
+                <div>
+
+                  <label className="block mb-2 font-bold">
+
+                    تاريخ المغادرة
+
+                  </label>
+
+                  <DatePicker
+                    selected={
+                      checkOut
+                        ? new Date(checkOut)
+                        : null
+                    }
+                    onChange={(date: any) =>
+                      setCheckOut(
+                        date
+                          ?.toISOString()
+                          ?.split("T")[0]
+                      )
+                    }
+                    excludeDates={
+                      getBlockedDates()
+                    }
+                    minDate={
+                      checkIn
+                        ? new Date(checkIn)
+                        : new Date()
+                    }
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText="اختر تاريخ المغادرة"
+                    className="w-full rounded-2xl border px-4 py-4"
+                  />
+
+                </div>
+
+              </div>
+
+              <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+
+                الأيام المحجوزة غير قابلة للاختيار.
 
               </div>
 
