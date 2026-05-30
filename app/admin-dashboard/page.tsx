@@ -14,6 +14,13 @@ type Property = {
   price: number;
   image: string;
   status: "approved" | "pending" | "rejected";
+
+  description?: string;
+  amenities?: string;
+
+  owner_name?: string;
+  owner_phone?: string;
+
   user_id?: string;
 };
 
@@ -38,7 +45,29 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+const [editingProperty, setEditingProperty] =
+  useState<Property | null>(null);
 
+const [editTitle, setEditTitle] =
+  useState("");
+
+const [editPrice, setEditPrice] =
+  useState("");
+
+const [editLocation, setEditLocation] =
+  useState("");
+
+const [editDescription, setEditDescription] =
+  useState("");
+
+const [editAmenities, setEditAmenities] =
+  useState("");
+
+const [editOwnerName, setEditOwnerName] =
+  useState("");
+
+const [editOwnerPhone, setEditOwnerPhone] =
+  useState("");
   // مؤقتاً — لاحقاً يجب نقله إلى نظام Roles داخل قاعدة البيانات
   const ADMIN_EMAIL = "0995688838@yallahala.local";
 
@@ -538,6 +567,107 @@ export default function DashboardPage() {
           </>
         )}
       </section>
+      {editingProperty && (
+
+  <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+
+    <div className="bg-white rounded-3xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+
+      <h2 className="text-2xl font-black mb-6 text-right">
+        تعديل العقار
+      </h2>
+
+      <div className="grid gap-4">
+
+        <input
+          value={editTitle}
+          onChange={(e) =>
+            setEditTitle(e.target.value)
+          }
+          placeholder="عنوان العقار"
+          className="border rounded-xl p-3"
+        />
+
+        <input
+          value={editPrice}
+          onChange={(e) =>
+            setEditPrice(e.target.value)
+          }
+          placeholder="السعر"
+          className="border rounded-xl p-3"
+        />
+
+        <input
+          value={editLocation}
+          onChange={(e) =>
+            setEditLocation(e.target.value)
+          }
+          placeholder="الموقع"
+          className="border rounded-xl p-3"
+        />
+
+        <textarea
+          value={editDescription}
+          onChange={(e) =>
+            setEditDescription(e.target.value)
+          }
+          placeholder="الوصف"
+          className="border rounded-xl p-3 min-h-[120px]"
+        />
+
+        <textarea
+          value={editAmenities}
+          onChange={(e) =>
+            setEditAmenities(e.target.value)
+          }
+          placeholder="الخدمات"
+          className="border rounded-xl p-3 min-h-[100px]"
+        />
+
+        <input
+          value={editOwnerName}
+          onChange={(e) =>
+            setEditOwnerName(e.target.value)
+          }
+          placeholder="اسم المؤجر"
+          className="border rounded-xl p-3"
+        />
+
+        <input
+          value={editOwnerPhone}
+          onChange={(e) =>
+            setEditOwnerPhone(e.target.value)
+          }
+          placeholder="رقم الهاتف"
+          className="border rounded-xl p-3"
+        />
+
+      </div>
+
+      <div className="flex gap-3 mt-6">
+
+        <button
+          onClick={() =>
+            setEditingProperty(null)
+          }
+          className="flex-1 h-12 rounded-xl bg-gray-200"
+        >
+          إلغاء
+        </button>
+
+        <button
+          className="flex-1 h-12 rounded-xl bg-[#3FAF9B] text-white font-bold"
+        >
+          حفظ التعديلات
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
     </main>
   );
 }
