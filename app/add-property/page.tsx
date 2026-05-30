@@ -188,7 +188,27 @@ export default function AddPropertyPage() {
 
       return;
     }
+if (imageFiles.length > 15) {
 
+  alert(
+    "الحد الأقصى المسموح هو 15 صورة."
+  );
+
+  return;
+}
+
+for (const file of imageFiles) {
+
+  if (file.size > 10 * 1024 * 1024) {
+
+    alert(
+      `الصورة ${file.name} أكبر من 10MB`
+    );
+
+    return;
+  }
+
+}
     try {
 
       setLoading(true);
@@ -216,60 +236,53 @@ export default function AddPropertyPage() {
       // رفع الصور
       if (imageFiles.length > 0) {
 
-        for (const imageFile of imageFiles) {
+        const uploadedImages = await Promise.all(
 
-          const fileExt =
-            imageFile.name
-              .split(".")
-              .pop();
+  imageFiles.map(async (imageFile) => {
 
-          const fileName =
-            `${Date.now()}-${Math.random()}.${fileExt}`;
+    const fileExt =
+      imageFile.name
+        .split(".")
+        .pop();
 
-          const {
-            data: uploadData,
-            error: uploadError,
-          } = await supabase.storage
-            .from("property-images")
-            .upload(
-              fileName,
-              imageFile,
-              {
-                cacheControl:
-                  "3600",
+    const fileName =
+      `${Date.now()}-${Math.random()}.${fileExt}`;
 
-                upsert: false,
-              }
-            );
-
-          if (uploadError) {
-
-            console.error(
-              uploadError
-            );
-
-            alert(
-              `فشل رفع الصورة: ${imageFile.name}`
-            );
-
-            setLoading(false);
-
-            return;
-          }
-
-          // جلب الرابط العام
-          const {
-            data: publicUrlData,
-          } = supabase.storage
-            .from("property-images")
-            .getPublicUrl(
-              uploadData.path
-            );
-
-          imageUrls.push(
-            publicUrlData.publicUrl
-          );
+    const {
+      data: uploadData,
+      error: uploadError,
+    } = await supabase.storage
+      .from("property-images")
+      .upload(
+        fileName,
+        imageFile,
+        {
+          cacheControl: "3600",
+          upsert: false,
         }
+      );
+
+    if (uploadError) {
+
+      throw uploadError;
+
+    }
+
+    const {
+      data: publicUrlData,
+    } = supabase.storage
+      .from("property-images")
+      .getPublicUrl(
+        uploadData.path
+      );
+
+    return publicUrlData.publicUrl;
+
+  })
+
+);
+
+imageUrls = uploadedImages;
       }
 
       // حفظ العقار
@@ -586,7 +599,7 @@ export default function AddPropertyPage() {
                     e.target.value
                   )
                 }
-                placeholder="مثال: 120 دولار لليلة الواحدة"
+                placeholder="مثال: 20 دولار لليلة الواحدة"
                 className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
               />
 
@@ -758,7 +771,7 @@ export default function AddPropertyPage() {
           >
 
             {loading
-              ? "جاري رفع العقار..."
+              ? "جاري رفع الصور وحفظ العقار..."
               : "إرسال العقار للمراجعة"}
 
           </button>
