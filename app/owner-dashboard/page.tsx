@@ -347,7 +347,12 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-col gap-2">
-
+                        <Link
+  href={`/edit-property/${property.id}`}
+  className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center"
+>
+  تعديل العقار
+</Link>
                           <button
                             onClick={() => deleteProperty(property.id)}
                             className="w-full h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200"

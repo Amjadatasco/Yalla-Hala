@@ -574,7 +574,7 @@ export default function AddPropertyPage() {
 
               <label className="text-xs font-bold text-gray-700">
 
-                السعر بالدولار الأمريكي ($)
+             السعر بالدولار الأمريكي لليلة الواحدة
 
               </label>
 
@@ -586,7 +586,7 @@ export default function AddPropertyPage() {
                     e.target.value
                   )
                 }
-                placeholder="مثال: 120"
+                placeholder="مثال: 120 دولار لليلة الواحدة"
                 className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
               />
 

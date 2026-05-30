@@ -38,6 +38,14 @@ export default function AdminLoginPage() {
     }
   }
 
+  function handleForgotPassword() {
+
+    alert(
+      "يرجى التواصل مع إدارة الموقع لإعادة تعيين كلمة المرور."
+    );
+
+  }
+
   return (
     <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4">
 
@@ -91,6 +99,14 @@ export default function AdminLoginPage() {
               ? "جاري الدخول..."
               : "تسجيل الدخول"}
 
+          </button>
+
+          <button
+            type="button"
+            onClick={handleForgotPassword}
+            className="text-sm text-[#3FAF9B] font-semibold hover:underline"
+          >
+            نسيت كلمة المرور؟
           </button>
 
         </div>
