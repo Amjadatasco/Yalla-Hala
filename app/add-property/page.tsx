@@ -792,7 +792,7 @@ imageUrls = uploadedImages;
           >
 
             {loading
-              ? `جاري رفع ${uploadedCount} من ${imageFiles.length} صورة...`
+              ? `جاري رفع الصور وحفظ العقار... (${uploadedCount}/${imageFiles.length})`
               : "إرسال العقار للمراجعة"}
 
           </button>

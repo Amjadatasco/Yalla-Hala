@@ -24,14 +24,15 @@ export default function UsersPage() {
       }
 
       // التحقق من صلاحية الأدمن
-      const role =
-        user?.app_metadata?.role;
+      const ADMIN_EMAIL =
+  "0995688838@yallahala.local";
 
-      if (role !== "admin") {
-        router.push("/");
-        return;
-      }
-
+if (
+  user.email !== ADMIN_EMAIL
+) {
+  router.push("/");
+  return;
+}
       // جلب جميع المستخدمين
       const { data, error } = await supabase
         .from("profiles")
