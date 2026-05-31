@@ -469,7 +469,44 @@ const [editOwnerPhone, setEditOwnerPhone] =
                                 رفض
                               </button>
                             )}
+<button
+  onClick={() => {
 
+    setEditingProperty(property);
+
+    setEditTitle(
+      property.title || ""
+    );
+
+    setEditPrice(
+      String(property.price || "")
+    );
+
+    setEditLocation(
+      property.location || ""
+    );
+
+    setEditDescription(
+      property.description || ""
+    );
+
+    setEditAmenities(
+      property.amenities || ""
+    );
+
+    setEditOwnerName(
+      property.owner_name || ""
+    );
+
+    setEditOwnerPhone(
+      property.owner_phone || ""
+    );
+
+  }}
+  className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs"
+>
+  تعديل
+</button>
                           <button
                             onClick={() =>
                               deleteProperty(property.id)
