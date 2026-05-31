@@ -83,7 +83,8 @@ export default function AddPropertyPage() {
   // تحميل
   const [loading, setLoading] =
     useState(false);
-
+const [uploadedCount, setUploadedCount] =
+  useState(0);
   // تيليغرام
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
@@ -232,7 +233,7 @@ for (const file of imageFiles) {
 
       // روابط الصور
       let imageUrls: string[] = [];
-
+setUploadedCount(0);
       // رفع الصور
       if (imageFiles.length > 0) {
 
@@ -276,7 +277,11 @@ for (const file of imageFiles) {
         uploadData.path
       );
 
-    return publicUrlData.publicUrl;
+    setUploadedCount(
+  (prev) => prev + 1
+);
+
+return publicUrlData.publicUrl;
 
   })
 
@@ -736,22 +741,38 @@ imageUrls = uploadedImages;
                 <div className="space-y-2">
 
                   {imageFiles.map(
-                    (
-                      file,
-                      index
-                    ) => (
+  (
+    file,
+    index
+  ) => (
 
-                      <div
-                        key={index}
-                        className="rounded-xl bg-white border border-[#DCFCE7] px-3 py-2 text-xs text-[#374151] truncate"
-                      >
+    <div
+      key={index}
+      className="rounded-xl bg-white border border-[#DCFCE7] px-3 py-2 text-xs text-[#374151] flex items-center justify-between gap-2"
+    >
 
-                        📎 {file.name}
+      <button
+        type="button"
+        onClick={() =>
+          setImageFiles(
+            imageFiles.filter(
+              (_, i) => i !== index
+            )
+          )
+        }
+        className="text-red-500 font-bold text-sm"
+      >
+        ✕
+      </button>
 
-                      </div>
+      <span className="truncate">
+        📎 {file.name}
+      </span>
 
-                    )
-                  )}
+    </div>
+
+  )
+)}
 
                 </div>
 
@@ -771,7 +792,7 @@ imageUrls = uploadedImages;
           >
 
             {loading
-              ? "جاري رفع الصور وحفظ العقار..."
+              ? `جاري رفع ${uploadedCount} من ${imageFiles.length} صورة...`
               : "إرسال العقار للمراجعة"}
 
           </button>
