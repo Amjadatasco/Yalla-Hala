@@ -438,85 +438,52 @@ export default function PropertyPage({ params }: any) {
           </div>
 
           {/* Tabs */}
-          <div className="flex mt-6 border-b">
-
+          <div className="flex mt-6 p-1.5 bg-gray-50 rounded-2xl border border-gray-100">
             <button
-              onClick={() =>
-                setViewMode(
-                  "details"
-                )
-              }
-              className={`flex-1 py-4 border-b-2 ${
-                viewMode ===
-                "details"
-                  ? "border-[#3FAF9B] text-[#3FAF9B]"
-                  : "border-transparent"
+              onClick={() => setViewMode("details")}
+              className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                viewMode === "details"
+                  ? "bg-white text-[#2D6A5F] shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
-
-              تفاصيل العقار
-
+              📋 تفاصيل العقار
             </button>
-
             <button
-              onClick={() =>
-                setViewMode(
-                  "book"
-                )
-              }
-              className={`flex-1 py-4 border-b-2 ${
-                viewMode ===
-                "book"
-                  ? "border-[#3FAF9B] text-[#3FAF9B]"
-                  : "border-transparent"
+              onClick={() => setViewMode("book")}
+              className={`flex-1 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                viewMode === "book"
+                  ? "bg-[#3FAF9B] text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
               }`}
             >
-
-              طلب حجز
-
+              📅 طلب حجز العقار
             </button>
-
           </div>
 
           {/* التفاصيل */}
-          {viewMode ===
-            "details" && (
-
+          {viewMode === "details" && (
             <div className="mt-10 space-y-8">
 
               {/* الوصف */}
               <section>
-
                 <h2 className="text-2xl font-black mb-4">
-
                   الوصف
-
                 </h2>
-
                 <div className="rounded-3xl bg-[#F9FAFB] p-6">
-
                   <p className="leading-[2.2] whitespace-pre-line">
-
                     {property.description ||
                       "لا يوجد وصف"}
-
                   </p>
-
                 </div>
-
               </section>
 
               {/* التجهيزات */}
               <section>
-
                 <h2 className="text-2xl font-black mb-4">
-
                   التجهيزات والخدمات
-
                 </h2>
-
                 <div className="grid gap-3 sm:grid-cols-2">
-
                   {property.amenities
                     ?.split(",")
                     .map(
@@ -524,91 +491,66 @@ export default function PropertyPage({ params }: any) {
                         item: string,
                         index: number
                       ) => (
-
                         <div
                           key={index}
                           className="rounded-2xl border bg-white px-4 py-3"
                         >
-
                           ✓ {item.trim()}
-
                         </div>
-
                       )
                     )}
-
                 </div>
-
               </section>
 
               {/* المعلومات */}
               <section>
-
                 <h2 className="text-2xl font-black mb-4">
-
                   معلومات العقار
-
                 </h2>
-
                 <div className="grid grid-cols-3 gap-4">
-
                   <div className="rounded-2xl border p-5 text-center">
-
                     <p className="text-sm text-gray-500">
-
                       الغرف
-
                     </p>
-
                     <h3 className="text-3xl font-black">
-
                       {
                         property.rooms_count
                       }
-
                     </h3>
-
                   </div>
-
                   <div className="rounded-2xl border p-5 text-center">
-
                     <p className="text-sm text-gray-500">
-
                       الأسرة
-
                     </p>
-
                     <h3 className="text-3xl font-black">
-
                       {
                         property.beds_count
                       }
-
                     </h3>
-
                   </div>
-
                   <div className="rounded-2xl border p-5 text-center">
-
                     <p className="text-sm text-gray-500">
-
                       الحمامات
-
                     </p>
-
                     <h3 className="text-3xl font-black">
-
                       {
                         property.bathrooms_count
                       }
-
                     </h3>
-
                   </div>
-
                 </div>
-
               </section>
+
+              {/* زر طلب حجز بارز جداً في نهاية التفاصيل */}
+              <div className="pt-6 border-t border-gray-100 flex justify-center mt-8">
+                <button
+                  onClick={() => setViewMode("book")}
+                  className="w-full sm:w-2/3 h-14 rounded-2xl bg-[#3FAF9B] hover:bg-[#2F8E7D] text-white font-black text-base shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                  ابدأ بطلب الحجز الآن
+                </button>
+              </div>
 
             </div>
           )}
