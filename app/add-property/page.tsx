@@ -52,6 +52,60 @@ const defaultAmenitiesList = [
   "حارس عقار"
 ];
 
+// دالة ضغط الصور وتحويلها إلى WebP برمجياً لدى العميل
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        
+        // أقصى حجم للأبعاد هو 1200 بكسل
+        const MAX_SIZE = 1200;
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+                type: "image/webp",
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          },
+          "image/webp",
+          0.82 // ضغط بجودة 82% وهي مثالية جداً للتسريع وتوفير الحجم
+        );
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 export default function AddPropertyPage() {
   // بيانات المؤجر
   const [ownerName, setOwnerName] = useState("");
@@ -572,12 +626,28 @@ export default function AddPropertyPage() {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={(e) => {
+                onChange={async (e) => {
                   const files = Array.from(e.target.files || []);
-                  setImageFiles(files);
+                  if (files.length === 0) return;
+                  
+                  // تنظيف المعاينات السابقة
                   imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-                  const previews = files.map((file) => URL.createObjectURL(file));
-                  setImagePreviews(previews);
+                  setImagePreviews([]);
+                  setImageFiles([]);
+                  
+                  try {
+                    const compressedFiles = await Promise.all(
+                      files.map((file) => compressImage(file))
+                    );
+                    setImageFiles(compressedFiles);
+                    const previews = compressedFiles.map((file) => URL.createObjectURL(file));
+                    setImagePreviews(previews);
+                  } catch (err) {
+                    console.error("Compression error:", err);
+                    setImageFiles(files);
+                    const previews = files.map((file) => URL.createObjectURL(file));
+                    setImagePreviews(previews);
+                  }
                 }}
                 className="hidden"
               />

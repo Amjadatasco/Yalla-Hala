@@ -452,7 +452,7 @@ export default function PropertyPage({ params }: any) {
                 className="w-[85vw] flex-shrink-0 snap-start rounded-2xl overflow-hidden border h-[240px] relative cursor-pointer"
                 onClick={() => openLightbox(index)}
               >
-                <img src={image} className="w-full h-full object-cover" alt={`${property.title} - ${index + 1}`} />
+                <img src={image} className="w-full h-full object-cover" alt={`${property.title} - ${index + 1}`} loading="lazy" />
                 <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[10px] font-bold">
                   {index + 1} / {images.length}
                 </div>
@@ -473,7 +473,7 @@ export default function PropertyPage({ params }: any) {
                 <img src={images[0]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
               </div>
               <div className="h-full overflow-hidden border" onClick={() => openLightbox(1)}>
-                <img src={images[1]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+                <img src={images[1]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} loading="lazy" />
               </div>
             </div>
           )}
@@ -484,14 +484,14 @@ export default function PropertyPage({ params }: any) {
                 <img src={images[0]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
               </div>
               <div className="col-span-1 h-full overflow-hidden border" onClick={() => openLightbox(1)}>
-                <img src={images[1]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+                <img src={images[1]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} loading="lazy" />
               </div>
               <div className="col-span-1 h-full overflow-hidden border" onClick={() => openLightbox(2)}>
-                <img src={images[2]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+                <img src={images[2]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} loading="lazy" />
               </div>
               {images.length >= 4 ? (
                 <div className="col-span-1 h-full overflow-hidden border" onClick={() => openLightbox(3)}>
-                  <img src={images[3]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+                  <img src={images[3]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} loading="lazy" />
                 </div>
               ) : (
                 <div className="col-span-1 h-full bg-gray-50 border flex items-center justify-center text-gray-400 font-bold text-sm">
@@ -500,7 +500,7 @@ export default function PropertyPage({ params }: any) {
               )}
               {images.length >= 5 ? (
                 <div className="col-span-1 h-full overflow-hidden border relative" onClick={() => openLightbox(4)}>
-                  <img src={images[4]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+                  <img src={images[4]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} loading="lazy" />
                   {images.length > 5 && (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-black text-lg">
                       + {images.length - 5} صور
