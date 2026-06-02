@@ -2,8 +2,168 @@
 
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+
+
+// مكون تقويم الحجوزات التفاعلي المرئي
+function PropertyCalendar({
+  existingBookings,
+  checkIn,
+  checkOut,
+  onSelectDate,
+  price
+}: {
+  existingBookings: any[];
+  checkIn: string;
+  checkOut: string;
+  onSelectDate: (dateStr: string) => void;
+  price: number;
+}) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const monthNames = [
+    "كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران",
+    "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"
+  ];
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const days = [];
+  
+  for (let i = 0; i < firstDayOfMonth; i++) {
+    days.push(null);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    days.push(new Date(year, month, d));
+  }
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(year, month + 1, 1));
+  };
+
+  const getDayStatus = (date: Date) => {
+    const dateStr = date.toISOString().split("T")[0];
+    const todayStr = new Date().toISOString().split("T")[0];
+    
+    const isPast = dateStr < todayStr;
+    
+    let isBooked = false;
+    for (const booking of existingBookings) {
+      if (dateStr >= booking.check_in && dateStr <= booking.check_out) {
+        isBooked = true;
+        break;
+      }
+    }
+
+    const isSelected = dateStr === checkIn || dateStr === checkOut;
+    
+    let isInRange = false;
+    if (checkIn && checkOut && dateStr > checkIn && dateStr < checkOut) {
+      isInRange = true;
+    }
+
+    return { isPast, isBooked, isSelected, isInRange, dateStr };
+  };
+
+  return (
+    <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm text-right max-w-md mx-auto" dir="rtl">
+      <div className="flex items-center justify-between mb-4 flex-row-reverse">
+        <h3 className="font-bold text-gray-800 text-sm">
+          {monthNames[month]} {year}
+        </h3>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handlePrevMonth}
+            className="w-8 h-8 rounded-lg bg-gray-50 border hover:bg-gray-100 flex items-center justify-center font-bold text-xs"
+          >
+            ❯
+          </button>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            className="w-8 h-8 rounded-lg bg-gray-50 border hover:bg-gray-100 flex items-center justify-center font-bold text-xs"
+          >
+            ❮
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-gray-400 mb-2">
+        <span>أحد</span>
+        <span>اثنين</span>
+        <span>ثلاثاء</span>
+        <span>أربعاء</span>
+        <span>خميس</span>
+        <span>جمعة</span>
+        <span>سبت</span>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1.5 text-center">
+        {days.map((date, index) => {
+          if (!date) {
+            return <div key={`empty-${index}`} className="aspect-square"></div>;
+          }
+
+          const { isPast, isBooked, isSelected, isInRange, dateStr } = getDayStatus(date);
+          const dayNum = date.getDate();
+
+          let btnClass = "w-full aspect-square rounded-xl text-[11px] font-bold transition flex items-center justify-center flex-col ";
+          
+          if (isPast) {
+            btnClass += "bg-gray-50 text-gray-350 cursor-not-allowed opacity-40";
+          } else if (isBooked) {
+            btnClass += "bg-red-50 text-red-600 border border-red-100/50 cursor-not-allowed line-through";
+          } else if (isSelected) {
+            btnClass += "bg-[#2D6A5F] text-white shadow-sm scale-105";
+          } else if (isInRange) {
+            btnClass += "bg-[#E6F4F1] text-[#2D6A5F] font-black";
+          } else {
+            btnClass += "bg-emerald-50/50 hover:bg-[#F2FAF8] text-[#166534] border border-emerald-100/30 cursor-pointer";
+          }
+
+          return (
+            <button
+              key={`day-${index}`}
+              type="button"
+              disabled={isPast || isBooked}
+              onClick={() => onSelectDate(dateStr)}
+              className={btnClass}
+              title={isBooked ? "محجوز بالفعل" : isPast ? "تاريخ مضى" : `اضغط للاختيار: ${dateStr}`}
+            >
+              <span>{dayNum}</span>
+              {isSelected && dateStr === checkIn && <span className="text-[7px] leading-none mt-0.5">وصول</span>}
+              {isSelected && dateStr === checkOut && <span className="text-[7px] leading-none mt-0.5">مغادرة</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-4 justify-center items-center mt-5 text-[10px] font-bold text-gray-500 border-t pt-3">
+        <div className="flex items-center gap-1">
+          <span className="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-100 block"></span>
+          <span>متاح</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-2.5 h-2.5 rounded bg-red-50 border border-red-100 block"></span>
+          <span>محجوز</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-2.5 h-2.5 rounded bg-[#2D6A5F] block"></span>
+          <span>محدد</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PropertyPage({ params }: any) {
   const resolvedParams =
@@ -36,6 +196,23 @@ export default function PropertyPage({ params }: any) {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  const handleSelectCalendarDate = (dateStr: string) => {
+    if (!checkIn || (checkIn && checkOut)) {
+      setCheckIn(dateStr);
+      setCheckOut("");
+    } else {
+      if (dateStr > checkIn) {
+        if (isDatesOverlapping(checkIn, dateStr)) {
+          alert("⚠️ لا يمكن اختيار هذه الفترة لوجود أيام محجوزة داخلها.");
+          return;
+        }
+        setCheckOut(dateStr);
+      } else {
+        setCheckIn(dateStr);
+      }
+    }
+  };
 
   async function handleAddReview(e: React.FormEvent) {
     e.preventDefault();
@@ -708,6 +885,21 @@ export default function PropertyPage({ params }: any) {
                 )}
               </section>
 
+              {/* تقويم الحجوزات التفاعلي المرئي */}
+              <section className="pt-8 border-t border-gray-100 text-right">
+                <h2 className="text-2xl font-black mb-4">📅 تقويم توفر العقار والحجز المباشر</h2>
+                <p className="text-xs text-gray-500 mb-5">
+                  انقر على تاريخ وصولك ثم تاريخ مغادرتك لتحديد تواريخ الإقامة وحساب الإجمالي فورياً:
+                </p>
+                <PropertyCalendar
+                  existingBookings={existingBookings}
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onSelectDate={handleSelectCalendarDate}
+                  price={property.price}
+                />
+              </section>
+
               {/* قسم التقييمات والآراء */}
               <section className="pt-8 border-t border-gray-100 text-right">
                 <h2 className="text-2xl font-black mb-6">التقييمات وآراء النزلاء ⭐️</h2>
@@ -851,82 +1043,56 @@ export default function PropertyPage({ params }: any) {
                 className="rounded-2xl border px-4 py-4"
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* اختيار التواريخ من التقويم مباشرة */}
+              <div className="border border-gray-100 rounded-3xl p-5 bg-gray-50/50 space-y-4">
+                <div className="text-right">
+                  <h3 className="font-bold text-gray-900 text-sm">📅 حدد فترة إقامتك على التقويم:</h3>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    انقر على يوم وصولك (أخضر)، ثم يوم مغادرتك. الأيام المحجوزة تظهر باللون الأحمر وهي غير قابلة للاختيار.
+                  </p>
+                </div>
+                
+                <PropertyCalendar
+                  existingBookings={existingBookings}
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onSelectDate={handleSelectCalendarDate}
+                  price={property.price}
+                />
 
-                <div>
-
-                  <label className="block mb-2 font-bold">
-
-                    تاريخ الوصول
-
-                  </label>
-
-                  <DatePicker
-                    selected={
-                      checkIn
-                        ? new Date(checkIn)
-                        : null
-                    }
-                    onChange={(date: any) =>
-                      setCheckIn(
-                        date
-                          ?.toISOString()
-                          ?.split("T")[0]
-                      )
-                    }
-                    excludeDates={
-                      getBlockedDates()
-                    }
-                    minDate={
-                      new Date()
-                    }
-                    dateFormat="yyyy-MM-dd"
-                    placeholderText="اختر تاريخ الوصول"
-                    className="w-full rounded-2xl border px-4 py-4"
-                  />
-
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="bg-white p-3.5 rounded-2xl border border-gray-100 text-center">
+                    <span className="text-[10px] text-gray-400 font-bold block mb-1">📅 تاريخ الوصول</span>
+                    {checkIn ? (
+                      <span className="text-xs font-black text-[#2D6A5F]">{checkIn}</span>
+                    ) : (
+                      <span className="text-xs text-gray-400 font-medium">بانتظار التحديد...</span>
+                    )}
+                  </div>
+                  <div className="bg-white p-3.5 rounded-2xl border border-gray-100 text-center">
+                    <span className="text-[10px] text-gray-400 font-bold block mb-1">📅 تاريخ المغادرة</span>
+                    {checkOut ? (
+                      <span className="text-xs font-black text-[#2D6A5F]">{checkOut}</span>
+                    ) : (
+                      <span className="text-xs text-gray-400 font-medium">بانتظار التحديد...</span>
+                    )}
+                  </div>
                 </div>
 
-                <div>
-
-                  <label className="block mb-2 font-bold">
-
-                    تاريخ المغادرة
-
-                  </label>
-
-                  <DatePicker
-                    selected={
-                      checkOut
-                        ? new Date(checkOut)
-                        : null
-                    }
-                    onChange={(date: any) =>
-                      setCheckOut(
-                        date
-                          ?.toISOString()
-                          ?.split("T")[0]
-                      )
-                    }
-                    excludeDates={
-                      getBlockedDates()
-                    }
-                    minDate={
-                      checkIn
-                        ? new Date(checkIn)
-                        : new Date()
-                    }
-                    dateFormat="yyyy-MM-dd"
-                    placeholderText="اختر تاريخ المغادرة"
-                    className="w-full rounded-2xl border px-4 py-4"
-                  />
-
-                </div>
-
-              </div>
-
-              <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-                الأيام المحجوزة غير قابلة للاختيار.
+                {(checkIn || checkOut) && (
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCheckIn("");
+                        setCheckOut("");
+                      }}
+                      className="text-xs text-red-500 hover:text-red-700 font-bold transition flex items-center gap-1"
+                    >
+                      ✕ إعادة تعيين التواريخ
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* حاسبة الأسعار الديناميكية */}
