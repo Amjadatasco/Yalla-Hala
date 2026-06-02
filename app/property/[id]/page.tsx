@@ -606,6 +606,25 @@ export default function PropertyPage({ params }: any) {
                     </h3>
                   </div>
                 </div>
+
+                {/* أوقات الدخول والخروج */}
+                {(property.address || property.city) && (
+                  <div className="mt-4 rounded-2xl border border-gray-100 bg-[#F9FAFB] p-4 flex items-center justify-around text-center gap-4">
+                    {property.address && (
+                      <div>
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-500 block mb-0.5">🕒 وقت الدخول (Check-in)</span>
+                        <span className="text-sm sm:text-base font-black text-[#2D6A5F]">{property.address}</span>
+                      </div>
+                    )}
+                    {(property.address && property.city) && <div className="h-6 w-[1px] bg-gray-200"></div>}
+                    {property.city && (
+                      <div>
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-500 block mb-0.5">🕒 وقت الخروج (Check-out)</span>
+                        <span className="text-sm sm:text-base font-black text-[#2D6A5F]">{property.city}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </section>
 
               {/* زر طلب حجز بارز جداً في نهاية التفاصيل */}

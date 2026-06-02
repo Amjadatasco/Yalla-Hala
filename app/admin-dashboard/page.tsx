@@ -22,6 +22,8 @@ type Property = {
   owner_phone?: string;
 
   user_id?: string;
+  address?: string;
+  city?: string;
 };
 
 type Booking = {
@@ -61,6 +63,10 @@ const [editAmenities, setEditAmenities] = useState("");
 const [editOwnerName, setEditOwnerName] = useState("");
 
 const [editOwnerPhone, setEditOwnerPhone] = useState("");
+
+const [editCheckInTime, setEditCheckInTime] = useState("");
+
+const [editCheckOutTime, setEditCheckOutTime] = useState("");
   // مؤقتاً — لاحقاً يجب نقله إلى نظام Roles داخل قاعدة البيانات
   const ADMIN_EMAIL = "0995688838@yallahala.local";
 
@@ -258,6 +264,8 @@ const [editOwnerPhone, setEditOwnerPhone] = useState("");
           amenities: editAmenities.trim(),
           owner_name: editOwnerName.trim(),
           owner_phone: editOwnerPhone.trim(),
+          address: editCheckInTime,
+          city: editCheckOutTime,
         })
         .eq("id", editingProperty.id);
 
@@ -521,6 +529,14 @@ const [editOwnerPhone, setEditOwnerPhone] = useState("");
     setEditOwnerPhone(
       property.owner_phone || ""
     );
+
+    setEditCheckInTime(
+      property.address || "14:00"
+    );
+
+    setEditCheckOutTime(
+      property.city || "12:00"
+    );
   }}
   className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs"
 >
@@ -697,6 +713,31 @@ const [editOwnerPhone, setEditOwnerPhone] = useState("");
           placeholder="رقم الهاتف"
           className="border rounded-xl p-3"
         />
+
+        <div className="grid grid-cols-2 gap-3 text-right">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-gray-500">🕒 وقت الدخول (Check-in)</label>
+            <input
+              type="time"
+              value={editCheckInTime}
+              onChange={(e) =>
+                setEditCheckInTime(e.target.value)
+              }
+              className="border rounded-xl p-3 text-right"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold text-gray-500">🕒 وقت الخروج (Check-out)</label>
+            <input
+              type="time"
+              value={editCheckOutTime}
+              onChange={(e) =>
+                setEditCheckOutTime(e.target.value)
+              }
+              className="border rounded-xl p-3 text-right"
+            />
+          </div>
+        </div>
 
       </div>
 

@@ -70,6 +70,8 @@ export default function AddPropertyPage() {
   const [rooms, setRooms] = useState("");
   const [beds, setBeds] = useState("");
   const [bathrooms, setBathrooms] = useState("");
+  const [checkInTime, setCheckInTime] = useState("14:00");
+  const [checkOutTime, setCheckOutTime] = useState("12:00");
 
   // الوصف
   const [description, setDescription] = useState("");
@@ -130,6 +132,8 @@ export default function AddPropertyPage() {
         `👤 اسم المؤجر:\n${ownerName}\n\n` +
         `📞 رقم الهاتف:\n${ownerPhone}\n\n` +
         `💰 السعر:\n$${price} USD\n\n` +
+        `🕒 وقت الدخول:\n${checkInTime}\n\n` +
+        `🕒 وقت الخروج:\n${checkOutTime}\n\n` +
         `🛠️ التجهيزات المحددة:\n${selectedAmenities.join(" - ") || "لا يوجد"}\n\n` +
         `🟡 الحالة:\nPending`;
 
@@ -168,6 +172,8 @@ export default function AddPropertyPage() {
     setRooms("");
     setBeds("");
     setBathrooms("");
+    setCheckInTime("14:00");
+    setCheckOutTime("12:00");
 
     setDescription("");
     setSelectedAmenities([]);
@@ -271,6 +277,8 @@ export default function AddPropertyPage() {
           images_list: imageUrls,
           status: "pending",
           user_id: user.id,
+          address: checkInTime,
+          city: checkOutTime,
         },
       ]);
 
@@ -438,6 +446,32 @@ export default function AddPropertyPage() {
               placeholder="عدد الحمامات"
               className="rounded-xl border border-[#E5E7EB] px-4 py-3 text-right text-xs outline-none focus:border-[#3FAF9B]"
             />
+          </div>
+
+          {/* أوقات الدخول والخروج */}
+          <div className="grid gap-4 grid-cols-2 text-right">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-gray-700">
+                🕒 وقت الدخول (Check-in)
+              </label>
+              <input
+                type="time"
+                value={checkInTime}
+                onChange={(e) => setCheckInTime(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-gray-700">
+                🕒 وقت الخروج (Check-out)
+              </label>
+              <input
+                type="time"
+                value={checkOutTime}
+                onChange={(e) => setCheckOutTime(e.target.value)}
+                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              />
+            </div>
           </div>
 
           {/* الوصف */}
