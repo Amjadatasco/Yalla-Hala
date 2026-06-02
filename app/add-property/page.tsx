@@ -53,7 +53,6 @@ const defaultAmenitiesList = [
 ];
 
 export default function AddPropertyPage() {
-
   // بيانات المؤجر
   const [ownerName, setOwnerName] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");

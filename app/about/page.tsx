@@ -18,7 +18,7 @@ export default function AboutPage() {
 
         {/* أقسام تفاصيل المنصة - الكروت الثلاثة الذكية */}
         <div className="mt-20 grid gap-8 lg:grid-cols-3">
-          
+
           {/* كرت: فكرة المنصة */}
           <section className="rounded-[32px] border border-[#E5E7EB] bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl text-right flex flex-col justify-between">
             <div>
@@ -106,7 +106,7 @@ export default function AboutPage() {
 
           {/* ⚡ الـ Grid ثنائي البطاقات المثبت لمنع انقلاب علامة الزائد */}
           <div className="mt-12 max-w-3xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2">
-            
+
             {/* بطاقة البريد الإلكتروني */}
             <div className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-8 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center">
               <div className="mb-4 text-5xl">📧</div>
@@ -119,7 +119,7 @@ export default function AboutPage() {
             </div>
 
             {/* بطاقة واتساب المباشر */}
-            <a 
+            <a
               href="https://wa.me/46790081236"
               target="_blank"
               rel="noopener noreferrer"

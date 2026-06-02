@@ -4,7 +4,7 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-[#FAFAFA] px-4 sm:px-6 py-14 sm:py-20" dir="rtl">
       <div className="mx-auto max-w-4xl bg-white rounded-[32px] p-6 sm:p-12 shadow-sm border border-[#E5E7EB]">
-        
+
         {/* رأس الصفحة */}
         <div className="text-right border-b pb-6 mb-8">
           <h1 className="text-3xl font-black text-[#111827]">سياسة الخصوصية وسرية البيانات</h1>
@@ -13,7 +13,7 @@ export default function PrivacyPage() {
 
         {/* المحتوى القانوني */}
         <div className="space-y-8 text-right leading-8 text-[#4B5563] text-sm sm:text-base font-medium">
-          
+
           <section>
             <h2 className="text-xl font-bold text-[#111827] mb-3">1. جمع المعلومات وبيانات المستخدمين</h2>
             <p>

@@ -5,19 +5,15 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminLoginPage() {
-
   const router = useRouter();
 
   const [email, setEmail] = useState("");
 
-  const [password, setPassword] =
-    useState("");
+  const [password, setPassword] = useState("");
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
-
     setLoading(true);
 
     const { error } =
@@ -29,21 +25,16 @@ export default function AdminLoginPage() {
     setLoading(false);
 
     if (error) {
-
       alert("بيانات الدخول غير صحيحة");
-
     } else {
-
       router.push("/dashboard");
     }
   }
 
   function handleForgotPassword() {
-
     alert(
       "يرجى التواصل مع إدارة الموقع لإعادة تعيين كلمة المرور."
     );
-
   }
 
   return (

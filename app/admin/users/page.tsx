@@ -99,7 +99,6 @@ if (
       alert(
         "تم حذف المستخدم نهائياً"
       );
-
     } catch (error) {
       console.error(error);
 

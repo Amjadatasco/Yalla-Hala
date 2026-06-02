@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 export default function NotFoundPage() {
-
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#FAFAFA] px-6">
 

@@ -6,22 +6,17 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
-
   const router = useRouter();
 
   // البيانات
-  const [fullName, setFullName] =
-    useState("");
+  const [fullName, setFullName] = useState("");
 
-  const [phone, setPhone] =
-    useState("");
+  const [phone, setPhone] = useState("");
 
-  const [password, setPassword] =
-    useState("");
+  const [password, setPassword] = useState("");
 
   // تحميل
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
   // تيليغرام
   const TELEGRAM_BOT_TOKEN =
@@ -32,9 +27,7 @@ export default function RegisterPage() {
 
   // إشعار تيليغرام
   async function sendTelegramNotification() {
-
     try {
-
       const messageText =
         `🆕 تسجيل مستخدم جديد\n\n` +
 
@@ -55,7 +48,6 @@ export default function RegisterPage() {
           },
 
           body: JSON.stringify({
-
             chat_id:
               TELEGRAM_CHAT_ID,
 
@@ -64,14 +56,11 @@ export default function RegisterPage() {
           }),
         }
       );
-
     } catch (err) {
-
       console.error(
         "Telegram Error:",
         err
       );
-
     }
   }
 
@@ -79,7 +68,6 @@ export default function RegisterPage() {
   async function handleRegister(
     e: React.FormEvent
   ) {
-
     e.preventDefault();
 
     // تحقق
@@ -88,7 +76,6 @@ export default function RegisterPage() {
       !phone.trim() ||
       !password.trim()
     ) {
-
       alert(
         "يرجى تعبئة جميع الحقول."
       );
@@ -102,7 +89,6 @@ export default function RegisterPage() {
         phone
       )
     ) {
-
       alert(
         "رقم الهاتف غير صالح."
       );
@@ -114,7 +100,6 @@ export default function RegisterPage() {
     if (
       password.length < 6
     ) {
-
       alert(
         "كلمة المرور يجب أن تكون 6 أحرف على الأقل."
       );
@@ -123,7 +108,6 @@ export default function RegisterPage() {
     }
 
     try {
-
       setLoading(true);
 
       // إنشاء إيميل مخفي
@@ -136,7 +120,6 @@ export default function RegisterPage() {
         error,
       } =
         await supabase.auth.signUp({
-
           email:
             generatedEmail,
 
@@ -144,9 +127,7 @@ export default function RegisterPage() {
             password,
 
           options: {
-
             data: {
-
               full_name:
                 fullName,
 
@@ -161,18 +142,14 @@ export default function RegisterPage() {
 
       // خطأ
       if (error) {
-
         throw error;
-
       }
 
       // المستخدم غير موجود
       if (!data.user) {
-
         throw new Error(
           "فشل إنشاء المستخدم."
         );
-
       }
 
       // إشعار تيليغرام
@@ -187,9 +164,7 @@ export default function RegisterPage() {
       router.push(
         "/login"
       );
-
     } catch (error: any) {
-
       console.error(
         error
       );
@@ -198,11 +173,8 @@ export default function RegisterPage() {
         error?.message ||
         "حدث خطأ أثناء إنشاء الحساب."
       );
-
     } finally {
-
       setLoading(false);
-
     }
   }
 

@@ -6,7 +6,6 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function LoginPage() {
-
   const router = useRouter();
 
   const [phone, setPhone] = useState("");
@@ -75,8 +74,8 @@ export default function LoginPage() {
       // إرسال إشعار تيليغرام للإدارة فوراً لتسهيل العملية يدوياً
       const TELEGRAM_BOT_TOKEN = "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
       const TELEGRAM_CHAT_ID = "629151535";
-      
-      const messageText = 
+
+      const messageText =
         `🔑 طلب استعادة كلمة المرور\n\n` +
         `👤 الاسم الكامل: ${forgotName.trim()}\n` +
         `📞 رقم الهاتف: ${forgotPhone.trim()}\n\n` +
@@ -101,7 +100,7 @@ export default function LoginPage() {
       const emailBody = encodeURIComponent(
         `مرحباً إدارة يلا هلا،\n\nأريد استعادة كلمة المرور الخاصة بحسابي.\n\nالاسم الكامل: ${forgotName.trim()}\nرقم الهاتف: ${forgotPhone.trim()}\n\nيرجى إعادة تعيين كلمة المرور الخاصة بي.`
       );
-      
+
       window.open(`mailto:contact@yallahala.com?subject=${emailSubject}&body=${emailBody}`, "_blank");
 
       setForgotSubmitted(true);
@@ -191,7 +190,7 @@ export default function LoginPage() {
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" dir="rtl">
           <div className="w-full max-w-md bg-white rounded-[32px] p-6 sm:p-8 shadow-2xl border border-gray-100 relative transition-all animate-in fade-in zoom-in-95 duration-200">
-            
+
             {/* زر الإغلاق */}
             <button
               onClick={() => {

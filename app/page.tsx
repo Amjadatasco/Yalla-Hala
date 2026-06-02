@@ -5,8 +5,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const governorates = [
-  "دمشق", "ريف دمشق", "حلب", "إدلب", "اللاذقية", "طرطوس", 
-  "حمص", "حماة", "السويداء", "درعا", "القنيطرة", 
+  "دمشق", "ريف دمشق", "حلب", "إدلب", "اللاذقية", "طرطوس",
+  "حمص", "حماة", "السويداء", "درعا", "القنيطرة",
   "دير الزور", "الحسكة", "الرقة"
 ];
 
@@ -81,7 +81,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#F9FAFB]" dir="rtl">
-      
+
       {/* ترحيب البطل */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-8 text-center relative z-10">
         <span className="inline-block rounded-full bg-[#E6F4F1] px-5 py-2 text-sm font-bold text-[#3FAF9B] mb-4 shadow-sm">
@@ -102,7 +102,7 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
         <div className="bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 items-center">
-            
+
             {/* 1. زر البحث */}
             <div className="lg:col-span-2">
               <button

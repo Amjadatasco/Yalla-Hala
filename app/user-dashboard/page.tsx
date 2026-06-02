@@ -43,7 +43,6 @@ export default function UserDashboardPage() {
       if (error) throw error;
 
       setBookings((data as Booking[]) || []);
-
     } catch (error) {
       console.error(error);
       alert("فشل تحميل الحجوزات");
@@ -70,7 +69,6 @@ export default function UserDashboardPage() {
       setBookings((prev) =>
         prev.filter((booking) => booking.id !== id)
       );
-
     } catch (error) {
       console.error(error);
       alert("فشل حذف الحجز");

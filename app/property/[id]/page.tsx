@@ -2,40 +2,31 @@
 
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function PropertyPage({ params }: any) {
-
   const resolvedParams =
     "then" in params
       ? use(params)
       : params;
 
-  const [property, setProperty] =
-    useState<any>(null);
+  const [property, setProperty] = useState<any>(null);
 
   const [existingBookings, setExistingBookings] =
     useState<any[]>([]);
 
-  const [guestName, setGuestName] =
-    useState("");
+  const [guestName, setGuestName] = useState("");
 
-  const [guestPhone, setGuestPhone] =
-    useState("");
+  const [guestPhone, setGuestPhone] = useState("");
 
-  const [checkIn, setCheckIn] =
-    useState<any>("");
+  const [checkIn, setCheckIn] = useState<any>("");
 
-  const [checkOut, setCheckOut] =
-    useState<any>("");
+  const [checkOut, setCheckOut] = useState<any>("");
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [pageLoading, setPageLoading] =
-    useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
 
   const [viewMode, setViewMode] =
     useState<
@@ -49,17 +40,13 @@ export default function PropertyPage({ params }: any) {
     "629151535";
 
   useEffect(() => {
-
     if (resolvedParams?.id) {
       loadPropertyAndBookings();
     }
-
   }, [resolvedParams?.id]);
 
   async function loadPropertyAndBookings() {
-
     try {
-
       setPageLoading(true);
 
       const {
@@ -75,7 +62,6 @@ export default function PropertyPage({ params }: any) {
         .single();
 
       if (propertyError) {
-
         console.error(
           propertyError
         );
@@ -106,30 +92,21 @@ export default function PropertyPage({ params }: any) {
         !bookingsError &&
         bookingsData
       ) {
-
         setExistingBookings(
           bookingsData
         );
-
       }
-
     } catch (err) {
-
       console.error(err);
-
     } finally {
-
       setPageLoading(false);
-
     }
   }
 
   function getBlockedDates() {
-
     const blockedDates: Date[] = [];
 
     existingBookings.forEach((booking) => {
-
       const start =
         new Date(
           booking.check_in
@@ -144,7 +121,6 @@ export default function PropertyPage({ params }: any) {
         new Date(start);
 
       while (current <= end) {
-
         blockedDates.push(
           new Date(current)
         );
@@ -152,9 +128,7 @@ export default function PropertyPage({ params }: any) {
         current.setDate(
           current.getDate() + 1
         );
-
       }
-
     });
 
     return blockedDates;
@@ -164,7 +138,6 @@ export default function PropertyPage({ params }: any) {
     newIn: string,
     newOut: string
   ) {
-
     const startNew =
       new Date(newIn).getTime();
 
@@ -172,7 +145,6 @@ export default function PropertyPage({ params }: any) {
       new Date(newOut).getTime();
 
     for (const booking of existingBookings) {
-
       const startExisting =
         new Date(
           booking.check_in
@@ -189,9 +161,7 @@ export default function PropertyPage({ params }: any) {
         endNew >
           startExisting
       ) {
-
         return true;
-
       }
     }
 
@@ -204,9 +174,7 @@ export default function PropertyPage({ params }: any) {
     inDate: string,
     outDate: string
   ) {
-
     try {
-
       const cleanPhone =
         property?.owner_phone
           ?.replace(
@@ -255,23 +223,18 @@ export default function PropertyPage({ params }: any) {
           }),
         }
       );
-
     } catch (err) {
-
       console.error(err);
-
     }
   }
 
   async function handleBooking() {
-
     if (
       !guestName.trim() ||
       !guestPhone.trim() ||
       !checkIn ||
       !checkOut
     ) {
-
       alert(
         "يرجى تعبئة جميع البيانات."
       );
@@ -289,7 +252,6 @@ export default function PropertyPage({ params }: any) {
       checkOutDate <=
       checkInDate
     ) {
-
       alert(
         "تاريخ المغادرة يجب أن يكون بعد الوصول."
       );
@@ -303,7 +265,6 @@ export default function PropertyPage({ params }: any) {
         checkOut
       )
     ) {
-
       alert(
         "هذه التواريخ محجوزة بالفعل."
       );
@@ -312,7 +273,6 @@ export default function PropertyPage({ params }: any) {
     }
 
     try {
-
       setLoading(true);
 
       const { error } =
@@ -341,7 +301,6 @@ export default function PropertyPage({ params }: any) {
           ]);
 
       if (error) {
-
         console.error(error);
 
         alert(
@@ -370,24 +329,18 @@ export default function PropertyPage({ params }: any) {
       setCheckOut("");
 
       setViewMode("details");
-
     } catch (err) {
-
       console.error(err);
 
       alert(
         "حدث خطأ أثناء إرسال الطلب."
       );
-
     } finally {
-
       setLoading(false);
-
     }
   }
 
   if (pageLoading) {
-
     return (
       <div className="min-h-screen flex items-center justify-center">
 
@@ -398,7 +351,6 @@ export default function PropertyPage({ params }: any) {
   }
 
   if (!property) {
-
     return (
       <div className="min-h-screen flex items-center justify-center">
 

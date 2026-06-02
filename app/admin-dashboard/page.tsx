@@ -48,26 +48,19 @@ export default function DashboardPage() {
 const [editingProperty, setEditingProperty] =
   useState<Property | null>(null);
 
-const [editTitle, setEditTitle] =
-  useState("");
+const [editTitle, setEditTitle] = useState("");
 
-const [editPrice, setEditPrice] =
-  useState("");
+const [editPrice, setEditPrice] = useState("");
 
-const [editLocation, setEditLocation] =
-  useState("");
+const [editLocation, setEditLocation] = useState("");
 
-const [editDescription, setEditDescription] =
-  useState("");
+const [editDescription, setEditDescription] = useState("");
 
-const [editAmenities, setEditAmenities] =
-  useState("");
+const [editAmenities, setEditAmenities] = useState("");
 
-const [editOwnerName, setEditOwnerName] =
-  useState("");
+const [editOwnerName, setEditOwnerName] = useState("");
 
-const [editOwnerPhone, setEditOwnerPhone] =
-  useState("");
+const [editOwnerPhone, setEditOwnerPhone] = useState("");
   // مؤقتاً — لاحقاً يجب نقله إلى نظام Roles داخل قاعدة البيانات
   const ADMIN_EMAIL = "0995688838@yallahala.local";
 
@@ -471,7 +464,6 @@ const [editOwnerPhone, setEditOwnerPhone] =
                             )}
 <button
   onClick={() => {
-
     setEditingProperty(property);
 
     setEditTitle(
@@ -501,7 +493,6 @@ const [editOwnerPhone, setEditOwnerPhone] =
     setEditOwnerPhone(
       property.owner_phone || ""
     );
-
   }}
   className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs"
 >

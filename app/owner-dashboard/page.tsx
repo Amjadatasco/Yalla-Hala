@@ -66,7 +66,6 @@ export default function DashboardPage() {
 
       // تحميل بيانات المؤجر فقط
       await loadOwnerData(user.id);
-
     } catch (error) {
       console.error("Auth Error:", error);
       alert("حدث خطأ أثناء التحقق من تسجيل الدخول");
@@ -106,7 +105,6 @@ export default function DashboardPage() {
       } else {
         setBookings([]);
       }
-
     } catch (error) {
       console.error("Load Owner Data Error:", error);
       alert("فشل تحميل بيانات المؤجر");
@@ -148,7 +146,6 @@ export default function DashboardPage() {
       if (error) throw error;
 
       refreshData();
-
     } catch (error) {
       console.error(error);
       alert("فشل حذف العقار");
@@ -167,7 +164,6 @@ export default function DashboardPage() {
       alert("تم تأكيد الحجز بنجاح");
 
       refreshData();
-
     } catch (error) {
       console.error(error);
       alert("فشل تأكيد الحجز");
@@ -190,7 +186,6 @@ export default function DashboardPage() {
       if (error) throw error;
 
       refreshData();
-
     } catch (error) {
       console.error(error);
       alert("فشل حذف الحجز");
