@@ -380,7 +380,7 @@ export default function PropertyPage({ params }: any) {
 
   return (
     <main
-      className="bg-[#FAFAFA] min-h-screen px-4 py-10"
+      className="bg-[#FAFAFA] min-h-screen px-4 pt-6 pb-28 sm:py-10"
       dir="rtl"
     >
 
@@ -388,14 +388,20 @@ export default function PropertyPage({ params }: any) {
 
         {/* معرض الصور المطور */}
         <div className="mb-8">
-          {/* نسخة الموبايل */}
-          <div className="block md:hidden relative rounded-3xl overflow-hidden border h-[300px] cursor-pointer animate-in fade-in duration-300" onClick={() => openLightbox(0)}>
-            <img src={images[0]} className="w-full h-full object-cover" alt={property.title} />
-            {images.length > 1 && (
-              <div className="absolute bottom-4 left-4 bg-black/75 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow">
-                📷 1 / {images.length}
+          {/* نسخة الموبايل (سلايدر منزلق باللمس) */}
+          <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory gap-3 px-4 -mx-4 scrollbar-none pb-2">
+            {images.map((image: string, index: number) => (
+              <div 
+                key={index} 
+                className="w-[85vw] flex-shrink-0 snap-start rounded-2xl overflow-hidden border h-[240px] relative cursor-pointer"
+                onClick={() => openLightbox(index)}
+              >
+                <img src={image} className="w-full h-full object-cover" alt={`${property.title} - ${index + 1}`} />
+                <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-full text-[10px] font-bold">
+                  {index + 1} / {images.length}
+                </div>
               </div>
-            )}
+            ))}
           </div>
 
           {/* نسخة الكمبيوتر (شبكة صور احترافية) */}
@@ -569,35 +575,29 @@ export default function PropertyPage({ params }: any) {
                 <h2 className="text-2xl font-black mb-4">
                   معلومات العقار
                 </h2>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="rounded-2xl border p-5 text-center">
-                    <p className="text-sm text-gray-500">
+                <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+                  <div className="rounded-2xl border p-3 sm:p-5 text-center bg-gray-50/50">
+                    <p className="text-[10px] sm:text-sm text-gray-500">
                       الغرف
                     </p>
-                    <h3 className="text-3xl font-black">
-                      {
-                        property.rooms_count
-                      }
+                    <h3 className="text-lg sm:text-3xl font-black mt-1">
+                      {property.rooms_count}
                     </h3>
                   </div>
-                  <div className="rounded-2xl border p-5 text-center">
-                    <p className="text-sm text-gray-500">
+                  <div className="rounded-2xl border p-3 sm:p-5 text-center bg-gray-50/50">
+                    <p className="text-[10px] sm:text-sm text-gray-500">
                       الأسرة
                     </p>
-                    <h3 className="text-3xl font-black">
-                      {
-                        property.beds_count
-                      }
+                    <h3 className="text-lg sm:text-3xl font-black mt-1">
+                      {property.beds_count}
                     </h3>
                   </div>
-                  <div className="rounded-2xl border p-5 text-center">
-                    <p className="text-sm text-gray-500">
+                  <div className="rounded-2xl border p-3 sm:p-5 text-center bg-gray-50/50">
+                    <p className="text-[10px] sm:text-sm text-gray-500">
                       الحمامات
                     </p>
-                    <h3 className="text-3xl font-black">
-                      {
-                        property.bathrooms_count
-                      }
+                    <h3 className="text-lg sm:text-3xl font-black mt-1">
+                      {property.bathrooms_count}
                     </h3>
                   </div>
                 </div>
@@ -802,6 +802,28 @@ export default function PropertyPage({ params }: any) {
           )}
         </div>
       )}
+      {/* شريط الحجز العائم للموبايل فقط */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gray-100 px-5 py-3.5 flex items-center justify-between shadow-2xl">
+        <div className="text-right">
+          <p className="text-[10px] text-gray-400 font-bold">السعر لليلة</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-xl font-black text-[#2D6A5F]">${property.price}</span>
+            <span className="text-[10px] text-gray-500">USD</span>
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            setViewMode("book");
+            setTimeout(() => {
+              window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+            }, 100);
+          }}
+          className="bg-[#3FAF9B] text-white font-bold px-8 py-3 rounded-xl text-sm shadow-md hover:bg-[#2F8E7D] transition-all"
+        >
+          {viewMode === "book" ? "أدخل بياناتك بالأسفل" : "احجز الآن"}
+        </button>
+      </div>
+
     </main>
   );
 }
