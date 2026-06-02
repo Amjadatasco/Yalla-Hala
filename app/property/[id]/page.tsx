@@ -29,6 +29,8 @@ export default function PropertyPage({ params }: any) {
   const [viewMode, setViewMode] = useState<"details" | "book">("details");
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [showLightbox, setShowLightbox] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [lastBookingInfo, setLastBookingInfo] = useState<any>(null);
 
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
@@ -316,16 +318,19 @@ export default function PropertyPage({ params }: any) {
         checkOut
       );
 
-      alert(
-        "تم استلام طلب الحجز بنجاح."
-      );
+      setLastBookingInfo({
+        guestName: guestName.trim(),
+        guestPhone: guestPhone.trim(),
+        checkIn,
+        checkOut
+      });
+
+      setShowSuccessModal(true);
 
       setGuestName("");
       setGuestPhone("");
       setCheckIn("");
       setCheckOut("");
-
-      setViewMode("details");
     } catch (err) {
       console.error(err);
 
@@ -824,6 +829,62 @@ export default function PropertyPage({ params }: any) {
         </button>
       </div>
 
+      {/* مودال نجاح الحجز وتوجيه الواتساب للمؤجر */}
+      {showSuccessModal && lastBookingInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" dir="rtl">
+          <div className="w-full max-w-md bg-white rounded-[32px] p-6 sm:p-8 shadow-2xl border border-gray-100 text-center relative transition-all animate-in fade-in zoom-in-95 duration-200">
+            <div className="mx-auto flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 text-3xl font-bold mb-4">
+              ✓
+            </div>
+            <h3 className="text-2xl font-black text-gray-900">تم تقديم طلبك بنجاح!</h3>
+            <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+              تم إرسال طلب حجزك للإدارة. لتسريع عملية تأكيد وتثبيت الحجز، يرجى التواصل مع صاحب العقار مباشرة عبر الواتساب لتنسيق التفاصيل والدفع:
+            </p>
+            <div className="bg-gray-50 rounded-2xl p-4 my-5 text-right text-xs space-y-1.5 text-gray-600">
+              <div>🏠 <span className="font-bold text-gray-900">العقار:</span> {property.title}</div>
+              <div>📅 <span className="font-bold text-gray-900">تاريخ الإقامة:</span> من {lastBookingInfo.checkIn} إلى {lastBookingInfo.checkOut}</div>
+              <div>👤 <span className="font-bold text-gray-900">الاسم:</span> {lastBookingInfo.guestName}</div>
+            </div>
+            <div className="space-y-3">
+              <a
+                href={(() => {
+                  if (!lastBookingInfo || !property) return "#";
+                  let cleanPhone = property.owner_phone ? property.owner_phone.replace(/\D/g, "") : "";
+                  if (cleanPhone.startsWith("09")) {
+                    cleanPhone = "963" + cleanPhone.substring(1);
+                  } else if (cleanPhone.startsWith("9") && !cleanPhone.startsWith("963")) {
+                    cleanPhone = "963" + cleanPhone;
+                  }
+                  const message = 
+                    `مرحباً ${property.owner_name || "صاحب العقار"} 👋\n\n` +
+                    `لقد قمت بطلب حجز عقارك [ ${property.title} ] عبر منصة يلا هلا السياحية، وأود التنسيق معك بخصوص التفاصيل والدفع:\n\n` +
+                    `👤 اسم المستأجر: ${lastBookingInfo.guestName}\n` +
+                    `📞 هاتف المستأجر: ${lastBookingInfo.guestPhone}\n` +
+                    `📅 تاريخ الوصول: ${lastBookingInfo.checkIn}\n` +
+                    `📅 تاريخ المغادرة: ${lastBookingInfo.checkOut}`;
+                  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+                })()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-13 rounded-2xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-black text-sm transition flex items-center justify-center gap-2 shadow-md hover:shadow-lg duration-200"
+              >
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.451 5.403.002 9.803-4.386 9.805-9.79.002-2.618-1.01-5.079-2.859-6.93C16.37 2.05 13.91 1.037 11.29 1.037c-5.4.002-9.799 4.393-9.802 9.794-.001 1.705.462 3.37 1.337 4.815L1.817 22.03l6.59-1.745zM17.03 14.537c-.275-.137-1.62-.8-1.87-.892-.252-.093-.437-.137-.62.137-.183.275-.71.892-.87 1.077-.16.183-.32.205-.595.068-.275-.137-1.162-.428-2.214-1.366-.818-.73-1.37-1.632-1.53-1.905-.16-.275-.017-.424.12-.56.124-.124.275-.32.413-.48.137-.16.183-.275.275-.457.093-.183.047-.343-.023-.48-.068-.137-.62-1.492-.85-2.043-.224-.537-.474-.464-.649-.473-.167-.008-.36-.01-.55-.01-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.4s1 2.79 1.12 2.95c.12.16 1.97 3.01 4.77 4.22.67.29 1.19.46 1.59.59.67.21 1.28.18 1.77.11.54-.08 1.62-.66 1.85-1.3.23-.64.23-1.18.16-1.3-.07-.12-.26-.19-.54-.33z"/></svg>
+                مراسلة صاحب العقار لتثبيت الحجز
+              </a>
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setLastBookingInfo(null);
+                  setViewMode("details");
+                }}
+                className="w-full h-12 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition"
+              >
+                إغلاق والعودة للتفاصيل
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

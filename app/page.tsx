@@ -34,6 +34,39 @@ export default function HomePage() {
   const [guestsCount, setGuestsCount] = useState("");
   const [selectedAmenity, setSelectedAmenity] = useState("");
 
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // تحميل المفضلة عند التشغيل
+  useEffect(() => {
+    const saved = localStorage.getItem("yallahala_wishlist");
+    if (saved) {
+      try {
+        setFavorites(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  // إضافة أو إزالة من المفضلة
+  const toggleFavorite = (e: React.MouseEvent, id: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    let updated = [];
+    if (favorites.includes(id)) {
+      updated = favorites.filter((favId) => favId !== id);
+    } else {
+      updated = [...favorites, id];
+    }
+    setFavorites(updated);
+    localStorage.setItem("yallahala_wishlist", JSON.stringify(updated));
+  };
+
+  const propertiesToDisplay = showFavoritesOnly
+    ? properties.filter((p) => favorites.includes(p.id))
+    : properties;
+
   // إعادة تحميل تلقائي عند تغيير الفلاتر السريعة
   useEffect(() => {
     loadProperties();
@@ -229,6 +262,19 @@ export default function HomePage() {
               إلغاء التصفية ✕
             </button>
           )}
+
+          {/* زر تصفية المفضلة */}
+          <button
+            type="button"
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 shadow-sm border flex items-center gap-1.5 ${
+              showFavoritesOnly
+                ? "bg-red-500 border-red-500 text-white scale-105"
+                : "bg-white border-gray-200 text-red-500 hover:bg-red-50 hover:border-red-100"
+            }`}
+          >
+            ❤️ المفضلة ({favorites.length})
+          </button>
         </div>
       </section>
 
@@ -236,20 +282,20 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 relative z-10">
         <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-8">
           <h2 className="text-2xl font-extrabold text-[#111827]">العقارات المتاحة للطلب</h2>
-          <p className="text-xs font-bold text-[#6B7280]">المكتشفة: {properties.length}</p>
+          <p className="text-xs font-bold text-[#6B7280]">المكتشفة: {propertiesToDisplay.length}</p>
         </div>
 
         {loading ? (
           <div className="text-center py-24 text-base font-bold text-[#3FAF9B] animate-pulse">جاري جلب عقارات يلا هلا...</div>
-        ) : properties.length === 0 ? (
+        ) : propertiesToDisplay.length === 0 ? (
           <div className="bg-white border border-[#E5E7EB] rounded-2xl p-12 text-center shadow-sm max-w-xl mx-auto">
             <h3 className="text-xl font-bold text-[#111827]">لا يوجد عقارات متاحة حالياً</h3>
             <p className="mt-2 text-sm text-[#6B7280]">يرجى تعديل تواريخ البحث أو المحاولة مجدداً في وقت لاحق.</p>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {properties.map((property) => (
-              <article key={property.id} className="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between">
+            {propertiesToDisplay.map((property) => (
+              <article key={property.id} className="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between relative group">
                 <div className="relative">
                   <img
                     src={property.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"}
@@ -257,9 +303,27 @@ export default function HomePage() {
                     loading="lazy"
                     className="h-52 w-full object-cover"
                   />
-                  <span className="absolute top-3 right-3 bg-[#E6F4F1] text-[#3FAF9B] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                  <span className="absolute top-3 right-3 bg-[#E6F4F1] text-[#3FAF9B] px-3 py-1 rounded-full text-xs font-bold shadow-sm border border-white/20">
                     {property.type}
                   </span>
+
+                  {/* شارة الطاقة الشمسية إن وجدت */}
+                  {property.amenities?.includes("طاقة شمسية") && (
+                    <span className="absolute top-3 left-3 bg-amber-500 text-white px-2.5 py-1 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 border border-white/20">
+                      ☀️ طاقة شمسية
+                    </span>
+                  )}
+
+                  {/* زر المفضلة */}
+                  <button
+                    type="button"
+                    onClick={(e) => toggleFavorite(e, property.id)}
+                    className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/80 hover:bg-white backdrop-blur-sm shadow flex items-center justify-center transition-all z-10 duration-200"
+                  >
+                    <span className={`text-sm transition-transform duration-200 hover:scale-125 ${favorites.includes(property.id) ? "text-red-500" : "text-gray-400"}`}>
+                      {favorites.includes(property.id) ? "❤️" : "🤍"}
+                    </span>
+                  </button>
                 </div>
 
                 <div className="p-5 text-right flex-1 flex flex-col justify-between">
@@ -270,6 +334,13 @@ export default function HomePage() {
                     </div>
                     <h3 className="text-lg font-bold text-[#111827] line-clamp-1">{property.title}</h3>
                     <p className="mt-1 text-xs text-[#6B7280]">{property.location}</p>
+
+                    {/* مواصفات سريعة للعقار */}
+                    <div className="flex items-center gap-3 mt-3 text-[11px] text-gray-500 font-bold justify-start flex-row-reverse border-t border-gray-50 pt-2.5">
+                      {property.rooms_count && <span>🚪 {property.rooms_count} غرف</span>}
+                      {property.beds_count && <span>🛏️ {property.beds_count} أسرة</span>}
+                      {property.bathrooms_count && <span>🛁 {property.bathrooms_count} حمامات</span>}
+                    </div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-2 gap-2">
