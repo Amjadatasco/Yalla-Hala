@@ -244,6 +244,34 @@ const [editOwnerPhone, setEditOwnerPhone] = useState("");
     }
   }
 
+  async function updateProperty() {
+    if (!editingProperty) return;
+
+    try {
+      const { error } = await supabase
+        .from("properties")
+        .update({
+          title: editTitle.trim(),
+          price: Number(editPrice),
+          location: editLocation.trim(),
+          description: editDescription.trim(),
+          amenities: editAmenities.trim(),
+          owner_name: editOwnerName.trim(),
+          owner_phone: editOwnerPhone.trim(),
+        })
+        .eq("id", editingProperty.id);
+
+      if (error) throw error;
+
+      alert("تم حفظ التعديلات بنجاح");
+      setEditingProperty(null);
+      refreshData();
+    } catch (error: any) {
+      console.error("Update Property Error:", error);
+      alert(`فشل حفظ التعديلات: ${error.message}`);
+    }
+  }
+
   async function approveBooking(id: number) {
     try {
       const { error } = await supabase
@@ -684,7 +712,8 @@ const [editOwnerPhone, setEditOwnerPhone] = useState("");
         </button>
 
         <button
-          className="flex-1 h-12 rounded-xl bg-[#3FAF9B] text-white font-bold"
+          onClick={updateProperty}
+          className="flex-1 h-12 rounded-xl bg-[#3FAF9B] text-white font-bold hover:bg-[#2F8E7D] transition"
         >
           حفظ التعديلات
         </button>
