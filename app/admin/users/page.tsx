@@ -33,20 +33,17 @@ if (
   router.push("/");
   return;
 }
-      // جلب جميع المستخدمين
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", {
-          ascending: false,
-        });
-
-      if (error) {
-        console.error(error);
-      }
-
-      if (data) {
+      // جلب جميع المستخدمين عبر الـ API الآمن
+      try {
+        const response = await fetch("/api/get-users");
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(result.error || "فشل جلب المستخدمين");
+        }
+        const data = await response.json();
         setUsers(data);
+      } catch (err: any) {
+        console.error("Fetch Users Error:", err);
       }
 
       setLoading(false);
