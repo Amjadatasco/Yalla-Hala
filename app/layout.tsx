@@ -116,6 +116,13 @@ export default function RootLayout({
               </Link>
 
               <Link
+                href="/track"
+                className="hover:text-[#2D6A5F] transition duration-200"
+              >
+                تتبع حجزي 🔍
+              </Link>
+
+              <Link
                 href="/about"
                 className="hover:text-[#2D6A5F] transition duration-200"
               >
@@ -243,6 +250,14 @@ export default function RootLayout({
                   className="hover:text-[#2D6A5F] py-1 transition"
                 >
                   أضف عقارك
+                </Link>
+
+                <Link
+                  href="/track"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="hover:text-[#2D6A5F] py-1 transition"
+                >
+                  تتبع حجزي 🔍
                 </Link>
 
                 <Link
@@ -474,6 +489,23 @@ export default function RootLayout({
           data-website-id="4754c078-41b3-472a-9d24-a04874d18646"
           strategy="afterInteractive"
         />
+
+        {/* زر الدعم الفني العائم الواتساب */}
+        <a
+          href="https://wa.me/46790081236?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%20%D8%AF%D8%B9%D9%85%20%D9%8A%D9%84%D8%A7%20%D9%87%D9%84%D8%A7%20%F0%9F%91%8B"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 left-6 z-50 bg-[#25D366] text-white p-3.5 rounded-full shadow-2xl hover:bg-[#20ba5a] transition-all duration-300 hover:scale-110 flex items-center justify-center group animate-bounce"
+          style={{ animationDuration: '4s' }}
+          title="تواصل مع الدعم الفني"
+        >
+          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.729-1.451L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.528 1.944 14.068.92 11.451.92 6.015.92 1.593 5.29 1.59 10.72c-.001 1.684.449 3.323 1.302 4.774l-.979 3.578 3.734-.968z" />
+          </svg>
+          <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:mr-2 transition-all duration-300 ease-out font-bold text-[11px] whitespace-nowrap">
+            الدعم الفني
+          </span>
+        </a>
 
       </body>
     </html>

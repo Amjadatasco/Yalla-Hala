@@ -83,6 +83,7 @@ export default function AddPropertyPage() {
 
   // الصور
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   // تحميل
   const [loading, setLoading] = useState(false);
@@ -180,6 +181,8 @@ export default function AddPropertyPage() {
     setCustomAmenities([]);
     setCustomInput("");
 
+    imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    setImagePreviews([]);
     setImageFiles([]);
   }
 
@@ -569,35 +572,53 @@ export default function AddPropertyPage() {
                 type="file"
                 accept="image/*"
                 multiple
-                onChange={(e) =>
-                  setImageFiles(Array.from(e.target.files || []))
-                }
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setImageFiles(files);
+                  imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+                  const previews = files.map((file) => URL.createObjectURL(file));
+                  setImagePreviews(previews);
+                }}
                 className="hidden"
               />
             </label>
 
             {/* عرض الصور المختارة */}
             {imageFiles.length > 0 && (
-              <div className="mt-5 rounded-2xl border border-[#D1FAE5] bg-[#F0FDF4] p-4 text-right">
-                <p className="text-sm font-black text-[#166534] mb-3">
-                  ✅ تم اختيار {imageFiles.length} صورة بنجاح
+              <div className="mt-5 rounded-2xl border border-[#E5E7EB] bg-gray-50/50 p-4 text-right">
+                <p className="text-sm font-black text-[#111827] mb-4 flex items-center justify-start gap-1.5 flex-row-reverse">
+                  <span>تم اختيار {imageFiles.length} صورة بنجاح</span>
+                  <span>📸</span>
                 </p>
-                <div className="space-y-2">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                   {imageFiles.map((file, index) => (
                     <div
                       key={index}
-                      className="rounded-xl bg-white border border-[#DCFCE7] px-3 py-2 text-xs text-[#374151] flex items-center justify-between gap-2"
+                      className="relative w-full aspect-square rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white"
                     >
+                      <img
+                        src={imagePreviews[index]}
+                        alt={`معاينة ${file.name}`}
+                        className="w-full h-full object-cover"
+                      />
                       <button
                         type="button"
-                        onClick={() =>
-                          setImageFiles(imageFiles.filter((_, i) => i !== index))
-                        }
-                        className="text-red-500 font-bold text-sm"
+                        onClick={() => {
+                          const updatedFiles = imageFiles.filter((_, i) => i !== index);
+                          setImageFiles(updatedFiles);
+                          if (imagePreviews[index]) {
+                            URL.revokeObjectURL(imagePreviews[index]);
+                          }
+                          const updatedPreviews = imagePreviews.filter((_, i) => i !== index);
+                          setImagePreviews(updatedPreviews);
+                        }}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center font-bold text-xs shadow-md transition hover:scale-110"
                       >
                         ✕
                       </button>
-                      <span className="truncate">📎 {file.name}</span>
+                      <span className="absolute bottom-1.5 left-1.5 bg-black/50 text-white text-[9px] px-1 py-0.5 rounded font-bold">
+                        {index + 1}
+                      </span>
                     </div>
                   ))}
                 </div>

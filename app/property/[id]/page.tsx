@@ -32,6 +32,57 @@ export default function PropertyPage({ params }: any) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [lastBookingInfo, setLastBookingInfo] = useState<any>(null);
 
+  const [reviewName, setReviewName] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  async function handleAddReview(e: React.FormEvent) {
+    e.preventDefault();
+    if (!reviewName.trim() || !reviewComment.trim()) {
+      alert("⚠️ يرجى تعبئة جميع الحقول لإضافة تقييمك.");
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+
+      const newReview = {
+        guestName: reviewName.trim(),
+        rating: reviewRating,
+        comment: reviewComment.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      const currentReviews = property.images ? [...property.images] : [];
+      const updatedReviews = [...currentReviews, JSON.stringify(newReview)];
+
+      const { error } = await supabase
+        .from("properties")
+        .update({ images: updatedReviews })
+        .eq("id", property.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setProperty({
+        ...property,
+        images: updatedReviews
+      });
+
+      alert("🎉 شكراً لك! تم إضافة تقييمك بنجاح.");
+      setReviewName("");
+      setReviewComment("");
+      setReviewRating(5);
+    } catch (err) {
+      console.error("Add Review Error:", err);
+      alert("حدث خطأ أثناء إضافة تقييمك، يرجى المحاولة لاحقاً.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  }
+
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
 
@@ -489,6 +540,36 @@ export default function PropertyPage({ params }: any) {
 
               </p>
 
+              {/* شارة متوسط التقييم */}
+              <div className="flex items-center gap-1.5 mt-2 flex-row-reverse justify-end">
+                {(() => {
+                  let revList: any[] = [];
+                  if (property.images && Array.isArray(property.images)) {
+                    try {
+                      revList = property.images.map((r: string) => JSON.parse(r));
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }
+                  if (revList.length > 0) {
+                    const avg = (revList.reduce((acc, curr) => acc + curr.rating, 0) / revList.length).toFixed(1);
+                    return (
+                      <div className="flex items-center gap-1 text-xs font-bold text-gray-600">
+                        <span className="text-amber-500">★</span>
+                        <span>{avg}</span>
+                        <span className="text-[10px] text-gray-400 font-medium">({revList.length} تقييم)</span>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <span className="text-[10px] font-black bg-[#E6F4F1] text-[#3FAF9B] px-2.5 py-0.5 rounded-md">
+                        ⭐ جديد
+                      </span>
+                    );
+                  }
+                })()}
+              </div>
+
             </div>
 
             <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center">
@@ -625,6 +706,105 @@ export default function PropertyPage({ params }: any) {
                     )}
                   </div>
                 )}
+              </section>
+
+              {/* قسم التقييمات والآراء */}
+              <section className="pt-8 border-t border-gray-100 text-right">
+                <h2 className="text-2xl font-black mb-6">التقييمات وآراء النزلاء ⭐️</h2>
+                
+                {/* قائمة الآراء */}
+                {(() => {
+                  let reviewsList: any[] = [];
+                  if (property.images && Array.isArray(property.images)) {
+                    try {
+                      reviewsList = property.images.map((r: string) => JSON.parse(r));
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {reviewsList.length === 0 ? (
+                        <p className="text-xs text-gray-500 bg-gray-50 p-6 rounded-2xl text-center font-semibold">
+                          لا توجد تقييمات لهذا العقار بعد. كن أول من يضيف تقييماً! ✍️
+                        </p>
+                      ) : (
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          {reviewsList.map((rev, index) => (
+                            <div key={index} className="bg-gray-50/50 border rounded-2xl p-4 flex flex-col justify-between">
+                              <div>
+                                <div className="flex items-center justify-between gap-2 mb-2 flex-row-reverse">
+                                  <span className="font-bold text-xs text-gray-900">{rev.guestName}</span>
+                                  <span className="text-xs text-amber-500">
+                                    {"★".repeat(rev.rating)}
+                                    {"☆".repeat(5 - rev.rating)}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
+                              </div>
+                              <div className="text-[9px] text-gray-400 mt-3 text-left">
+                                {new Date(rev.createdAt).toLocaleDateString("ar-SY", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric"
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* نموذج إضافة تقييم */}
+                <form onSubmit={handleAddReview} className="bg-[#F9FAFB] rounded-3xl border border-gray-100 p-5 sm:p-6 mt-8 space-y-4">
+                  <h3 className="font-bold text-gray-900 text-sm">أضف تقييمك وتجربتك ✍️</h3>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <input
+                      type="text"
+                      placeholder="اسمك الكامل"
+                      value={reviewName}
+                      onChange={(e) => setReviewName(e.target.value)}
+                      className="rounded-xl border bg-white px-4 py-2.5 text-right text-xs outline-none focus:border-[#3FAF9B]"
+                      required
+                    />
+                    <div className="flex items-center justify-start gap-2 flex-row-reverse">
+                      <span className="text-xs font-bold text-gray-500">التقييم:</span>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReviewRating(star)}
+                            className={`text-xl transition-all ${
+                              star <= reviewRating ? "text-amber-500" : "text-gray-300 hover:text-amber-300"
+                            }`}
+                          >
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <textarea
+                    placeholder="اكتب تجربتك بالتفصيل..."
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    className="w-full rounded-xl border bg-white px-4 py-2.5 text-right text-xs outline-none focus:border-[#3FAF9B] min-h-[80px]"
+                    required
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={submittingReview}
+                      className="bg-[#2D6A5F] hover:bg-[#205149] text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow disabled:bg-gray-300"
+                    >
+                      {submittingReview ? "جاري الإرسال..." : "إرسال التقييم"}
+                    </button>
+                  </div>
+                </form>
               </section>
 
               {/* زر طلب حجز بارز جداً في نهاية التفاصيل */}

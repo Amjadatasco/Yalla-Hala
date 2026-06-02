@@ -36,6 +36,7 @@ export default function HomePage() {
 
   const [favorites, setFavorites] = useState<number[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [maxPrice, setMaxPrice] = useState(250);
 
   // تحميل المفضلة عند التشغيل
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function HomePage() {
   // إعادة تحميل تلقائي عند تغيير الفلاتر السريعة
   useEffect(() => {
     loadProperties();
-  }, [selectedGovernorate, selectedType, selectedAmenity]);
+  }, [selectedGovernorate, selectedType, selectedAmenity, maxPrice]);
 
   // 🛠️ الهندسة الذكية المحدثة لمنع الحجوزات المزدوجة وإخفاء العقار المحجوز تلقائياً
   async function loadProperties() {
@@ -109,6 +110,10 @@ export default function HomePage() {
       // فلتر الخدمات السريع
       if (selectedAmenity) {
         query = query.ilike("amenities", `%${selectedAmenity}%`);
+      }
+      // فلتر السعر الأقصى
+      if (maxPrice < 250) {
+        query = query.lte("price", maxPrice);
       }
 
       // 3. السحر التقني: إذا كان هناك عقارات محجوزة ومستخرجة، نقوم باستبعادها كلياً من القائمة (NOT IN)
@@ -228,6 +233,28 @@ export default function HomePage() {
             </div>
 
           </div>
+
+          {/* شريط نطاق السعر تفاعلي */}
+          <div className="mt-4 pt-4 border-t border-[#3FAF9B]/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-white px-2">
+            <div className="flex items-center gap-2 flex-row-reverse w-full sm:w-auto justify-end">
+              <span className="text-xs font-bold text-gray-200">الحد الأقصى للسعر بالليلة:</span>
+              <span className="text-sm font-black text-amber-300 bg-white/10 px-2.5 py-0.5 rounded-full">${maxPrice} USD</span>
+            </div>
+            <div className="w-full sm:w-80 flex items-center gap-3">
+              <span className="text-[10px] text-gray-300 font-bold">$10</span>
+              <input
+                type="range"
+                min="10"
+                max="250"
+                step="5"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-amber-300"
+              />
+              <span className="text-[10px] text-gray-300 font-bold">$250+</span>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -328,10 +355,41 @@ export default function HomePage() {
 
                 <div className="p-5 text-right flex-1 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-baseline justify-end gap-1 mb-1">
-                      <span className="text-xl font-black text-[#CF9E59]">${property.price}</span>
-                      <span className="text-[10px] text-gray-400">/ ليلة</span>
+                    <div className="flex items-center justify-between gap-1 mb-2">
+                      {/* التقييم */}
+                      {(() => {
+                        let reviews: any[] = [];
+                        if (property.images && Array.isArray(property.images)) {
+                          try {
+                            reviews = property.images.map((r: string) => JSON.parse(r));
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                        if (reviews.length > 0) {
+                          const avg = (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1);
+                          return (
+                            <div className="flex items-center gap-1 text-xs font-bold text-gray-600">
+                              <span className="text-amber-500">★</span>
+                              <span>{avg}</span>
+                              <span className="text-[10px] text-gray-400 font-medium">({reviews.length} تقييم)</span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <span className="text-[10px] font-black bg-[#E6F4F1] text-[#3FAF9B] px-2 py-0.5 rounded-md">
+                              ⭐ جديد
+                            </span>
+                          );
+                        }
+                      })()}
+
+                      <div className="flex items-baseline justify-end gap-1">
+                        <span className="text-xl font-black text-[#CF9E59]">${property.price}</span>
+                        <span className="text-[10px] text-gray-400">/ ليلة</span>
+                      </div>
                     </div>
+
                     <h3 className="text-lg font-bold text-[#111827] line-clamp-1">{property.title}</h3>
                     <p className="mt-1 text-xs text-[#6B7280]">{property.location}</p>
 
