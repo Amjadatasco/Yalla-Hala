@@ -25,13 +25,10 @@ export default function PropertyPage({ params }: any) {
   const [checkOut, setCheckOut] = useState<any>("");
 
   const [loading, setLoading] = useState(false);
-
   const [pageLoading, setPageLoading] = useState(true);
-
-  const [viewMode, setViewMode] =
-    useState<
-      "details" | "book"
-    >("details");
+  const [viewMode, setViewMode] = useState<"details" | "book">("details");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
 
   const TELEGRAM_BOT_TOKEN =
     "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
@@ -353,11 +350,32 @@ export default function PropertyPage({ params }: any) {
   if (!property) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-
         العقار غير موجود
-
       </div>
     );
+  }
+
+  // قائمة الصور المتاحة
+  const images = property?.images_list?.length
+    ? property.images_list
+    : [property?.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200"];
+
+  const openLightbox = (index: number) => {
+    setActiveImageIndex(index);
+    setShowLightbox(true);
+  };
+
+  // حاسبة الأسعار الديناميكية
+  let nights = 0;
+  let totalPrice = 0;
+  if (checkIn && checkOut) {
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    if (end > start) {
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      totalPrice = nights * (property?.price || 0);
+    }
   }
 
   return (
@@ -368,28 +386,72 @@ export default function PropertyPage({ params }: any) {
 
       <div className="max-w-5xl mx-auto">
 
-        {/* الصور */}
-        <div className="grid gap-4 mb-8">
+        {/* معرض الصور المطور */}
+        <div className="mb-8">
+          {/* نسخة الموبايل */}
+          <div className="block md:hidden relative rounded-3xl overflow-hidden border h-[300px] cursor-pointer animate-in fade-in duration-300" onClick={() => openLightbox(0)}>
+            <img src={images[0]} className="w-full h-full object-cover" alt={property.title} />
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-4 bg-black/75 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow">
+                📷 1 / {images.length}
+              </div>
+            )}
+          </div>
 
-          {(property.images_list?.length
-            ? property.images_list
-            : [property.image]
-          ).map(
-            (
-              image: string,
-              index: number
-            ) => (
-
-              <img
-                key={index}
-                src={image}
-                alt={property.title}
-                className="w-full rounded-3xl border h-[500px] object-cover"
-              />
-
-            )
+          {/* نسخة الكمبيوتر (شبكة صور احترافية) */}
+          {images.length === 1 && (
+            <div className="hidden md:block h-[450px] w-full rounded-3xl overflow-hidden border cursor-pointer" onClick={() => openLightbox(0)}>
+              <img src={images[0]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+            </div>
           )}
 
+          {images.length === 2 && (
+            <div className="hidden md:grid grid-cols-2 gap-3 h-[450px] w-full rounded-3xl overflow-hidden cursor-pointer">
+              <div className="h-full overflow-hidden border" onClick={() => openLightbox(0)}>
+                <img src={images[0]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+              </div>
+              <div className="h-full overflow-hidden border" onClick={() => openLightbox(1)}>
+                <img src={images[1]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+              </div>
+            </div>
+          )}
+
+          {images.length >= 3 && (
+            <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-3 h-[450px] w-full rounded-3xl overflow-hidden cursor-pointer relative">
+              <div className="col-span-2 row-span-2 h-full overflow-hidden border" onClick={() => openLightbox(0)}>
+                <img src={images[0]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+              </div>
+              <div className="col-span-1 h-full overflow-hidden border" onClick={() => openLightbox(1)}>
+                <img src={images[1]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+              </div>
+              <div className="col-span-1 h-full overflow-hidden border" onClick={() => openLightbox(2)}>
+                <img src={images[2]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+              </div>
+              {images.length >= 4 ? (
+                <div className="col-span-1 h-full overflow-hidden border" onClick={() => openLightbox(3)}>
+                  <img src={images[3]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+                </div>
+              ) : (
+                <div className="col-span-1 h-full bg-gray-50 border flex items-center justify-center text-gray-400 font-bold text-sm">
+                  لا يوجد صور إضافية
+                </div>
+              )}
+              {images.length >= 5 ? (
+                <div className="col-span-1 h-full overflow-hidden border relative" onClick={() => openLightbox(4)}>
+                  <img src={images[4]} className="w-full h-full object-cover hover:scale-[1.01] transition duration-300" alt={property.title} />
+                  {images.length > 5 && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white font-black text-lg">
+                      + {images.length - 5} صور
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="col-span-1 h-full bg-gray-50 border flex items-center justify-center text-gray-400 font-bold text-sm">
+                  لا يوجد صور إضافية
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* الكارد */}
@@ -660,32 +722,86 @@ export default function PropertyPage({ params }: any) {
               </div>
 
               <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-
                 الأيام المحجوزة غير قابلة للاختيار.
-
               </div>
 
+              {/* حاسبة الأسعار الديناميكية */}
+              {nights > 0 && (
+                <div className="bg-[#F8FFFD] border border-[#D1FAE5] p-5 rounded-2xl text-right flex flex-col gap-2.5 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="flex justify-between items-center text-sm font-semibold text-gray-700">
+                    <span>عدد الليالي:</span>
+                    <span className="font-bold text-[#111827]">{nights} ليالٍ</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-semibold text-gray-700">
+                    <span>سعر الليلة الواحدة:</span>
+                    <span className="font-bold text-[#111827]">${property.price} USD</span>
+                  </div>
+                  <div className="border-t border-[#D1FAE5] pt-2.5 flex justify-between items-center">
+                    <span className="text-base font-bold text-[#166534]">الإجمالي المقدر للحجز:</span>
+                    <span className="text-2xl font-black text-[#2D6A5F]">${totalPrice} USD</span>
+                  </div>
+                </div>
+              )}
+
               <button
-                onClick={
-                  handleBooking
-                }
+                onClick={handleBooking}
                 disabled={loading}
-                className="w-full rounded-2xl bg-[#3FAF9B] py-4 text-white font-black"
+                className="w-full rounded-2xl bg-[#3FAF9B] py-4 text-white font-black hover:bg-[#2F8E7D] transition disabled:bg-gray-300"
               >
-
-                {loading
-                  ? "جاري الإرسال..."
-                  : "إرسال طلب الحجز"}
-
+                {loading ? "جاري الإرسال..." : "إرسال طلب الحجز"}
               </button>
 
             </div>
           )}
 
         </div>
-
       </div>
 
+      {/* عارض الصور المطور Lightbox */}
+      {showLightbox && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur flex items-center justify-center p-4">
+          {/* زر الإغلاق */}
+          <button
+            onClick={() => setShowLightbox(false)}
+            className="absolute top-6 left-6 text-white/80 hover:text-white font-bold text-2xl z-10"
+          >
+            ✕
+          </button>
+
+          {/* زر السابق */}
+          {images.length > 1 && (
+            <button
+              onClick={() => setActiveImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+              className="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center font-bold text-xl shadow z-10 transition"
+            >
+              ❯
+            </button>
+          )}
+
+          {/* الصورة المعروضة */}
+          <div className="max-w-4xl max-h-[80vh] flex flex-col items-center justify-center p-4">
+            <img
+              src={images[activeImageIndex]}
+              className="max-w-full max-h-[75vh] object-contain rounded-2xl select-none animate-in zoom-in-95 duration-200"
+              alt="معرض صور العقار"
+            />
+            {/* مؤشر الصفحة */}
+            <p className="text-white/60 text-sm font-bold mt-4">
+              صورة {activeImageIndex + 1} من {images.length}
+            </p>
+          </div>
+
+          {/* زر التالي */}
+          {images.length > 1 && (
+            <button
+              onClick={() => setActiveImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+              className="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center font-bold text-xl shadow z-10 transition"
+            >
+              ❮
+            </button>
+          )}
+        </div>
+      )}
     </main>
   );
 }

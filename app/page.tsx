@@ -14,6 +14,15 @@ const propertyTypes = [
   "شقة", "فيلا", "مزرعة", "غرفة", "شاليه"
 ];
 
+const filterAmenities = [
+  { label: "🏊 مسبح", value: "مسبح" },
+  { label: "☀️ طاقة شمسية", value: "طاقة شمسية" },
+  { label: "❄️ مكيف", value: "مكيف" },
+  { label: "🌐 إنترنت", value: "إنترنت" },
+  { label: "🚰 مياه إضافية", value: "خزان مياه" }
+];
+
+
 export default function HomePage() {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,10 +32,12 @@ export default function HomePage() {
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [guestsCount, setGuestsCount] = useState("");
+  const [selectedAmenity, setSelectedAmenity] = useState("");
 
+  // إعادة تحميل تلقائي عند تغيير الفلاتر السريعة
   useEffect(() => {
     loadProperties();
-  }, []);
+  }, [selectedGovernorate, selectedType, selectedAmenity]);
 
   // 🛠️ الهندسة الذكية المحدثة لمنع الحجوزات المزدوجة وإخفاء العقار المحجوز تلقائياً
   async function loadProperties() {
@@ -61,6 +72,10 @@ export default function HomePage() {
       }
       if (selectedType) {
         query = query.eq("type", selectedType);
+      }
+      // فلتر الخدمات السريع
+      if (selectedAmenity) {
+        query = query.ilike("amenities", `%${selectedAmenity}%`);
       }
 
       // 3. السحر التقني: إذا كان هناك عقارات محجوزة ومستخرجة، نقوم باستبعادها كلياً من القائمة (NOT IN)
@@ -180,6 +195,40 @@ export default function HomePage() {
             </div>
 
           </div>
+        </div>
+      </section>
+
+      {/* أزرار التصفية السريعة (Filter Chips) */}
+      <section className="max-w-6xl mx-auto px-4 mb-10 text-right -mt-8 relative z-20">
+        <div className="flex flex-wrap items-center gap-2 justify-start sm:justify-center">
+          <span className="text-xs font-bold text-gray-500 ml-1.5 hidden sm:inline">تصفية سريعة:</span>
+          {filterAmenities.map((amenity) => {
+            const isSelected = selectedAmenity === amenity.value;
+            return (
+              <button
+                key={amenity.value}
+                type="button"
+                onClick={() => {
+                  setSelectedAmenity(isSelected ? "" : amenity.value);
+                }}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 shadow-sm border ${
+                  isSelected
+                    ? "bg-[#3FAF9B] border-[#3FAF9B] text-white scale-105"
+                    : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                }`}
+              >
+                {amenity.label}
+              </button>
+            );
+          })}
+          {selectedAmenity && (
+            <button
+              onClick={() => setSelectedAmenity("")}
+              className="text-xs font-bold text-red-500 hover:text-red-600 mr-2 hover:underline"
+            >
+              إلغاء التصفية ✕
+            </button>
+          )}
         </div>
       </section>
 
