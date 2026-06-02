@@ -72,9 +72,9 @@ export default function RootLayout({
           <div className="mx-auto max-w-7xl px-4 sm:px-6 h-20 flex items-center justify-between">
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group shrink-0">
+            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
 
-              <div className="relative h-12 w-12 flex items-center justify-center overflow-hidden rounded-xl bg-gray-50 transition-transform duration-300 group-hover:scale-105">
+              <div className="relative h-12 w-12 flex items-center justify-center overflow-hidden rounded-xl bg-white border border-gray-100 transition-transform duration-300 group-hover:scale-105 shadow-sm">
 
                 <img
                   src="/logo.jpg"
@@ -84,13 +84,13 @@ export default function RootLayout({
 
               </div>
 
-              <div className="text-right flex flex-col justify-center">
+              <div className="flex flex-col justify-center text-right items-start">
 
-                <h1 className="text-xl sm:text-2xl font-black text-[#111827] tracking-tight group-hover:text-[#2D6A5F] transition duration-200 leading-none">
+                <h1 className="text-xl sm:text-2xl font-black text-[#111827] tracking-tight group-hover:text-[#2D6A5F] transition duration-200 leading-none text-right w-full">
                   Yalla Hala
                 </h1>
 
-                <p className="text-[10px] sm:text-xs font-bold text-[#CF9E59] mt-1 tracking-wide leading-none">
+                <p className="text-[10px] sm:text-xs font-bold text-[#CF9E59] mt-1.5 tracking-wide leading-none text-right w-full">
                   بيتك البعيد عن بيتك
                 </p>
 
