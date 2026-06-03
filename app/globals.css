@@ -34,3 +34,12 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+/* إخفاء أشرطة التمرير الأفقية */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

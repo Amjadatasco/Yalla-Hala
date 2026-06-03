@@ -37,6 +37,7 @@ export default function HomePage() {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [maxPrice, setMaxPrice] = useState(250);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // تحميل المفضلة عند التشغيل
   useEffect(() => {
@@ -151,9 +152,33 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* شريط البحث المطور */}
-      <section className="max-w-6xl mx-auto px-4 mb-16 relative z-20">
-        <div className="bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
+      {/* شريط البحث المطور للموبايل والكمبيوتر */}
+      <section className="max-w-6xl mx-auto px-4 mb-8 relative z-20">
+        {/* نسخة الموبايل المدمجة الفاخرة */}
+        <div className="md:hidden">
+          <button
+            onClick={() => setShowMobileFilters(true)}
+            className="w-full h-15 bg-white rounded-2xl border border-gray-150 shadow-md px-4 flex items-center justify-between flex-row-reverse text-right transition hover:shadow-lg duration-200"
+          >
+            <div className="flex items-center gap-3 flex-row-reverse">
+              <div className="w-10 h-10 rounded-xl bg-[#E6F4F1] flex items-center justify-center text-[#3FAF9B] text-lg font-bold">
+                🔍
+              </div>
+              <div>
+                <p className="text-xs font-black text-gray-900">أين تريد الذهاب في سوريا؟</p>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                  {selectedGovernorate || "أي مكان"} • {selectedType || "أي عقار"} • {maxPrice < 250 ? `أقل من $${maxPrice}` : "أي سعر"}
+                </p>
+              </div>
+            </div>
+            <span className="text-[9px] font-black text-[#2D6A5F] bg-[#E6F4F1] px-2.5 py-1.5 rounded-lg">
+              تصفية سريعة
+            </span>
+          </button>
+        </div>
+
+        {/* نسخة الكمبيوتر (الغريد الأصلي) */}
+        <div className="hidden md:block bg-[#2D6A5F] p-5 rounded-[28px] shadow-xl">
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 items-center">
 
             {/* 1. زر البحث */}
@@ -255,6 +280,38 @@ export default function HomePage() {
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* تصنيفات المحافظات سريعة التمرير (أفقية) للموبايل والكمبيوتر */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 relative z-20">
+        <div className="flex overflow-x-auto gap-2 pb-2.5 flex-row-reverse text-right no-scrollbar scroll-smooth">
+          <button
+            onClick={() => setSelectedGovernorate("")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 border shadow-xs ${
+              selectedGovernorate === ""
+                ? "bg-[#2D6A5F] border-[#2D6A5F] text-white scale-105"
+                : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200"
+            }`}
+          >
+            🗺️ كل المحافظات
+          </button>
+          {governorates.map((gov) => {
+            const isSelected = selectedGovernorate === gov;
+            return (
+              <button
+                key={gov}
+                onClick={() => setSelectedGovernorate(isSelected ? "" : gov)}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 border shadow-xs ${
+                  isSelected
+                    ? "bg-[#2D6A5F] border-[#2D6A5F] text-white scale-105"
+                    : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200"
+                }`}
+              >
+                📍 {gov}
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -421,6 +478,145 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Mobile Search Bottom Sheet */}
+      {showMobileFilters && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end justify-center md:hidden transition-all animate-in fade-in duration-200">
+          <div className="bg-white w-full rounded-t-[32px] p-6 max-h-[85vh] overflow-y-auto flex flex-col justify-between animate-in slide-in-from-bottom-10 duration-300">
+            <div>
+              {/* Header */}
+              <div className="flex items-center justify-between border-b pb-4 mb-5 flex-row-reverse">
+                <h3 className="text-lg font-black text-gray-900">تخصيص البحث والتصفية</h3>
+                <button 
+                  onClick={() => setShowMobileFilters(false)}
+                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-5 text-right">
+                {/* 1. المحافظة */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-700">📍 المحافظة / المدينة:</label>
+                  <select
+                    value={selectedGovernorate}
+                    onChange={(e) => setSelectedGovernorate(e.target.value)}
+                    className="w-full h-12 rounded-xl border border-gray-200 px-4 text-right text-xs font-bold text-gray-800 outline-none focus:border-[#3FAF9B]"
+                  >
+                    <option value="">كل المحافظات</option>
+                    {governorates.map((gov) => (
+                      <option key={gov} value={gov}>{gov}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. نوع العقار */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-700">🏡 نوع العقار:</label>
+                  <select
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                    className="w-full h-12 rounded-xl border border-gray-200 px-4 text-right text-xs font-bold text-gray-800 outline-none focus:border-[#3FAF9B]"
+                  >
+                    <option value="">كافة الأنواع</option>
+                    {propertyTypes.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 3. تواريخ الوصول والمغادرة */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-gray-700">📅 تاريخ الوصول:</label>
+                    <input
+                      type="date"
+                      value={checkInDate}
+                      onChange={(e) => setCheckInDate(e.target.value)}
+                      className="w-full h-12 rounded-xl border border-gray-200 px-3 text-right text-xs font-bold text-gray-800 outline-none focus:border-[#3FAF9B]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-gray-700">📅 تاريخ المغادرة:</label>
+                    <input
+                      type="date"
+                      value={checkOutDate}
+                      onChange={(e) => setCheckOutDate(e.target.value)}
+                      className="w-full h-12 rounded-xl border border-gray-200 px-3 text-right text-xs font-bold text-gray-800 outline-none focus:border-[#3FAF9B]"
+                    />
+                  </div>
+                </div>
+
+                {/* 4. عدد الضيوف */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-gray-700">👥 عدد الضيوف:</label>
+                  <select
+                    value={guestsCount}
+                    onChange={(e) => setGuestsCount(e.target.value)}
+                    className="w-full h-12 rounded-xl border border-gray-200 px-4 text-right text-xs font-bold text-gray-800 outline-none focus:border-[#3FAF9B]"
+                  >
+                    <option value="">غير محدد</option>
+                    <option value="1">ضيف واحد</option>
+                    <option value="2">ضيفين</option>
+                    <option value="3">3 ضيوف</option>
+                    <option value="4">4+ ضيوف</option>
+                  </select>
+                </div>
+
+                {/* 5. نطاق السعر */}
+                <div className="flex flex-col gap-1.5 pt-2">
+                  <div className="flex justify-between items-center text-xs font-bold text-gray-700 flex-row-reverse">
+                    <span>الحد الأقصى للسعر بالليلة:</span>
+                    <span className="text-sm font-black text-[#2D6A5F] bg-emerald-50 px-2.5 py-0.5 rounded-full">${maxPrice} USD</span>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className="text-[10px] text-gray-400 font-bold">$10</span>
+                    <input
+                      type="range"
+                      min="10"
+                      max="250"
+                      step="5"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#3FAF9B]"
+                    />
+                    <span className="text-[10px] text-gray-400 font-bold">$250+</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-8 pt-4 border-t">
+              <button
+                onClick={() => {
+                  setSelectedGovernorate("");
+                  setSelectedType("");
+                  setCheckInDate("");
+                  setCheckOutDate("");
+                  setGuestsCount("");
+                  setMaxPrice(250);
+                  setShowMobileFilters(false);
+                  loadProperties();
+                }}
+                className="flex-1 h-12 rounded-xl bg-gray-100 text-gray-700 font-bold text-xs"
+              >
+                إلغاء التصفية
+              </button>
+              <button
+                onClick={() => {
+                  loadProperties();
+                  setShowMobileFilters(false);
+                }}
+                className="flex-1 h-12 rounded-xl bg-[#2D6A5F] text-white font-bold text-xs"
+              >
+                تطبيق الفلاتر والبحث
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
