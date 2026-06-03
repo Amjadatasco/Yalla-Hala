@@ -17,6 +17,31 @@ export default function RegisterPage() {
 
   // تحميل
   const [loading, setLoading] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
+
+  const getFullNameInputClass = () => {
+    const base = "w-full h-14 rounded-2xl border px-5 outline-none transition duration-200 ";
+    if (triedSubmit && !fullName.trim()) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
+
+  const getPhoneInputClass = () => {
+    const base = "w-full h-14 rounded-2xl border px-5 outline-none transition duration-200 ";
+    if (triedSubmit && !/^09\d{8}$/.test(phone)) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
+
+  const getPasswordInputClass = () => {
+    const base = "w-full h-14 rounded-2xl border px-5 outline-none transition duration-200 ";
+    if (triedSubmit && password.length < 6) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
 
   // تيليغرام
   const TELEGRAM_BOT_TOKEN =
@@ -69,40 +94,23 @@ export default function RegisterPage() {
     e: React.FormEvent
   ) {
     e.preventDefault();
+    setTriedSubmit(true);
 
-    // تحقق
+    // تحقق من الحقول الأساسية وصلاحيتها
     if (
       !fullName.trim() ||
-      !phone.trim() ||
-      !password.trim()
-    ) {
-      alert(
-        "يرجى تعبئة جميع الحقول."
-      );
-
-      return;
-    }
-
-    // تحقق الهاتف
-    if (
-      !/^09\d{8}$/.test(
-        phone
-      )
-    ) {
-      alert(
-        "رقم الهاتف غير صالح."
-      );
-
-      return;
-    }
-
-    // تحقق كلمة المرور
-    if (
+      !/^09\d{8}$/.test(phone) ||
       password.length < 6
     ) {
-      alert(
-        "كلمة المرور يجب أن تكون 6 أحرف على الأقل."
-      );
+      alert("⚠️ يرجى تعبئة كافة الحقول بشكل صحيح (رقم الهاتف يجب أن يبدأ بـ 09 ويتكون من 10 أرقام، وكلمة المرور 6 خانات على الأقل).");
+
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
 
       return;
     }
@@ -229,7 +237,7 @@ export default function RegisterPage() {
                   e.target.value
                 )
               }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
+              className={getFullNameInputClass()}
             />
 
           </div>
@@ -252,7 +260,7 @@ export default function RegisterPage() {
                   e.target.value
                 )
               }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
+              className={getPhoneInputClass()}
             />
 
           </div>
@@ -275,7 +283,7 @@ export default function RegisterPage() {
                   e.target.value
                 )
               }
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 outline-none focus:border-[#3FAF9B]"
+              className={getPasswordInputClass()}
             />
 
           </div>

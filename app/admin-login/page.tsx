@@ -8,12 +8,41 @@ export default function AdminLoginPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
+
+  const getEmailInputClass = () => {
+    const base = "h-14 rounded-2xl border px-5 text-right outline-none transition duration-200 ";
+    if (triedSubmit && !email.trim()) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
+
+  const getPasswordInputClass = () => {
+    const base = "h-14 rounded-2xl border px-5 text-right outline-none transition duration-200 ";
+    if (triedSubmit && !password.trim()) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
 
   async function handleLogin() {
+    setTriedSubmit(true);
+
+    if (!email.trim() || !password.trim()) {
+      alert("⚠️ يرجى تعبئة كافة الحقول المطلوبة.");
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
+      return;
+    }
+
     setLoading(true);
 
     const { error } =
@@ -38,7 +67,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4">
+    <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4" dir="rtl">
 
       <div className="w-full max-w-md bg-white rounded-[32px] p-8 shadow-xl border border-[#E5E7EB]">
 
@@ -67,7 +96,7 @@ export default function AdminLoginPage() {
             onChange={(e) =>
               setEmail(e.target.value)
             }
-            className="h-14 rounded-2xl border border-[#E5E7EB] px-5"
+            className={getEmailInputClass()}
           />
 
           <input
@@ -77,7 +106,7 @@ export default function AdminLoginPage() {
             onChange={(e) =>
               setPassword(e.target.value)
             }
-            className="h-14 rounded-2xl border border-[#E5E7EB] px-5"
+            className={getPasswordInputClass()}
           />
 
           <button

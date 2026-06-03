@@ -11,6 +11,23 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
+
+  const getPhoneInputClass = () => {
+    const base = "w-full h-14 rounded-2xl border px-5 text-left outline-none transition duration-200 ";
+    if (triedSubmit && !/^09\d{8}$/.test(phone)) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
+
+  const getPasswordInputClass = () => {
+    const base = "w-full h-14 rounded-2xl border px-5 text-left outline-none transition duration-200 ";
+    if (triedSubmit && !password.trim()) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
 
   // حقول استعادة كلمة المرور
   const [showForgotModal, setShowForgotModal] = useState(false);
@@ -18,19 +35,38 @@ export default function LoginPage() {
   const [forgotPhone, setForgotPhone] = useState("");
   const [forgotSubmitted, setForgotSubmitted] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [triedForgotSubmit, setTriedForgotSubmit] = useState(false);
+
+  const getForgotNameInputClass = () => {
+    const base = "w-full h-12 rounded-xl border px-4 text-sm outline-none transition duration-200 ";
+    if (triedForgotSubmit && !forgotName.trim()) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-gray-200 focus:border-[#3FAF9B]";
+  };
+
+  const getForgotPhoneInputClass = () => {
+    const base = "w-full h-12 rounded-xl border px-4 text-left outline-none transition duration-200 ";
+    if (triedForgotSubmit && !/^09\d{8}$/.test(forgotPhone)) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-gray-200 focus:border-[#3FAF9B]";
+  };
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
+    setTriedSubmit(true);
 
-    // تحقق الهاتف
-    if (!/^09\d{8}$/.test(phone)) {
-      alert("رقم الهاتف غير صالح");
-      return;
-    }
-
-    // تحقق كلمة المرور
-    if (!password.trim()) {
-      alert("يرجى إدخال كلمة المرور");
+    // تحقق الهاتف وكلمة المرور
+    if (!/^09\d{8}$/.test(phone) || !password.trim()) {
+      alert("⚠️ يرجى تعبئة كافة الحقول بشكل صحيح.");
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
       return;
     }
 
@@ -57,14 +93,17 @@ export default function LoginPage() {
   // إرسال طلب استعادة كلمة المرور
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
+    setTriedForgotSubmit(true);
 
-    if (!forgotName.trim() || !forgotPhone.trim()) {
-      alert("⚠️ يرجى تعبئة كافة الحقول.");
-      return;
-    }
-
-    if (!/^09\d{8}$/.test(forgotPhone)) {
-      alert("رقم الهاتف غير صالح");
+    if (!forgotName.trim() || !forgotPhone.trim() || !/^09\d{8}$/.test(forgotPhone)) {
+      alert("⚠️ يرجى تعبئة كافة الحقول بشكل صحيح.");
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
       return;
     }
 
@@ -137,7 +176,7 @@ export default function LoginPage() {
               placeholder="09xxxxxxxx"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
+              className={getPhoneInputClass()}
             />
           </div>
 
@@ -150,7 +189,7 @@ export default function LoginPage() {
               placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-left outline-none focus:border-[#3FAF9B]"
+              className={getPasswordInputClass()}
             />
             {/* رابط نسيت كلمة المرور */}
             <div className="text-right mt-2.5">
@@ -159,6 +198,7 @@ export default function LoginPage() {
                 onClick={() => {
                   setForgotPhone(phone); // جلب رقم الهاتف لو كان مكتوباً بالفعل
                   setShowForgotModal(true);
+                  setTriedForgotSubmit(false);
                 }}
                 className="text-xs font-bold text-[#3FAF9B] hover:text-[#2F8E7D] transition hover:underline"
               >
@@ -166,7 +206,6 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -196,6 +235,9 @@ export default function LoginPage() {
               onClick={() => {
                 setShowForgotModal(false);
                 setForgotSubmitted(false);
+                setTriedForgotSubmit(false);
+                setForgotName("");
+                setForgotPhone("");
               }}
               className="absolute top-6 left-6 text-gray-400 hover:text-gray-600 font-bold text-lg"
             >
@@ -219,7 +261,7 @@ export default function LoginPage() {
                     value={forgotName}
                     onChange={(e) => setForgotName(e.target.value)}
                     placeholder="اكتب اسمك الكامل هنا"
-                    className="w-full h-12 rounded-xl border border-gray-200 px-4 text-sm outline-none focus:border-[#3FAF9B]"
+                    className={getForgotNameInputClass()}
                   />
                 </div>
 
@@ -231,7 +273,7 @@ export default function LoginPage() {
                     value={forgotPhone}
                     onChange={(e) => setForgotPhone(e.target.value)}
                     placeholder="09xxxxxxxx"
-                    className="w-full h-12 rounded-xl border border-gray-200 px-4 text-left outline-none focus:border-[#3FAF9B]"
+                    className={getForgotPhoneInputClass()}
                   />
                 </div>
 
@@ -268,6 +310,7 @@ export default function LoginPage() {
                     setForgotSubmitted(false);
                     setForgotName("");
                     setForgotPhone("");
+                    setTriedForgotSubmit(false);
                   }}
                   className="w-full h-12 mt-4 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm hover:bg-gray-200 transition"
                 >

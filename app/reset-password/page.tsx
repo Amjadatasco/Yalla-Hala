@@ -8,11 +8,29 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
+
+  const getPasswordInputClass = () => {
+    const base = "w-full h-14 rounded-2xl border px-5 text-right outline-none transition duration-200 ";
+    if (triedSubmit && newPassword.length < 6) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
 
   async function handleResetPassword(e: React.FormEvent) {
     e.preventDefault();
+    setTriedSubmit(true);
+
     if (newPassword.length < 6) {
       alert("⚠️ يجب أن تكون كلمة المرور الجديدة مكونة من 6 خانات أو أكثر.");
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
       return;
     }
 
@@ -49,8 +67,7 @@ export default function ResetPasswordPage() {
               placeholder="اكتب كلمة المرور الجديدة"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              required
-              className="w-full h-14 rounded-2xl border border-[#E5E7EB] px-5 text-right outline-none focus:border-[#3FAF9B]"
+              className={getPasswordInputClass()}
             />
           </div>
 

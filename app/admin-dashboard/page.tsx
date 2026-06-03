@@ -67,6 +67,17 @@ const [editOwnerPhone, setEditOwnerPhone] = useState("");
 const [editCheckInTime, setEditCheckInTime] = useState("");
 
 const [editCheckOutTime, setEditCheckOutTime] = useState("");
+  const [triedEditSubmit, setTriedEditSubmit] = useState(false);
+
+  const getEditInputClass = (val: string | number) => {
+    const base = "border rounded-xl p-3 outline-none transition duration-200 text-right ";
+    const stringVal = typeof val === "number" ? String(val) : (val || "");
+    if (triedEditSubmit && !stringVal.trim()) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-gray-300 focus:border-[#3FAF9B]";
+  };
+
   // مؤقتاً — لاحقاً يجب نقله إلى نظام Roles داخل قاعدة البيانات
   const ADMIN_EMAIL = "0995688838@yallahala.local";
 
@@ -252,6 +263,25 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
 
   async function updateProperty() {
     if (!editingProperty) return;
+    setTriedEditSubmit(true);
+
+    if (
+      !editTitle.trim() ||
+      !editPrice.trim() ||
+      !editLocation.trim() ||
+      !editOwnerName.trim() ||
+      !editOwnerPhone.trim()
+    ) {
+      alert("⚠️ يرجى تعبئة كافة الحقول الإلزامية.");
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -501,6 +531,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
 <button
   onClick={() => {
     setEditingProperty(property);
+    setTriedEditSubmit(false);
 
     setEditTitle(
       property.title || ""
@@ -663,7 +694,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
             setEditTitle(e.target.value)
           }
           placeholder="عنوان العقار"
-          className="border rounded-xl p-3"
+          className={getEditInputClass(editTitle)}
         />
 
         <input
@@ -672,7 +703,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
             setEditPrice(e.target.value)
           }
           placeholder="السعر"
-          className="border rounded-xl p-3"
+          className={getEditInputClass(editPrice)}
         />
 
         <input
@@ -681,7 +712,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
             setEditLocation(e.target.value)
           }
           placeholder="الموقع"
-          className="border rounded-xl p-3"
+          className={getEditInputClass(editLocation)}
         />
 
         <textarea
@@ -708,7 +739,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
             setEditOwnerName(e.target.value)
           }
           placeholder="اسم المؤجر"
-          className="border rounded-xl p-3"
+          className={getEditInputClass(editOwnerName)}
         />
 
         <input
@@ -717,7 +748,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
             setEditOwnerPhone(e.target.value)
           }
           placeholder="رقم الهاتف"
-          className="border rounded-xl p-3"
+          className={getEditInputClass(editOwnerPhone)}
         />
 
         <div className="grid grid-cols-2 gap-3 text-right">
@@ -750,9 +781,10 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
       <div className="flex gap-3 mt-6">
 
         <button
-          onClick={() =>
-            setEditingProperty(null)
-          }
+          onClick={() => {
+            setEditingProperty(null);
+            setTriedEditSubmit(false);
+          }}
           className="flex-1 h-12 rounded-xl bg-gray-200"
         >
           إلغاء

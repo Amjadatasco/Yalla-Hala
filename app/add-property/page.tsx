@@ -65,8 +65,8 @@ const compressImage = (file: File): Promise<File> => {
         let width = img.width;
         let height = img.height;
         
-        // أقصى حجم للأبعاد هو 1200 بكسل
-        const MAX_SIZE = 1200;
+        // أقصى حجم للأبعاد هو 900 بكسل لتسريع عملية الرفع بشكل كبير في سوريا
+        const MAX_SIZE = 900;
         if (width > height) {
           if (width > MAX_SIZE) {
             height = Math.round((height * MAX_SIZE) / width);
@@ -97,7 +97,7 @@ const compressImage = (file: File): Promise<File> => {
             }
           },
           "image/webp",
-          0.82 // ضغط بجودة 82% وهي مثالية جداً للتسريع وتوفير الحجم
+          0.75 // ضغط بجودة 75% لتسريع الرفع وتقليل استهلاك البيانات بشكل إضافي
         );
       };
       img.onerror = (err) => reject(err);
@@ -121,6 +121,24 @@ export default function AddPropertyPage() {
   const [price, setPrice] = useState("");
   const [supports12h, setSupports12h] = useState(false);
   const [price12h, setPrice12h] = useState("");
+  const [triedSubmit, setTriedSubmit] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+
+  const getInputClass = (val: string) => {
+    const base = "rounded-xl border px-4 py-3.5 text-right text-sm outline-none transition duration-200 ";
+    if (triedSubmit && (!val || !val.trim())) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] bg-white focus:border-[#3FAF9B]";
+  };
+
+  const getSelectClass = (val: string) => {
+    const base = "rounded-xl border px-4 py-3.5 text-right text-sm outline-none transition duration-200 ";
+    if (triedSubmit && !val) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] bg-white focus:border-[#3FAF9B]";
+  };
 
   // المواصفات
   const [rooms, setRooms] = useState("");
@@ -247,6 +265,8 @@ export default function AddPropertyPage() {
 
   // إضافة العقار
   async function handleAddProperty() {
+    setTriedSubmit(true);
+
     if (
       !ownerName.trim() ||
       !ownerPhone.trim() ||
@@ -254,13 +274,22 @@ export default function AddPropertyPage() {
       !price ||
       !selectedGov ||
       !selectedType ||
-      !location.trim()
+      !location.trim() ||
+      (supports12h && !price12h.trim())
     ) {
       alert("⚠️ يرجى تعبئة كافة الحقول الإلزامية أولاً.");
+      
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
       return;
     }
-    if (imageFiles.length > 15) {
-      alert("الحد الأقصى المسموح هو 15 صورة.");
+    if (imageFiles.length > 6) {
+      alert("⚠️ الحد الأقصى المسموح به هو 6 صور فقط.");
       return;
     }
 
@@ -289,33 +318,31 @@ export default function AddPropertyPage() {
       let imageUrls: string[] = [];
       setUploadedCount(0);
 
-      // رفع الصور
+      // رفع الصور بشكل تسلسلي لتجنب اختناق خطوط الإنترنت الضعيفة في سوريا ولإعطاء مؤشر تقدم دقيق
       if (imageFiles.length > 0) {
-        const uploadedImages = await Promise.all(
-          imageFiles.map(async (imageFile) => {
-            const fileExt = imageFile.name.split(".").pop();
-            const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
+        for (let i = 0; i < imageFiles.length; i++) {
+          const imageFile = imageFiles[i];
+          const fileExt = imageFile.name.split(".").pop();
+          const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
 
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from("property-images")
-              .upload(fileName, imageFile, {
-                cacheControl: "3600",
-                upsert: false,
-              });
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("property-images")
+            .upload(fileName, imageFile, {
+              cacheControl: "3600",
+              upsert: false,
+            });
 
-            if (uploadError) {
-              throw uploadError;
-            }
+          if (uploadError) {
+            throw uploadError;
+          }
 
-            const { data: publicUrlData } = supabase.storage
-              .from("property-images")
-              .getPublicUrl(uploadData.path);
+          const { data: publicUrlData } = supabase.storage
+            .from("property-images")
+            .getPublicUrl(uploadData.path);
 
-            setUploadedCount((prev) => prev + 1);
-            return publicUrlData.publicUrl;
-          })
-        );
-        imageUrls = uploadedImages;
+          imageUrls.push(publicUrlData.publicUrl);
+          setUploadedCount(i + 1);
+        }
       }
 
       // حفظ العقار (تحويل التجهيزات إلى نص مفصول بفواصل لقاعدة البيانات)
@@ -397,14 +424,14 @@ export default function AddPropertyPage() {
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
               placeholder="اسم المؤجر الكامل"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              className={getInputClass(ownerName)}
             />
             <input
               type="text"
               value={ownerPhone}
               onChange={(e) => setOwnerPhone(e.target.value)}
               placeholder="رقم الهاتف"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              className={getInputClass(ownerPhone)}
             />
             <input
               type="email"
@@ -426,13 +453,13 @@ export default function AddPropertyPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="عنوان العقار"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              className={getInputClass(title)}
             />
 
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              className={getSelectClass(selectedType)}
             >
               <option value="">اختر نوع العقار</option>
               {propertyTypes.map((type) => (
@@ -445,7 +472,7 @@ export default function AddPropertyPage() {
             <select
               value={selectedGov}
               onChange={(e) => setSelectedGov(e.target.value)}
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              className={getSelectClass(selectedGov)}
             >
               <option value="">اختر المحافظة</option>
               {governorates.map((gov) => (
@@ -460,7 +487,7 @@ export default function AddPropertyPage() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="المدينة أو البلدة"
-              className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+              className={getInputClass(location)}
             />
 
             <input
@@ -481,7 +508,7 @@ export default function AddPropertyPage() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="مثال: 20 دولار لليلة الواحدة"
-                className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+                className={getInputClass(price)}
               />
             </div>
 
@@ -511,7 +538,7 @@ export default function AddPropertyPage() {
                     onChange={(e) => setPrice12h(e.target.value)}
                     placeholder="مثال: 10 دولارات لـ 12 ساعة"
                     required={supports12h}
-                    className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+                    className={getInputClass(price12h)}
                   />
                 </div>
               )}
@@ -656,27 +683,47 @@ export default function AddPropertyPage() {
               htmlFor="property-image"
               className="flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#3FAF9B] bg-[#F8FFFD] px-4 text-center"
             >
-              <div className="mb-2 text-4xl text-[#3FAF9B]">⬆</div>
-              <h3 className="text-base font-bold text-[#111827]">رفع الصور</h3>
-              <p className="mt-2 text-xs text-[#6B7280]">يمكنك اختيار عدة صور للعقار</p>
+              {compressing ? (
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 border-4 border-[#3FAF9B] border-t-transparent rounded-full animate-spin"></div>
+                  <h3 className="text-sm font-bold text-[#111827]">جاري ضغط وتجهيز الصور...</h3>
+                  <p className="text-[10px] text-[#6B7280]">يرجى الانتظار لتسريع عملية الرفع وتقليل الحجم</p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-2 text-4xl text-[#3FAF9B]">⬆</div>
+                  <h3 className="text-base font-bold text-[#111827]">رفع الصور</h3>
+                  <p className="mt-2 text-xs text-[#6B7280]">يمكنك اختيار 6 صور كحد أقصى للعقار</p>
+                </>
+              )}
               <input
                 id="property-image"
                 type="file"
                 accept="image/*"
                 multiple
+                disabled={compressing}
                 onChange={async (e) => {
-                  const files = Array.from(e.target.files || []);
+                  let files = Array.from(e.target.files || []);
                   if (files.length === 0) return;
+
+                  if (files.length > 6) {
+                    alert("⚠️ الحد الأقصى المسموح به هو 6 صور فقط. سيتم أخذ أول 6 صور.");
+                    files = files.slice(0, 6);
+                  }
                   
                   // تنظيف المعاينات السابقة
                   imagePreviews.forEach((url) => URL.revokeObjectURL(url));
                   setImagePreviews([]);
                   setImageFiles([]);
                   
+                  setCompressing(true);
                   try {
-                    const compressedFiles = await Promise.all(
-                      files.map((file) => compressImage(file))
-                    );
+                    // ضغط تسلسلي للصور لمنع تجمد المتصفح وهدر ذاكرة الوصول العشوائي
+                    const compressedFiles: File[] = [];
+                    for (const file of files) {
+                      const compressed = await compressImage(file);
+                      compressedFiles.push(compressed);
+                    }
                     setImageFiles(compressedFiles);
                     const previews = compressedFiles.map((file) => URL.createObjectURL(file));
                     setImagePreviews(previews);
@@ -685,6 +732,8 @@ export default function AddPropertyPage() {
                     setImageFiles(files);
                     const previews = files.map((file) => URL.createObjectURL(file));
                     setImagePreviews(previews);
+                  } finally {
+                    setCompressing(false);
                   }
                 }}
                 className="hidden"

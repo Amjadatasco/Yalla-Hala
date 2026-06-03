@@ -203,6 +203,25 @@ export default function PropertyPage({ params }: any) {
     setCheckOut("");
   }, [bookingType]);
 
+  const [triedBookingSubmit, setTriedBookingSubmit] = useState(false);
+  const [triedReviewSubmit, setTriedReviewSubmit] = useState(false);
+
+  const getBookingInputClass = (val: string) => {
+    const base = "rounded-2xl border px-4 py-4 w-full text-right outline-none transition-all duration-200 ";
+    if (triedBookingSubmit && (!val || !val.trim())) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-gray-200 focus:border-[#3FAF9B]";
+  };
+
+  const getReviewInputClass = (val: string, isTextArea = false) => {
+    const base = `${isTextArea ? "w-full min-h-[80px]" : ""} rounded-xl border bg-white px-4 py-2.5 text-right text-xs outline-none transition-all duration-200 `;
+    if (triedReviewSubmit && (!val || !val.trim())) {
+      return base + "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-1 focus:ring-red-500";
+    }
+    return base + "border-[#E5E7EB] focus:border-[#3FAF9B]";
+  };
+
   const handleSelectCalendarDate = (dateStr: string) => {
     if (bookingType === "12h") {
       setCheckIn(dateStr);
@@ -227,8 +246,17 @@ export default function PropertyPage({ params }: any) {
 
   async function handleAddReview(e: React.FormEvent) {
     e.preventDefault();
+    setTriedReviewSubmit(true);
     if (!reviewName.trim() || !reviewComment.trim()) {
       alert("⚠️ يرجى تعبئة جميع الحقول لإضافة تقييمك.");
+      
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
       return;
     }
 
@@ -480,6 +508,8 @@ export default function PropertyPage({ params }: any) {
   }
 
   async function handleBooking() {
+    setTriedBookingSubmit(true);
+
     if (
       !guestName.trim() ||
       !guestPhone.trim() ||
@@ -487,8 +517,16 @@ export default function PropertyPage({ params }: any) {
       !checkOut
     ) {
       alert(
-        "يرجى تعبئة جميع البيانات."
+        "يرجى تعبئة جميع البيانات وتحديد تواريخ الإقامة على التقويم."
       );
+
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
 
       return;
     }
@@ -993,8 +1031,7 @@ export default function PropertyPage({ params }: any) {
                       placeholder="اسمك الكامل"
                       value={reviewName}
                       onChange={(e) => setReviewName(e.target.value)}
-                      className="rounded-xl border bg-white px-4 py-2.5 text-right text-xs outline-none focus:border-[#3FAF9B]"
-                      required
+                      className={getReviewInputClass(reviewName)}
                     />
                     <div className="flex items-center justify-start gap-2 flex-row-reverse">
                       <span className="text-xs font-bold text-gray-500">التقييم:</span>
@@ -1018,8 +1055,7 @@ export default function PropertyPage({ params }: any) {
                     placeholder="اكتب تجربتك بالتفصيل..."
                     value={reviewComment}
                     onChange={(e) => setReviewComment(e.target.value)}
-                    className="w-full rounded-xl border bg-white px-4 py-2.5 text-right text-xs outline-none focus:border-[#3FAF9B] min-h-[80px]"
-                    required
+                    className={getReviewInputClass(reviewComment, true)}
                   />
                   <div className="flex justify-end">
                     <button
@@ -1062,7 +1098,7 @@ export default function PropertyPage({ params }: any) {
                     e.target.value
                   )
                 }
-                className="rounded-2xl border px-4 py-4"
+                className={getBookingInputClass(guestName)}
               />
 
               <input
@@ -1074,7 +1110,7 @@ export default function PropertyPage({ params }: any) {
                     e.target.value
                   )
                 }
-                className="rounded-2xl border px-4 py-4"
+                className={getBookingInputClass(guestPhone)}
               />
 
               {/* خيار نوع الإقامة إذا كان مدعوماً */}
@@ -1112,7 +1148,12 @@ export default function PropertyPage({ params }: any) {
               )}
 
               {/* اختيار التواريخ من التقويم مباشرة */}
-              <div className="border border-gray-100 rounded-3xl p-5 bg-gray-50/50 space-y-4">
+              <div
+                tabIndex={0}
+                className={`border rounded-3xl p-5 bg-gray-50/50 space-y-4 transition-all duration-200 outline-none ${
+                  triedBookingSubmit && (!checkIn || !checkOut) ? "border-red-500 bg-red-50/5 focus:ring-2 focus:ring-red-500" : "border-gray-100 focus:ring-2 focus:ring-[#3FAF9B]"
+                }`}
+              >
                 <div className="text-right">
                   <h3 className="font-bold text-gray-900 text-sm">
                     {bookingType === "12h" ? "📅 اختر يوم إيجار الـ 12 ساعة:" : "📅 حدد فترة إقامتك على التقويم:"}

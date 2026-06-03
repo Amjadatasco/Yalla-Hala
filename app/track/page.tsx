@@ -8,11 +8,20 @@ export default function TrackBookingPage() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [triedSubmit, setTriedSubmit] = useState(false);
 
   async function handleSearch() {
     const trimmedPhone = phone.trim();
     if (!trimmedPhone) {
+      setTriedSubmit(true);
       alert("⚠️ يرجى إدخال رقم الهاتف أولاً.");
+      setTimeout(() => {
+        const firstInvalid = document.querySelector(".border-red-500");
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+          (firstInvalid as HTMLElement).focus?.();
+        }
+      }, 100);
       return;
     }
 
@@ -79,7 +88,11 @@ export default function TrackBookingPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="أدخل رقم هاتفك (مثال: 0984621835)"
-              className="flex-1 rounded-xl border border-gray-200 px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B]"
+              className={`flex-1 rounded-xl border px-4 py-3.5 text-right text-sm outline-none transition-all duration-200 ${
+                triedSubmit && !phone.trim()
+                  ? "border-red-500 bg-red-50/30 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                  : "border-gray-200 focus:border-[#3FAF9B] focus:ring-1 focus:ring-[#3FAF9B]"
+              }`}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleSearch();
