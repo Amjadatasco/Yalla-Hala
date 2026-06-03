@@ -587,6 +587,12 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
                           {booking.guest_phone}
                         </a>
 
+                        {booking.check_in === booking.check_out && (
+                          <div className="mt-3 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black py-1.5 px-2.5 rounded-lg text-center">
+                            ☀️ إيجار 12 ساعة (نصف يوم)
+                          </div>
+                        )}
+
                         <div className="mt-4 grid grid-cols-2 gap-2">
                           <div className="bg-gray-50 p-2 rounded-xl text-center">
                             <p className="text-[10px] text-gray-400">

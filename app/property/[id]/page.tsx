@@ -196,20 +196,31 @@ export default function PropertyPage({ params }: any) {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [bookingType, setBookingType] = useState<"nightly" | "12h">("nightly");
+
+  useEffect(() => {
+    setCheckIn("");
+    setCheckOut("");
+  }, [bookingType]);
 
   const handleSelectCalendarDate = (dateStr: string) => {
-    if (!checkIn || (checkIn && checkOut)) {
+    if (bookingType === "12h") {
       setCheckIn(dateStr);
-      setCheckOut("");
+      setCheckOut(dateStr);
     } else {
-      if (dateStr > checkIn) {
-        if (isDatesOverlapping(checkIn, dateStr)) {
-          alert("⚠️ لا يمكن اختيار هذه الفترة لوجود أيام محجوزة داخلها.");
-          return;
-        }
-        setCheckOut(dateStr);
-      } else {
+      if (!checkIn || (checkIn && checkOut)) {
         setCheckIn(dateStr);
+        setCheckOut("");
+      } else {
+        if (dateStr > checkIn) {
+          if (isDatesOverlapping(checkIn, dateStr)) {
+            alert("⚠️ لا يمكن اختيار هذه الفترة لوجود أيام محجوزة داخلها.");
+            return;
+          }
+          setCheckOut(dateStr);
+        } else {
+          setCheckIn(dateStr);
+        }
       }
     }
   };
@@ -382,13 +393,19 @@ export default function PropertyPage({ params }: any) {
           booking.check_out
         ).getTime();
 
-      if (
-        startNew <
-          endExisting &&
-        endNew >
-          startExisting
-      ) {
-        return true;
+      if (booking.check_in === booking.check_out || newIn === newOut) {
+        if (startNew <= endExisting && endNew >= startExisting) {
+          return true;
+        }
+      } else {
+        if (
+          startNew <
+            endExisting &&
+          endNew >
+            startExisting
+        ) {
+          return true;
+        }
       }
     }
 
@@ -399,7 +416,9 @@ export default function PropertyPage({ params }: any) {
     name: string,
     phone: string,
     inDate: string,
-    outDate: string
+    outDate: string,
+    bType: "nightly" | "12h",
+    tPrice: number
   ) {
     try {
       const cleanPhone =
@@ -413,7 +432,9 @@ export default function PropertyPage({ params }: any) {
         `مرحباً ${property?.owner_name || ""} 👋\n\n` +
         `يوجد طلب حجز جديد على عقارك:\n\n` +
         `🏠 ${property?.title}\n` +
-        `📅 من ${inDate} إلى ${outDate}\n\n` +
+        (bType === "12h"
+          ? `📅 تاريخ الإقامة: يوم ${inDate} (إيجار 12 ساعة - نصف يوم)\n\n`
+          : `📅 من ${inDate} إلى ${outDate} (مبيت)\n\n`) +
         `👤 اسم المستأجر: ${name}\n` +
         `📞 رقم المستأجر: ${phone}`;
 
@@ -426,10 +447,13 @@ export default function PropertyPage({ params }: any) {
         `🚨 طلب حجز جديد\n\n` +
         `🏠 العقار:\n${property?.title || ""}\n\n` +
         `📍 الموقع:\n${property?.location || ""}\n\n` +
-        `👤 المستأجر:\n${name}\n\n` +
+        `👤 المستأجر:\n${name}${bType === "12h" ? " (إيجار 12 ساعة)" : ""}\n\n` +
         `📞 الهاتف:\n${phone}\n\n` +
-        `📅 الوصول:\n${inDate}\n\n` +
-        `📅 المغادرة:\n${outDate}\n\n` +
+        `📅 نوع الحجز:\n${bType === "12h" ? "إيجار 12 ساعة (نصف يوم)" : "مبيت كامل (ليلة)"}\n\n` +
+        (bType === "12h"
+          ? `📅 تاريخ الإقامة:\n${inDate}\n\n`
+          : `📅 الوصول:\n${inDate}\n\n📅 المغادرة:\n${outDate}\n\n`) +
+        `💰 السعر الإجمالي: $${tPrice} USD\n\n` +
         `📲 رابط مراسلة المؤجر:\n${whatsappLink}`;
 
       await fetch(
@@ -476,6 +500,7 @@ export default function PropertyPage({ params }: any) {
       new Date(checkOut);
 
     if (
+      bookingType !== "12h" &&
       checkOutDate <=
       checkInDate
     ) {
@@ -511,7 +536,9 @@ export default function PropertyPage({ params }: any) {
                 property.id,
 
               guest_name:
-                guestName.trim(),
+                bookingType === "12h"
+                  ? `${guestName.trim()} (إيجار 12 ساعة)`
+                  : guestName.trim(),
 
               guest_phone:
                 guestPhone.trim(),
@@ -543,14 +570,17 @@ export default function PropertyPage({ params }: any) {
         guestName.trim(),
         guestPhone.trim(),
         checkIn,
-        checkOut
+        checkOut,
+        bookingType,
+        totalPrice
       );
 
       setLastBookingInfo({
         guestName: guestName.trim(),
         guestPhone: guestPhone.trim(),
         checkIn,
-        checkOut
+        checkOut,
+        bookingType
       });
 
       setShowSuccessModal(true);
@@ -602,12 +632,16 @@ export default function PropertyPage({ params }: any) {
   let nights = 0;
   let totalPrice = 0;
   if (checkIn && checkOut) {
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    if (end > start) {
-      const diffTime = Math.abs(end.getTime() - start.getTime());
-      nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      totalPrice = nights * (property?.price || 0);
+    if (bookingType === "12h") {
+      totalPrice = property?.latitude || 0;
+    } else {
+      const start = new Date(checkIn);
+      const end = new Date(checkOut);
+      if (end > start) {
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        totalPrice = nights * (property?.price || 0);
+      }
     }
   }
 
@@ -1043,12 +1077,50 @@ export default function PropertyPage({ params }: any) {
                 className="rounded-2xl border px-4 py-4"
               />
 
+              {/* خيار نوع الإقامة إذا كان مدعوماً */}
+              {property.latitude && property.latitude > 0 && (
+                <div className="flex flex-col gap-2 text-right">
+                  <span className="text-xs font-bold text-gray-700">نوع الإقامة المطلوبة:</span>
+                  <div className="flex p-1 bg-gray-100 rounded-2xl border border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => setBookingType("nightly")}
+                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        bookingType === "nightly"
+                          ? "bg-white text-[#2D6A5F] shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      🏨 مبيت كامل (بالليلة)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingType("12h")}
+                      className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        bookingType === "12h"
+                          ? "bg-[#2D6A5F] text-white shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      ☀️ إيجار 12 ساعة (نصف يوم)
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-gray-400 font-semibold leading-relaxed">
+                    * سعر المبيت بالليلة: <span className="font-bold text-[#2D6A5F]">${property.price} USD</span> | سعر الـ 12 ساعة: <span className="font-bold text-[#2D6A5F]">${property.latitude} USD</span>
+                  </p>
+                </div>
+              )}
+
               {/* اختيار التواريخ من التقويم مباشرة */}
               <div className="border border-gray-100 rounded-3xl p-5 bg-gray-50/50 space-y-4">
                 <div className="text-right">
-                  <h3 className="font-bold text-gray-900 text-sm">📅 حدد فترة إقامتك على التقويم:</h3>
+                  <h3 className="font-bold text-gray-900 text-sm">
+                    {bookingType === "12h" ? "📅 اختر يوم إيجار الـ 12 ساعة:" : "📅 حدد فترة إقامتك على التقويم:"}
+                  </h3>
                   <p className="text-[11px] text-gray-500 mt-1">
-                    انقر على يوم وصولك (أخضر)، ثم يوم مغادرتك. الأيام المحجوزة تظهر باللون الأحمر وهي غير قابلة للاختيار.
+                    {bookingType === "12h"
+                      ? "انقر على اليوم الذي تريد حجزه لـ 12 ساعة (الأخضر متاح، والأحمر محجوز)."
+                      : "انقر على يوم وصولك (أخضر)، ثم يوم مغادرتك لتحديد التواريخ."}
                   </p>
                 </div>
                 
@@ -1062,7 +1134,9 @@ export default function PropertyPage({ params }: any) {
 
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <div className="bg-white p-3.5 rounded-2xl border border-gray-100 text-center">
-                    <span className="text-[10px] text-gray-400 font-bold block mb-1">📅 تاريخ الوصول</span>
+                    <span className="text-[10px] text-gray-400 font-bold block mb-1">
+                      {bookingType === "12h" ? "📅 يوم الإيجار" : "📅 تاريخ الوصول"}
+                    </span>
                     {checkIn ? (
                       <span className="text-xs font-black text-[#2D6A5F]">{checkIn}</span>
                     ) : (
@@ -1070,7 +1144,9 @@ export default function PropertyPage({ params }: any) {
                     )}
                   </div>
                   <div className="bg-white p-3.5 rounded-2xl border border-gray-100 text-center">
-                    <span className="text-[10px] text-gray-400 font-bold block mb-1">📅 تاريخ المغادرة</span>
+                    <span className="text-[10px] text-gray-400 font-bold block mb-1">
+                      {bookingType === "12h" ? "📅 يوم الإيجار" : "📅 تاريخ المغادرة"}
+                    </span>
                     {checkOut ? (
                       <span className="text-xs font-black text-[#2D6A5F]">{checkOut}</span>
                     ) : (
@@ -1096,15 +1172,19 @@ export default function PropertyPage({ params }: any) {
               </div>
 
               {/* حاسبة الأسعار الديناميكية */}
-              {nights > 0 && (
+              {((bookingType === "nightly" && nights > 0) || (bookingType === "12h" && checkIn)) && (
                 <div className="bg-[#F8FFFD] border border-[#D1FAE5] p-5 rounded-2xl text-right flex flex-col gap-2.5 animate-in fade-in slide-in-from-top-4 duration-300">
                   <div className="flex justify-between items-center text-sm font-semibold text-gray-700">
-                    <span>عدد الليالي:</span>
-                    <span className="font-bold text-[#111827]">{nights} ليالٍ</span>
+                    <span>نوع الحجز:</span>
+                    <span className="font-bold text-[#111827]">
+                      {bookingType === "12h" ? "إيجار 12 ساعة (نصف يوم)" : `مبيت (${nights} ليالٍ)`}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center text-sm font-semibold text-gray-700">
-                    <span>سعر الليلة الواحدة:</span>
-                    <span className="font-bold text-[#111827]">${property.price} USD</span>
+                    <span>سعر الوحدة:</span>
+                    <span className="font-bold text-[#111827]">
+                      ${bookingType === "12h" ? property.latitude : property.price} USD
+                    </span>
                   </div>
                   <div className="border-t border-[#D1FAE5] pt-2.5 flex justify-between items-center">
                     <span className="text-base font-bold text-[#166534]">الإجمالي المقدر للحجز:</span>
@@ -1207,7 +1287,7 @@ export default function PropertyPage({ params }: any) {
             </p>
             <div className="bg-gray-50 rounded-2xl p-4 my-5 text-right text-xs space-y-1.5 text-gray-600">
               <div>🏠 <span className="font-bold text-gray-900">العقار:</span> {property.title}</div>
-              <div>📅 <span className="font-bold text-gray-900">تاريخ الإقامة:</span> من {lastBookingInfo.checkIn} إلى {lastBookingInfo.checkOut}</div>
+              <div>📅 <span className="font-bold text-gray-900">تاريخ الإقامة:</span> {lastBookingInfo.bookingType === "12h" ? `يوم ${lastBookingInfo.checkIn} (إيجار 12 ساعة - نصف يوم)` : `من ${lastBookingInfo.checkIn} إلى ${lastBookingInfo.checkOut}`}</div>
               <div>👤 <span className="font-bold text-gray-900">الاسم:</span> {lastBookingInfo.guestName}</div>
             </div>
             <div className="space-y-3">
@@ -1225,8 +1305,10 @@ export default function PropertyPage({ params }: any) {
                     `لقد قمت بطلب حجز عقارك [ ${property.title} ] عبر منصة يلا هلا السياحية، وأود التنسيق معك بخصوص التفاصيل والدفع:\n\n` +
                     `👤 اسم المستأجر: ${lastBookingInfo.guestName}\n` +
                     `📞 هاتف المستأجر: ${lastBookingInfo.guestPhone}\n` +
-                    `📅 تاريخ الوصول: ${lastBookingInfo.checkIn}\n` +
-                    `📅 تاريخ المغادرة: ${lastBookingInfo.checkOut}`;
+                    (lastBookingInfo.bookingType === "12h"
+                      ? `📅 تاريخ الإقامة: يوم ${lastBookingInfo.checkIn} (إيجار 12 ساعة - نصف يوم)\n`
+                      : `📅 تاريخ الوصول: ${lastBookingInfo.checkIn}\n📅 تاريخ المغادرة: ${lastBookingInfo.checkOut}\n`) +
+                    `💰 السعر المقدر: $${totalPrice} USD`;
                   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
                 })()}
                 target="_blank"

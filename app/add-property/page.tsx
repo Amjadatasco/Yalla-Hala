@@ -119,6 +119,8 @@ export default function AddPropertyPage() {
   const [location, setLocation] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [price, setPrice] = useState("");
+  const [supports12h, setSupports12h] = useState(false);
+  const [price12h, setPrice12h] = useState("");
 
   // المواصفات
   const [rooms, setRooms] = useState("");
@@ -186,7 +188,8 @@ export default function AddPropertyPage() {
         `🗺️ الموقع:\n${location}\n\n` +
         `👤 اسم المؤجر:\n${ownerName}\n\n` +
         `📞 رقم الهاتف:\n${ownerPhone}\n\n` +
-        `💰 السعر:\n$${price} USD\n\n` +
+        `💰 السعر بالليلة:\n$${price} USD\n\n` +
+        `☀️ إيجار 12 ساعة:\n${supports12h ? `نعم ($${price12h} USD)` : "غير مدعوم"}\n\n` +
         `🕒 وقت الدخول:\n${checkInTime}\n\n` +
         `🕒 وقت الخروج:\n${checkOutTime}\n\n` +
         `🛠️ التجهيزات المحددة:\n${selectedAmenities.join(" - ") || "لا يوجد"}\n\n` +
@@ -223,6 +226,8 @@ export default function AddPropertyPage() {
     setLocation("");
     setNeighborhood("");
     setPrice("");
+    setSupports12h(false);
+    setPrice12h("");
 
     setRooms("");
     setBeds("");
@@ -336,6 +341,7 @@ export default function AddPropertyPage() {
           user_id: user.id,
           address: checkInTime,
           city: checkOutTime,
+          latitude: supports12h && price12h ? Number(price12h) : null,
         },
       ]);
 
@@ -477,6 +483,38 @@ export default function AddPropertyPage() {
                 placeholder="مثال: 20 دولار لليلة الواحدة"
                 className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
               />
+            </div>
+
+            {/* خيار إيجار 12 ساعة */}
+            <div className="md:col-span-2 border border-gray-100 bg-[#F9FAFB] rounded-2xl p-4 flex flex-col gap-3 text-right">
+              <label className="flex items-center gap-2.5 font-bold text-gray-800 text-sm cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={supports12h}
+                  onChange={(e) => {
+                    setSupports12h(e.target.checked);
+                    if (!e.target.checked) setPrice12h("");
+                  }}
+                  className="w-4 h-4 accent-[#3FAF9B] cursor-pointer"
+                />
+                <span>هل يدعم هذا العقار خيار إيجار 12 ساعة (نصف يوم)؟</span>
+              </label>
+
+              {supports12h && (
+                <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
+                  <label className="text-xs font-bold text-gray-700">
+                    السعر بالدولار الأمريكي لفترة 12 ساعة (نصف يوم)
+                  </label>
+                  <input
+                    type="number"
+                    value={price12h}
+                    onChange={(e) => setPrice12h(e.target.value)}
+                    placeholder="مثال: 10 دولارات لـ 12 ساعة"
+                    required={supports12h}
+                    className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
