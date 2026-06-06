@@ -104,16 +104,16 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* ⚡ الـ Grid ثنائي البطاقات المثبت لمنع انقلاب علامة الزائد */}
-          <div className="mt-12 max-w-3xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2">
+          {/* ⚡ الـ Grid رباعي البطاقات لوسائل التواصل */}
+          <div className="mt-12 max-w-5xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
 
             {/* بطاقة البريد الإلكتروني */}
-            <div className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-8 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center">
+            <div className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-6 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center">
               <div className="mb-4 text-5xl">📧</div>
               <h3 className="text-lg font-black text-[#111827]">
                 البريد الإلكتروني الرسمي
               </h3>
-              <p className="mt-3 text-base sm:text-lg font-bold text-[#2D6A5F] hover:text-[#3FAF9B] cursor-pointer transition break-all">
+              <p className="mt-3 text-base font-bold text-[#2D6A5F] hover:text-[#3FAF9B] cursor-pointer transition break-all">
                 contact@yallahala.com
               </p>
             </div>
@@ -123,15 +123,47 @@ export default function AboutPage() {
               href="https://wa.me/46790081236"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-8 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center group"
+              className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-6 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center group"
             >
               <div className="mb-4 text-5xl group-hover:scale-105 transition duration-300">💬</div>
               <h3 className="text-lg font-bold text-[#111827]">
-                واتساب
+                واتساب الدعم الفني
               </h3>
               {/* 🟢 تم تثبيت اتجاه الرقم هنا لـ LTR ليظهر الزائد على اليسار بشكل مثالي */}
               <p dir="ltr" className="mt-3 text-xl font-bold text-green-600 tracking-wide">
                 +46790081236
+              </p>
+            </a>
+
+            {/* بطاقة فيسبوك */}
+            <a
+              href="https://www.facebook.com/share/1EbeNX97UR/?mibextid=wwXIfr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-6 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center group"
+            >
+              <div className="mb-4 text-5xl group-hover:scale-105 transition duration-300">👥</div>
+              <h3 className="text-lg font-bold text-[#111827]">
+                صفحتنا على فيسبوك
+              </h3>
+              <p className="mt-3 text-lg font-bold text-blue-600 hover:text-blue-700 transition">
+                Yalla Hala
+              </p>
+            </a>
+
+            {/* بطاقة إنستغرام */}
+            <a
+              href="https://www.instagram.com/yallahala.sy?igsh=MTZwZWpscG5mZDkwcg%3D%3D&utm_source=qr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-[28px] border border-[#E5E7EB] bg-[#FAFAFA] p-6 text-center shadow-sm hover:border-[#3FAF9B] transition duration-300 flex flex-col justify-center items-center group"
+            >
+              <div className="mb-4 text-5xl group-hover:scale-105 transition duration-300">📸</div>
+              <h3 className="text-lg font-bold text-[#111827]">
+                حسابنا على إنستغرام
+              </h3>
+              <p dir="ltr" className="mt-3 text-lg font-bold text-pink-600 hover:text-pink-700 transition">
+                @yallahala.sy
               </p>
             </a>
 
