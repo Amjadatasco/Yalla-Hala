@@ -452,7 +452,7 @@ export default function AddPropertyPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="عنوان العقار"
+              placeholder="اسم العقار (مثال: شقة ديلوكس، شاليه النخيل)"
               className={getInputClass(title)}
             />
 

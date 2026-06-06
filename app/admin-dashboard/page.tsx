@@ -693,7 +693,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
           onChange={(e) =>
             setEditTitle(e.target.value)
           }
-          placeholder="عنوان العقار"
+          placeholder="اسم العقار"
           className={getEditInputClass(editTitle)}
         />
 
