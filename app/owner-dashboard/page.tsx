@@ -211,10 +211,10 @@ export default function DashboardPage() {
 
       {/* HEADER */}
       <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur-md shadow-sm">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 h-20 flex items-center justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-4 sm:py-0 sm:h-20 flex flex-col sm:flex-row items-center justify-between gap-4">
 
-          <div className="flex items-center gap-4">
-            <div className="relative h-12 w-12 flex items-center justify-center overflow-hidden rounded-xl bg-gray-50 border">
+          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-start">
+            <div className="relative h-12 w-12 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-xl bg-gray-50 border">
               <Image
                 src="/logo.jpg"
                 alt="Yalla Hala Logo"
@@ -224,20 +224,20 @@ export default function DashboardPage() {
             </div>
 
             <div className="text-right">
-              <h1 className="text-xl font-black text-[#111827] leading-none">
+              <h1 className="text-lg sm:text-xl font-black text-[#111827] leading-tight">
                 لوحة تحكم المؤجر
               </h1>
 
-              <p className="text-xs font-bold text-[#CF9E59] mt-1.5">
+              <p className="text-[10px] sm:text-xs font-bold text-[#CF9E59] mt-1">
                 مرحباً بك: {currentUser?.email}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end sm:justify-start">
             <button
               onClick={handleLogout}
-              className="h-10 px-5 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-xs sm:text-sm transition"
+              className="h-9 sm:h-10 px-4 sm:px-5 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-xs sm:text-sm transition"
             >
               تسجيل خروج
             </button>
@@ -487,18 +487,18 @@ function StatCard({
   icon: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center justify-between">
+    <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center justify-between gap-3">
       <div className="text-right">
         <p className="text-xs font-bold text-[#6B7280]">
           {title}
         </p>
 
-        <h2 className="mt-2 text-3xl font-black text-[#111827]">
+        <h2 className="mt-2 text-2xl sm:text-3xl font-black text-[#111827]">
           {value}
         </h2>
       </div>
 
-      <div className="p-3 rounded-xl bg-gray-50 text-gray-500">
+      <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl shrink-0">
         {icon}
       </div>
     </div>
