@@ -68,6 +68,7 @@ const [editCheckInTime, setEditCheckInTime] = useState("");
 
 const [editCheckOutTime, setEditCheckOutTime] = useState("");
   const [triedEditSubmit, setTriedEditSubmit] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected" | "all">("pending");
 
   const getEditInputClass = (val: string | number) => {
     const base = "border rounded-xl p-3 outline-none transition duration-200 text-right ";
@@ -471,122 +472,180 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
                   : "عقاراتي المعروضة"}
               </h2>
 
-              {properties.length === 0 ? (
-                <EmptyState text="لا توجد عقارات حالياً." />
-              ) : (
-                <div className="grid gap-4">
-                  {properties.map((property) => (
-                    <div
-                      key={property.id}
-                      className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm"
-                    >
-                      <div className="grid gap-5 lg:grid-cols-[200px_1fr_180px] items-center">
-                        <img
-                          src={
-                            property.image ||
-                            "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200"
-                          }
-                          alt={property.title}
-                          className="w-full h-36 object-cover rounded-xl"
-                        />
+              {/* تبويبات الفلترة حسب الحالة */}
+              {(() => {
+                const pendingCount = properties.filter((p) => p.status === "pending").length;
+                const approvedCount = properties.filter((p) => p.status === "approved").length;
+                const rejectedCount = properties.filter((p) => p.status === "rejected").length;
+                const totalCount = properties.length;
+                
+                const filtered = properties.filter((property) => {
+                  if (statusFilter === "all") return true;
+                  return property.status === statusFilter;
+                });
 
-                        <div className="text-right">
-                          <h3 className="text-lg font-bold text-[#111827]">
-                            {property.title}
-                          </h3>
+                return (
+                  <>
+                    <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-100 pb-4 justify-start">
+                      <button
+                        onClick={() => setStatusFilter("pending")}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 border flex items-center gap-1.5 cursor-pointer ${
+                          statusFilter === "pending"
+                            ? "bg-amber-500 border-amber-500 text-white shadow-sm scale-105"
+                            : "bg-white border-gray-200 text-amber-600 hover:bg-amber-50"
+                        }`}
+                      >
+                        ⏳ بانتظار الموافقة ({pendingCount})
+                      </button>
 
-                          <p className="text-xs text-gray-400 mt-1">
-                            {property.location}
-                          </p>
+                      <button
+                        onClick={() => setStatusFilter("approved")}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 border flex items-center gap-1.5 cursor-pointer ${
+                          statusFilter === "approved"
+                            ? "bg-[#3FAF9B] border-[#3FAF9B] text-white shadow-sm scale-105"
+                            : "bg-white border-gray-200 text-[#2D6A5F] hover:bg-emerald-50"
+                        }`}
+                      >
+                        ✅ العقارات النشطة/المعتمدة ({approvedCount})
+                      </button>
 
-                          <p className="text-lg font-black text-[#2D6A5F] mt-3">
-                            ${property.price}
-                          </p>
-                        </div>
+                      <button
+                        onClick={() => setStatusFilter("rejected")}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 border flex items-center gap-1.5 cursor-pointer ${
+                          statusFilter === "rejected"
+                            ? "bg-red-500 border-red-500 text-white shadow-sm scale-105"
+                            : "bg-white border-gray-200 text-red-600 hover:bg-red-50"
+                        }`}
+                      >
+                        ❌ العقارات المرفوضة ({rejectedCount})
+                      </button>
 
-                        <div className="flex flex-col gap-2">
-                          {isAdmin &&
-                            property.status !== "approved" && (
-                              <button
-                                onClick={() =>
-                                  approveProperty(property.id)
-                                }
-                                className="w-full h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs"
-                              >
-                                موافقة
-                              </button>
-                            )}
-
-                          {isAdmin &&
-                            property.status !== "rejected" && (
-                              <button
-                                onClick={() =>
-                                  rejectProperty(property.id)
-                                }
-                                className="w-full h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs"
-                              >
-                                رفض
-                              </button>
-                            )}
-<button
-  onClick={() => {
-    setEditingProperty(property);
-    setTriedEditSubmit(false);
-
-    setEditTitle(
-      property.title || ""
-    );
-
-    setEditPrice(
-      String(property.price || "")
-    );
-
-    setEditLocation(
-      property.location || ""
-    );
-
-    setEditDescription(
-      property.description || ""
-    );
-
-    setEditAmenities(
-      property.amenities || ""
-    );
-
-    setEditOwnerName(
-      property.owner_name || ""
-    );
-
-    setEditOwnerPhone(
-      property.owner_phone || ""
-    );
-
-    setEditCheckInTime(
-      property.address || "14:00"
-    );
-
-    setEditCheckOutTime(
-      property.city || "12:00"
-    );
-  }}
-  className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs"
->
-  تعديل
-</button>
-                          <button
-                            onClick={() =>
-                              deleteProperty(property.id)
-                            }
-                            className="w-full h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200"
-                          >
-                            حذف
-                          </button>
-                        </div>
-                      </div>
+                      <button
+                        onClick={() => setStatusFilter("all")}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 border flex items-center gap-1.5 cursor-pointer ${
+                          statusFilter === "all"
+                            ? "bg-[#2D6A5F] border-[#2D6A5F] text-white shadow-sm scale-105"
+                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                        }`}
+                      >
+                        📁 جميع طلبات الإدراج ({totalCount})
+                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    {filtered.length === 0 ? (
+                      <EmptyState text={
+                        statusFilter === "pending" ? "لا توجد عقارات بانتظار الموافقة حالياً." :
+                        statusFilter === "approved" ? "لا توجد عقارات معتمدة حالياً." :
+                        statusFilter === "rejected" ? "لا توجد عقارات مرفوضة حالياً." :
+                        "لا توجد عقارات حالياً."
+                      } />
+                    ) : (
+                      <div className="grid gap-4">
+                        {filtered.map((property) => (
+                          <div
+                            key={property.id}
+                            className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm"
+                          >
+                            <div className="grid gap-5 lg:grid-cols-[200px_1fr_180px] items-center">
+                              <img
+                                src={
+                                  property.image ||
+                                  "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200"
+                                }
+                                alt={property.title}
+                                className="w-full h-36 object-cover rounded-xl"
+                              />
+
+                              <div className="text-right">
+                                <h3 className="text-lg font-bold text-[#111827]">
+                                  {property.title}
+                                </h3>
+
+                                <p className="text-xs text-gray-400 mt-1">
+                                  {property.location}
+                                </p>
+
+                                <div className="mt-2 flex items-center gap-2">
+                                  {property.status === "approved" && (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                      <span>●</span> معتمد ونشط
+                                    </span>
+                                  )}
+                                  {property.status === "pending" && (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">
+                                      <span>●</span> بانتظار الموافقة
+                                    </span>
+                                  )}
+                                  {property.status === "rejected" && (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-100">
+                                      <span>●</span> مرفوض
+                                    </span>
+                                  )}
+                                </div>
+
+                                <p className="text-lg font-black text-[#2D6A5F] mt-3">
+                                  ${property.price}
+                                </p>
+                              </div>
+
+                              <div className="flex flex-col gap-2">
+                                {isAdmin &&
+                                  property.status !== "approved" && (
+                                    <button
+                                      onClick={() =>
+                                        approveProperty(property.id)
+                                      }
+                                      className="w-full h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs cursor-pointer"
+                                    >
+                                      موافقة
+                                    </button>
+                                  )}
+
+                                {isAdmin &&
+                                  property.status !== "rejected" && (
+                                    <button
+                                      onClick={() =>
+                                        rejectProperty(property.id)
+                                      }
+                                      className="w-full h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs cursor-pointer"
+                                    >
+                                      رفض
+                                    </button>
+                                  )}
+                                <button
+                                  onClick={() => {
+                                    setEditingProperty(property);
+                                    setTriedEditSubmit(false);
+
+                                    setEditTitle(property.title || "");
+                                    setEditPrice(String(property.price || ""));
+                                    setEditLocation(property.location || "");
+                                    setEditDescription(property.description || "");
+                                    setEditAmenities(property.amenities || "");
+                                    setEditOwnerName(property.owner_name || "");
+                                    setEditOwnerPhone(property.owner_phone || "");
+                                    setEditCheckInTime(property.address || "14:00");
+                                    setEditCheckOutTime(property.city || "12:00");
+                                  }}
+                                  className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs cursor-pointer"
+                                >
+                                  تعديل
+                                </button>
+                                <button
+                                  onClick={() => deleteProperty(property.id)}
+                                  className="w-full h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200 cursor-pointer"
+                                >
+                                  حذف
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             {/* الحجوزات */}
