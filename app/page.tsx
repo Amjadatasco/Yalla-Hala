@@ -38,6 +38,7 @@ export default function HomePage() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [maxPrice, setMaxPrice] = useState(250);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showScrollHint, setShowScrollHint] = useState(true);
 
   // تحميل المفضلة عند التشغيل
   useEffect(() => {
@@ -285,33 +286,53 @@ export default function HomePage() {
 
       {/* تصنيفات المحافظات سريعة التمرير (أفقية) للموبايل والكمبيوتر */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 relative z-20">
-        <div className="flex overflow-x-auto gap-2 pb-2.5 flex-row-reverse text-right no-scrollbar scroll-smooth">
-          <button
-            onClick={() => setSelectedGovernorate("")}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 border shadow-xs ${
-              selectedGovernorate === ""
-                ? "bg-[#2D6A5F] border-[#2D6A5F] text-white scale-105"
-                : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200"
-            }`}
+        <div className="relative">
+          {/* دلالة السحب: تدرج لوني خفيف جهة اليسار يوضح وجود عناصر إضافية يختفي عند بدء السحب */}
+          {showScrollHint && (
+            <>
+              <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#F9FAFB] to-transparent z-10 pointer-events-none md:hidden animate-in fade-in duration-300"></div>
+              {/* شارة صغيرة للدلالة على السحب تظهر فقط على الموبايل */}
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20 text-gray-500 text-[10px] font-bold bg-white/95 backdrop-blur-xs px-2 py-1 rounded-lg shadow-sm border border-gray-150 flex items-center gap-1 animate-pulse md:hidden pointer-events-none">
+                <span>◀ اسحب للمزيد</span>
+              </div>
+            </>
+          )}
+
+          <div
+            onScroll={(e) => {
+              if (Math.abs(e.currentTarget.scrollLeft) > 10) {
+                setShowScrollHint(false);
+              }
+            }}
+            className="flex overflow-x-auto gap-2 pb-2.5 flex-row-reverse text-right no-scrollbar scroll-smooth"
           >
-            🗺️ كل المحافظات
-          </button>
-          {governorates.map((gov) => {
-            const isSelected = selectedGovernorate === gov;
-            return (
-              <button
-                key={gov}
-                onClick={() => setSelectedGovernorate(isSelected ? "" : gov)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 border shadow-xs ${
-                  isSelected
-                    ? "bg-[#2D6A5F] border-[#2D6A5F] text-white scale-105"
-                    : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200"
-                }`}
-              >
-                📍 {gov}
-              </button>
-            );
-          })}
+            <button
+              onClick={() => setSelectedGovernorate("")}
+              className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 border shadow-xs ${
+                selectedGovernorate === ""
+                  ? "bg-[#2D6A5F] border-[#2D6A5F] text-white scale-105"
+                  : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200"
+              }`}
+            >
+              🗺️ كل المحافظات
+            </button>
+            {governorates.map((gov) => {
+              const isSelected = selectedGovernorate === gov;
+              return (
+                <button
+                  key={gov}
+                  onClick={() => setSelectedGovernorate(isSelected ? "" : gov)}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 border shadow-xs ${
+                    isSelected
+                      ? "bg-[#2D6A5F] border-[#2D6A5F] text-white scale-105"
+                      : "bg-white border-gray-100 text-gray-600 hover:bg-gray-50 hover:border-gray-200"
+                  }`}
+                >
+                  📍 {gov}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
