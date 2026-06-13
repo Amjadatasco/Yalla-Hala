@@ -466,14 +466,17 @@ export default function PropertyPage({ params }: any) {
       const formattedPrice = property?.longitude === 1 ? `${Number(tPrice).toLocaleString()} ل.س` : `$${tPrice} USD`;
 
       const whatsappMessage =
-        `مرحباً ${property?.owner_name || ""} 👋\n\n` +
-        `يوجد طلب حجز جديد على عقارك:\n\n` +
-        `🏠 ${property?.title}\n` +
-        (bType === "12h"
-          ? `📅 تاريخ الإقامة: يوم ${inDate} (إيجار 12 ساعة - نصف يوم)\n\n`
-          : `📅 من ${inDate} إلى ${outDate} (مبيت)\n\n`) +
+        `مرحباً بك صاحب العقار 👋\n` +
+        `👤 المالك: ${property?.owner_name || ""}\n\n` +
+        `يوجد طلب حجز جديد على عقارك:\n` +
+        `🏠 [ ${property?.title || ""} ]\n` +
+        `عبر منصة يلا هلا السياحية.\n\n` +
+        `تفاصيل الحجز المطلوبة:\n` +
         `👤 اسم المستأجر: ${name}\n` +
         `📞 رقم المستأجر: ${phone}\n` +
+        (bType === "12h"
+          ? `📅 تاريخ الإقامة: يوم ${inDate} (إيجار 12 ساعة - نصف يوم)\n`
+          : `📅 من ${inDate} إلى ${outDate} (مبيت)\n`) +
         `💰 السعر المقدر: ${formattedPrice}`;
 
       const whatsappLink =
@@ -628,7 +631,8 @@ export default function PropertyPage({ params }: any) {
         guestPhone: guestPhone.trim(),
         checkIn,
         checkOut,
-        bookingType
+        bookingType,
+        totalPrice
       });
 
       setShowSuccessModal(true);
@@ -1357,14 +1361,18 @@ export default function PropertyPage({ params }: any) {
                     cleanPhone = "963" + cleanPhone;
                   }
                   const message = 
-                    `مرحباً ${property.owner_name || "صاحب العقار"} 👋\n\n` +
-                    `لقد قمت بطلب حجز عقارك [ ${property.title} ] عبر منصة يلا هلا السياحية، وأود التنسيق معك بخصوص التفاصيل والدفع:\n\n` +
+                    `مرحباً بك صاحب العقار 👋\n` +
+                    `👤 المالك: ${property.owner_name || ""}\n\n` +
+                    `لقد قمت بطلب حجز عقارك:\n` +
+                    `🏠 [ ${property.title} ]\n` +
+                    `عبر منصة يلا هلا السياحية.\n\n` +
+                    `تفاصيل الحجز المطلوبة:\n` +
                     `👤 اسم المستأجر: ${lastBookingInfo.guestName}\n` +
                     `📞 هاتف المستأجر: ${lastBookingInfo.guestPhone}\n` +
                     (lastBookingInfo.bookingType === "12h"
                       ? `📅 تاريخ الإقامة: يوم ${lastBookingInfo.checkIn} (إيجار 12 ساعة - نصف يوم)\n`
                       : `📅 تاريخ الوصول: ${lastBookingInfo.checkIn}\n📅 تاريخ المغادرة: ${lastBookingInfo.checkOut}\n`) +
-                    `💰 السعر المقدر: ${property.longitude === 1 ? `${totalPrice.toLocaleString()} ل.س` : `$${totalPrice} USD`}`;
+                    `💰 السعر المقدر: ${property.longitude === 1 ? `${Number(lastBookingInfo.totalPrice).toLocaleString()} ل.س` : `$${lastBookingInfo.totalPrice} USD`}`;
                   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
                 })()}
                 target="_blank"
