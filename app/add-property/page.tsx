@@ -119,6 +119,7 @@ export default function AddPropertyPage() {
   const [location, setLocation] = useState("");
   const [neighborhood, setNeighborhood] = useState("");
   const [price, setPrice] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [supports12h, setSupports12h] = useState(false);
   const [price12h, setPrice12h] = useState("");
   const [triedSubmit, setTriedSubmit] = useState(false);
@@ -198,6 +199,9 @@ export default function AddPropertyPage() {
   // إشعار تيليغرام
   async function sendTelegramNewPropertyNotification() {
     try {
+      const formattedPrice = currency === "SYP" ? `${Number(price).toLocaleString()} ل.س` : `$${price} USD`;
+      const formattedPrice12h = supports12h ? (currency === "SYP" ? `${Number(price12h).toLocaleString()} ل.س` : `$${price12h} USD`) : "";
+
       const messageText =
         `🆕 عقار جديد بانتظار المراجعة\n\n` +
         `🏠 العقار:\n${title}\n\n` +
@@ -206,8 +210,8 @@ export default function AddPropertyPage() {
         `🗺️ الموقع:\n${location}\n\n` +
         `👤 اسم المؤجر:\n${ownerName}\n\n` +
         `📞 رقم الهاتف:\n${ownerPhone}\n\n` +
-        `💰 السعر بالليلة:\n$${price} USD\n\n` +
-        `☀️ إيجار 12 ساعة:\n${supports12h ? `نعم ($${price12h} USD)` : "غير مدعوم"}\n\n` +
+        `💰 السعر بالليلة:\n${formattedPrice}\n\n` +
+        `☀️ إيجار 12 ساعة:\n${supports12h ? `نعم (${formattedPrice12h})` : "غير مدعوم"}\n\n` +
         `🕒 وقت الدخول:\n${checkInTime}\n\n` +
         `🕒 وقت الخروج:\n${checkOutTime}\n\n` +
         `🛠️ التجهيزات المحددة:\n${selectedAmenities.join(" - ") || "لا يوجد"}\n\n` +
@@ -244,6 +248,7 @@ export default function AddPropertyPage() {
     setLocation("");
     setNeighborhood("");
     setPrice("");
+    setCurrency("USD");
     setSupports12h(false);
     setPrice12h("");
 
@@ -369,6 +374,7 @@ export default function AddPropertyPage() {
           address: checkInTime,
           city: checkOutTime,
           latitude: supports12h && price12h ? Number(price12h) : null,
+          longitude: currency === "SYP" ? 1 : 0,
         },
       ]);
 
@@ -498,18 +504,33 @@ export default function AddPropertyPage() {
               className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B]"
             />
 
-            {/* السعر */}
-            <div className="flex flex-col gap-1.5 text-right">
-              <label className="text-xs font-bold text-gray-700 font-sans">
-                السعر بالدولار الأمريكي لليلة الواحدة
-              </label>
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="مثال: 20 دولار لليلة الواحدة"
-                className={getInputClass(price)}
-              />
+            {/* السعر والعملة */}
+            <div className="md:col-span-2 grid gap-4 grid-cols-3">
+              <div className="col-span-2 flex flex-col gap-1.5 text-right">
+                <label className="text-xs font-bold text-gray-700 font-sans">
+                  السعر لليلة الواحدة
+                </label>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder={currency === "SYP" ? "مثال: 500000 ليرة" : "مثال: 20 دولار"}
+                  className={getInputClass(price)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5 text-right">
+                <label className="text-xs font-bold text-gray-700">
+                  العملة
+                </label>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B] transition duration-200"
+                >
+                  <option value="USD">دولار أمريكي ($)</option>
+                  <option value="SYP">ليرة سورية (ل.س)</option>
+                </select>
+              </div>
             </div>
 
             {/* خيار إيجار 12 ساعة */}
@@ -530,13 +551,13 @@ export default function AddPropertyPage() {
               {supports12h && (
                 <div className="flex flex-col gap-1.5 animate-in fade-in duration-200">
                   <label className="text-xs font-bold text-gray-700">
-                    السعر بالدولار الأمريكي لفترة 12 ساعة (نصف يوم)
+                    السعر لفترة 12 ساعة (نصف يوم) ({currency === "SYP" ? "بالليرة السورية" : "بالدولار الأمريكي"})
                   </label>
                   <input
                     type="number"
                     value={price12h}
                     onChange={(e) => setPrice12h(e.target.value)}
-                    placeholder="مثال: 10 دولارات لـ 12 ساعة"
+                    placeholder={currency === "SYP" ? "مثال: 250000 ليرة" : "مثال: 10 دولارات"}
                     required={supports12h}
                     className={getInputClass(price12h)}
                   />

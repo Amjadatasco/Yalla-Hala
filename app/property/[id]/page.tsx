@@ -456,6 +456,8 @@ export default function PropertyPage({ params }: any) {
             ""
           ) || "";
 
+      const formattedPrice = property?.longitude === 1 ? `${Number(tPrice).toLocaleString()} ل.س` : `$${tPrice} USD`;
+
       const whatsappMessage =
         `مرحباً ${property?.owner_name || ""} 👋\n\n` +
         `يوجد طلب حجز جديد على عقارك:\n\n` +
@@ -464,7 +466,8 @@ export default function PropertyPage({ params }: any) {
           ? `📅 تاريخ الإقامة: يوم ${inDate} (إيجار 12 ساعة - نصف يوم)\n\n`
           : `📅 من ${inDate} إلى ${outDate} (مبيت)\n\n`) +
         `👤 اسم المستأجر: ${name}\n` +
-        `📞 رقم المستأجر: ${phone}`;
+        `📞 رقم المستأجر: ${phone}\n` +
+        `💰 السعر المقدر: ${formattedPrice}`;
 
       const whatsappLink =
         `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
@@ -481,7 +484,7 @@ export default function PropertyPage({ params }: any) {
         (bType === "12h"
           ? `📅 تاريخ الإقامة:\n${inDate}\n\n`
           : `📅 الوصول:\n${inDate}\n\n📅 المغادرة:\n${outDate}\n\n`) +
-        `💰 السعر الإجمالي: $${tPrice} USD\n\n` +
+        `💰 السعر الإجمالي: ${formattedPrice}\n\n` +
         `📲 رابط مراسلة المؤجر:\n${whatsappLink}`;
 
       await fetch(
@@ -822,20 +825,12 @@ export default function PropertyPage({ params }: any) {
             </div>
 
             <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center">
-
-              <p className="text-3xl font-black text-[#2D6A5F]">
-
-                $
-                {property.price}
-
+              <p className="text-2xl sm:text-3xl font-black text-[#2D6A5F]">
+                {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
               </p>
-
-              <p className="text-xs mt-1">
-
-                USD / ليلة
-
+              <p className="text-xs mt-1 font-semibold">
+                {property.longitude === 1 ? "ليرة سورية" : "USD"} / ليلة
               </p>
-
             </div>
 
           </div>
@@ -1142,7 +1137,7 @@ export default function PropertyPage({ params }: any) {
                     </button>
                   </div>
                   <p className="text-[10px] text-gray-400 font-semibold leading-relaxed">
-                    * سعر المبيت بالليلة: <span className="font-bold text-[#2D6A5F]">${property.price} USD</span> | سعر الـ 12 ساعة: <span className="font-bold text-[#2D6A5F]">${property.latitude} USD</span>
+                    * سعر المبيت بالليلة: <span className="font-bold text-[#2D6A5F]">{property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price} USD`}</span> | سعر الـ 12 ساعة: <span className="font-bold text-[#2D6A5F]">{property.longitude === 1 ? `${Number(property.latitude).toLocaleString()} ل.س` : `$${property.latitude} USD`}</span>
                   </p>
                 </div>
               )}
@@ -1224,12 +1219,16 @@ export default function PropertyPage({ params }: any) {
                   <div className="flex justify-between items-center text-sm font-semibold text-gray-700">
                     <span>سعر الوحدة:</span>
                     <span className="font-bold text-[#111827]">
-                      ${bookingType === "12h" ? property.latitude : property.price} USD
+                      {property.longitude === 1 
+                        ? `${Number(bookingType === "12h" ? property.latitude : property.price).toLocaleString()} ل.س` 
+                        : `$${bookingType === "12h" ? property.latitude : property.price} USD`}
                     </span>
                   </div>
                   <div className="border-t border-[#D1FAE5] pt-2.5 flex justify-between items-center">
                     <span className="text-base font-bold text-[#166534]">الإجمالي المقدر للحجز:</span>
-                    <span className="text-2xl font-black text-[#2D6A5F]">${totalPrice} USD</span>
+                    <span className="text-2xl font-black text-[#2D6A5F]">
+                      {property.longitude === 1 ? `${totalPrice.toLocaleString()} ل.س` : `$${totalPrice} USD`}
+                    </span>
                   </div>
                 </div>
               )}
@@ -1298,8 +1297,17 @@ export default function PropertyPage({ params }: any) {
         <div className="text-right">
           <p className="text-[10px] text-gray-400 font-bold">السعر لليلة</p>
           <div className="flex items-baseline gap-1">
-            <span className="text-xl font-black text-[#2D6A5F]">${property.price}</span>
-            <span className="text-[10px] text-gray-500">USD</span>
+            {property.longitude === 1 ? (
+              <>
+                <span className="text-xl font-black text-[#2D6A5F]">{Number(property.price).toLocaleString()}</span>
+                <span className="text-[10px] text-gray-500 font-bold mr-1">ل.س</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xl font-black text-[#2D6A5F]">${property.price}</span>
+                <span className="text-[10px] text-gray-500">USD</span>
+              </>
+            )}
           </div>
         </div>
         <button
@@ -1349,7 +1357,7 @@ export default function PropertyPage({ params }: any) {
                     (lastBookingInfo.bookingType === "12h"
                       ? `📅 تاريخ الإقامة: يوم ${lastBookingInfo.checkIn} (إيجار 12 ساعة - نصف يوم)\n`
                       : `📅 تاريخ الوصول: ${lastBookingInfo.checkIn}\n📅 تاريخ المغادرة: ${lastBookingInfo.checkOut}\n`) +
-                    `💰 السعر المقدر: $${totalPrice} USD`;
+                    `💰 السعر المقدر: ${property.longitude === 1 ? `${totalPrice.toLocaleString()} ل.س` : `$${totalPrice} USD`}`;
                   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
                 })()}
                 target="_blank"

@@ -117,7 +117,7 @@ export default function HomePage() {
       }
       // فلتر السعر الأقصى
       if (maxPrice < 250) {
-        query = query.lte("price", maxPrice);
+        query = query.or(`price.lte.${maxPrice},longitude.eq.1`);
       }
 
       // 3. السحر التقني: إذا كان هناك عقارات محجوزة ومستخرجة، نقوم باستبعادها كلياً من القائمة (NOT IN)
@@ -492,7 +492,9 @@ export default function HomePage() {
                       })()}
 
                       <div className="flex items-baseline justify-end gap-1">
-                        <span className="text-xl font-black text-[#CF9E59]">${property.price}</span>
+                        <span className="text-xl font-black text-[#CF9E59]">
+                          {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
+                        </span>
                         <span className="text-[10px] text-gray-400">/ ليلة</span>
                       </div>
                     </div>

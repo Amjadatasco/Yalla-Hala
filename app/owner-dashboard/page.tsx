@@ -15,6 +15,7 @@ type Property = {
   image: string;
   status: "approved" | "pending" | "rejected";
   user_id?: string;
+  longitude?: number;
 };
 
 type Booking = {
@@ -336,7 +337,7 @@ export default function DashboardPage() {
                           </p>
 
                           <p className="text-lg font-black text-[#2D6A5F] mt-3">
-                            ${property.price}
+                            {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
                           </p>
 
                         </div>

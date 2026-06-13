@@ -24,6 +24,7 @@ type Property = {
   user_id?: string;
   address?: string;
   city?: string;
+  longitude?: number;
 };
 
 type Booking = {
@@ -53,6 +54,7 @@ const [editingProperty, setEditingProperty] =
 const [editTitle, setEditTitle] = useState("");
 
 const [editPrice, setEditPrice] = useState("");
+const [editCurrency, setEditCurrency] = useState("USD");
 
 const [editLocation, setEditLocation] = useState("");
 
@@ -290,6 +292,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
         .update({
           title: editTitle.trim(),
           price: Number(editPrice),
+          longitude: editCurrency === "SYP" ? 1 : 0,
           location: editLocation.trim(),
           description: editDescription.trim(),
           amenities: editAmenities.trim(),
@@ -584,7 +587,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
                                 </div>
 
                                 <p className="text-lg font-black text-[#2D6A5F] mt-3">
-                                  ${property.price}
+                                  {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
                                 </p>
                               </div>
 
@@ -619,6 +622,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
 
                                     setEditTitle(property.title || "");
                                     setEditPrice(String(property.price || ""));
+                                    setEditCurrency(property.longitude === 1 ? "SYP" : "USD");
                                     setEditLocation(property.location || "");
                                     setEditDescription(property.description || "");
                                     setEditAmenities(property.amenities || "");
@@ -756,14 +760,28 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
           className={getEditInputClass(editTitle)}
         />
 
-        <input
-          value={editPrice}
-          onChange={(e) =>
-            setEditPrice(e.target.value)
-          }
-          placeholder="السعر"
-          className={getEditInputClass(editPrice)}
-        />
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2">
+            <input
+              value={editPrice}
+              onChange={(e) =>
+                setEditPrice(e.target.value)
+              }
+              placeholder={editCurrency === "SYP" ? "السعر بالليرة السورية" : "السعر بالدولار"}
+              className={getEditInputClass(editPrice)}
+            />
+          </div>
+          <div>
+            <select
+              value={editCurrency}
+              onChange={(e) => setEditCurrency(e.target.value)}
+              className="w-full h-11 rounded-xl border border-gray-200 px-3 text-right text-xs outline-none focus:border-[#3FAF9B]"
+            >
+              <option value="USD">دولار ($)</option>
+              <option value="SYP">ليرة (ل.س)</option>
+            </select>
+          </div>
+        </div>
 
         <input
           value={editLocation}
