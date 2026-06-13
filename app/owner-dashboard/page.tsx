@@ -155,12 +155,86 @@ export default function DashboardPage() {
 
   async function approveBooking(id: number) {
     try {
-      const { error } = await supabase
+      // 1. Fetch booking details to get property_id, guest details, etc.
+      const { data: bookingData, error: bookingErr } = await supabase
+        .from("bookings")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (bookingErr || !bookingData) throw bookingErr || new Error("Booking not found");
+
+      // 2. Fetch property details
+      const { data: propertyData, error: propertyErr } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("id", bookingData.property_id)
+        .single();
+
+      if (propertyErr || !propertyData) throw propertyErr || new Error("Property not found");
+
+      // 3. Confirm booking status in database
+      const { error: updateErr } = await supabase
         .from("bookings")
         .update({ status: "confirmed" })
         .eq("id", id);
 
-      if (error) throw error;
+      if (updateErr) throw updateErr;
+
+      // 4. Send Telegram notification
+      try {
+        const TELEGRAM_BOT_TOKEN = "8206662050:AAF1FXV2ZexVyrfJCm7SOOF2M8Un7YxMmlU";
+        const TELEGRAM_CHAT_ID = "629151535";
+        
+        // Calculate price and nights
+        let calculatedPrice = 0;
+        let nights = 0;
+        const is12h = bookingData.check_in === bookingData.check_out;
+        
+        if (is12h) {
+          calculatedPrice = propertyData.latitude || 0; // latitude stores 12h price
+        } else {
+          const start = new Date(bookingData.check_in);
+          const end = new Date(bookingData.check_out);
+          if (end > start) {
+            const diffTime = Math.abs(end.getTime() - start.getTime());
+            nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            calculatedPrice = nights * (propertyData.price || 0);
+          }
+        }
+        
+        const formattedPrice = propertyData.longitude === 1 
+          ? `${Number(calculatedPrice).toLocaleString()} ل.س` 
+          : `$${calculatedPrice} USD`;
+
+        const messageText =
+          `✅ تم تأكيد واكتمال حجز\n\n` +
+          `🏠 العقار:\n${propertyData.title}\n\n` +
+          `👤 صاحب العقار (المؤجر):\n${propertyData.owner_name} (${propertyData.owner_phone})\n\n` +
+          `👤 المستأجر:\n${bookingData.guest_name} (${bookingData.guest_phone})\n\n` +
+          `📅 التواريخ:\n` +
+          (is12h
+            ? `يوم ${bookingData.check_in} (إيجار 12 ساعة)\n\n`
+            : `من ${bookingData.check_in} إلى ${bookingData.check_out} (${nights} ليالٍ)\n\n`) +
+          `💰 القيمة الإجمالية:\n${formattedPrice}\n\n` +
+          `🟢 حالة الحجز:\nConfirmed (مؤكد)`;
+
+        await fetch(
+          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              chat_id: TELEGRAM_CHAT_ID,
+              text: messageText,
+            }),
+          }
+        );
+      } catch (tgErr) {
+        console.error("Failed to send Telegram notification:", tgErr);
+      }
 
       alert("تم تأكيد الحجز بنجاح");
 
