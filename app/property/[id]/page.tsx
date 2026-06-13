@@ -309,6 +309,13 @@ export default function PropertyPage({ params }: any) {
     if (resolvedParams?.id) {
       loadPropertyAndBookings();
     }
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("action") === "book") {
+        setViewMode("book");
+      }
+    }
   }, [resolvedParams?.id]);
 
   async function loadPropertyAndBookings() {
