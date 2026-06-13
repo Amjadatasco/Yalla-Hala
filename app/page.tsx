@@ -40,9 +40,7 @@ export default function HomePage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showScrollHint, setShowScrollHint] = useState(true);
 
-  // حاسبة الأرباح التفاعلية للملاك
-  const [calcType, setCalcType] = useState<"شقة" | "شاليه" | "مزرعة" | "فيلا">("شاليه");
-  const [calcNights, setCalcNights] = useState(15);
+
 
   // تحميل المفضلة عند التشغيل
   useEffect(() => {
@@ -548,71 +546,64 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid gap-12 lg:grid-cols-2 items-center">
+          <div className="grid gap-12 lg:grid-cols-2 items-start">
             
-            {/* الحاسبة التفاعلية */}
-            <div className="bg-white rounded-[32px] border border-gray-150 p-6 sm:p-8 shadow-md text-right space-y-6">
-              <h3 className="text-xl font-extrabold text-gray-900 border-b border-gray-100 pb-3 flex items-center justify-start gap-2 flex-row-reverse">
-                <span>حاسبة الأرباح التقديرية</span>
-                <span>🧮</span>
+            {/* مميزات العرض للملاك */}
+            <div className="space-y-5 text-right">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 border-r-4 border-[#3FAF9B] pr-3 mb-2">
+                لماذا يعرض الملاك عقاراتهم على يلا هلا؟
               </h3>
               
-              <div className="space-y-5">
-                {/* 1. نوع العقار */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-gray-700">اختر نوع عقارك:</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {(["شقة", "شاليه", "مزرعة", "فيلا"] as const).map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setCalcType(type)}
-                        className={`py-2 rounded-xl text-xs sm:text-sm font-bold transition duration-200 border cursor-pointer ${
-                          calcType === type
-                            ? "bg-[#2D6A5F] border-[#2D6A5F] text-white shadow-xs"
-                            : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
+                  <span className="text-2xl mb-2 block">📈</span>
+                  <h4 className="font-bold text-sm text-gray-900">مضاعفة نسب الإشغال</h4>
+                  <p className="text-xs text-gray-500 mt-1 leading-5">نضمن وصول عقارك لآلاف السياح والمغتربين والباحثين عن إقامات قصيرة الأجل.</p>
+                </div>
+                
+                <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
+                  <span className="text-2xl mb-2 block">⚡</span>
+                  <h4 className="font-bold text-sm text-gray-900">إشعارات تيليغرام فورية</h4>
+                  <p className="text-xs text-gray-500 mt-1 leading-5">ستتلقى طلبات الحجز فور إرسالها برسائل مباشرة على هاتفك لسرعة الرد والقبول.</p>
                 </div>
 
-                {/* 2. عدد الليالي */}
-                <div className="flex flex-col gap-2 pt-2">
-                  <div className="flex justify-between items-center text-xs font-bold text-gray-700 flex-row-reverse">
-                    <span>عدد ليالي التأجير المتوقعة شهرياً:</span>
-                    <span className="text-sm font-black text-[#2D6A5F] bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                      {calcNights} {calcNights === 1 ? "ليلة" : calcNights === 2 ? "ليلتين" : calcNights <= 10 ? "ليالٍ" : "ليلة"}
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="30"
-                    value={calcNights}
-                    onChange={(e) => setCalcNights(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#2D6A5F] mt-2"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1">
-                    <span>30 ليلة</span>
-                    <span>1 ليلة</span>
-                  </div>
+                <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
+                  <span className="text-2xl mb-2 block">📱</span>
+                  <h4 className="font-bold text-sm text-gray-900">لوحة تحكم ذكية ومجانية</h4>
+                  <p className="text-xs text-gray-500 mt-1 leading-5">تحكّم بأسعارك، أيام الإشغال، والتقويم التفاعلي لعقارك بسهولة بالغة.</p>
                 </div>
 
-                {/* 3. النتيجة */}
-                <div className="bg-[#E6F4F1]/40 border border-[#2D6A5F]/10 rounded-2xl p-5 text-center mt-6 space-y-2">
-                  <p className="text-xs font-bold text-gray-500">أرباحك الشهرية التقديرية تصل إلى:</p>
-                  <p className="text-3xl sm:text-4xl font-black text-[#2D6A5F] tracking-tight">
-                    ${calcNights * (calcType === "شقة" ? 25 : calcType === "شاليه" ? 45 : calcType === "مزرعة" ? 70 : 120)} USD
-                  </p>
-                  <p className="text-[10px] text-[#CF9E59] font-bold">
-                    * تعتمد الحسبة على متوسط أسعار الإيجار الحالي ونسب الطلب النشطة في المنصة.
-                  </p>
+                <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
+                  <span className="text-2xl mb-2 block">💸</span>
+                  <h4 className="font-bold text-sm text-gray-900">عمولة 0% على التسجيل</h4>
+                  <p className="text-xs text-gray-500 mt-1 leading-5">التسجيل وعرض العقار مجاني تماماً، وأرباحك تستلمها مباشرة من الزبون بالكامل.</p>
                 </div>
+              </div>
+            </div>
 
-                {/* زر البدء */}
+            {/* الخطوات الثلاث والبدء */}
+            <div className="space-y-6 text-right">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 border-r-4 border-[#CF9E59] pr-3 mb-2">
+                3 خطوات بسيطة لبدء استقبال الحجوزات:
+              </h3>
+              
+              <div className="flex flex-col gap-4 bg-white border border-gray-100 p-6 rounded-2xl shadow-xs">
+                <div className="flex gap-3 items-center flex-row-reverse">
+                  <span className="w-6 h-6 rounded-full bg-[#E6F4F1] text-[#2D6A5F] text-xs font-black flex items-center justify-center border border-[#2D6A5F]/20 shrink-0">١</span>
+                  <p className="text-xs sm:text-sm text-gray-700 font-bold"><strong className="text-gray-950">أنشئ حسابك:</strong> سجل مجاناً في دقيقة برقم هاتفك.</p>
+                </div>
+                <div className="flex gap-3 items-center flex-row-reverse border-t border-gray-50 pt-3">
+                  <span className="w-6 h-6 rounded-full bg-[#E6F4F1] text-[#2D6A5F] text-xs font-black flex items-center justify-center border border-[#2D6A5F]/20 shrink-0">٢</span>
+                  <p className="text-xs sm:text-sm text-gray-700 font-bold"><strong className="text-gray-950">ارفع الصور والمواصفات:</strong> ادخل التفاصيل والأسعار اليومية المفضلة لديك.</p>
+                </div>
+                <div className="flex gap-3 items-center flex-row-reverse border-t border-gray-50 pt-3">
+                  <span className="w-6 h-6 rounded-full bg-[#E6F4F1] text-[#2D6A5F] text-xs font-black flex items-center justify-center border border-[#2D6A5F]/20 shrink-0">٣</span>
+                  <p className="text-xs sm:text-sm text-gray-700 font-bold"><strong className="text-gray-950">استقبل الحجوزات:</strong> تواصل مباشرة واستلم أرباحك فوراً عند وصول الزوار.</p>
+                </div>
+              </div>
+
+              {/* زر البدء */}
+              <div className="pt-2">
                 <Link
                   href="/add-property"
                   className="block w-full text-center rounded-2xl bg-[#3FAF9B] hover:bg-[#2F8E7D] py-4 text-sm sm:text-base font-bold text-white transition shadow-sm hover:scale-[1.01]"
@@ -620,66 +611,6 @@ export default function HomePage() {
                   🚀 اعرض عقارك الآن وابدأ بالربح
                 </Link>
               </div>
-            </div>
-
-            {/* مميزات العرض والخطوات */}
-            <div className="space-y-8 text-right">
-              
-              {/* الميزات */}
-              <div className="space-y-5">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 border-r-4 border-[#3FAF9B] pr-3 mb-2">
-                  لماذا يعرض الملاك عقاراتهم على يلا هلا؟
-                </h3>
-                
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
-                    <span className="text-2xl mb-2 block">📈</span>
-                    <h4 className="font-bold text-sm text-gray-900">مضاعفة نسب الإشغال</h4>
-                    <p className="text-xs text-gray-500 mt-1 leading-5">نضمن وصول عقارك لآلاف السياح والمغتربين والباحثين عن إقامات قصيرة الأجل.</p>
-                  </div>
-                  
-                  <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
-                    <span className="text-2xl mb-2 block">⚡</span>
-                    <h4 className="font-bold text-sm text-gray-900">إشعارات تيليغرام فورية</h4>
-                    <p className="text-xs text-gray-500 mt-1 leading-5">ستتلقى طلبات الحجز فور إرسالها برسائل مباشرة على هاتفك لسرعة الرد والقبول.</p>
-                  </div>
-
-                  <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
-                    <span className="text-2xl mb-2 block">📱</span>
-                    <h4 className="font-bold text-sm text-gray-900">لوحة تحكم ذكية ومجانية</h4>
-                    <p className="text-xs text-gray-500 mt-1 leading-5">تحكّم بأسعارك، أيام الإشغال، والتقويم التفاعلي لعقارك بسهولة بالغة.</p>
-                  </div>
-
-                  <div className="bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
-                    <span className="text-2xl mb-2 block">💸</span>
-                    <h4 className="font-bold text-sm text-gray-900">عمولة 0% على التسجيل</h4>
-                    <p className="text-xs text-gray-500 mt-1 leading-5">التسجيل وعرض العقار مجاني تماماً، وأرباحك تستلمها مباشرة من الزبون بالكامل.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* الخطوات الثلاث */}
-              <div className="space-y-4 pt-4 border-t border-dashed border-gray-200">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 border-r-4 border-[#CF9E59] pr-3 mb-2">
-                  3 خطوات بسيطة لبدء استقبال الحجوزات:
-                </h3>
-                
-                <div className="flex flex-col gap-3">
-                  <div className="flex gap-3 items-center flex-row-reverse">
-                    <span className="w-6 h-6 rounded-full bg-[#E6F4F1] text-[#2D6A5F] text-xs font-black flex items-center justify-center border border-[#2D6A5F]/20 shrink-0">١</span>
-                    <p className="text-xs sm:text-sm text-gray-700 font-bold"><strong className="text-gray-950">أنشئ حسابك:</strong> سجل مجاناً في دقيقة برقم هاتفك.</p>
-                  </div>
-                  <div className="flex gap-3 items-center flex-row-reverse">
-                    <span className="w-6 h-6 rounded-full bg-[#E6F4F1] text-[#2D6A5F] text-xs font-black flex items-center justify-center border border-[#2D6A5F]/20 shrink-0">٢</span>
-                    <p className="text-xs sm:text-sm text-gray-700 font-bold"><strong className="text-gray-950">ارفع الصور والمواصفات:</strong> ادخل التفاصيل والأسعار اليومية المفضلة لديك.</p>
-                  </div>
-                  <div className="flex gap-3 items-center flex-row-reverse">
-                    <span className="w-6 h-6 rounded-full bg-[#E6F4F1] text-[#2D6A5F] text-xs font-black flex items-center justify-center border border-[#2D6A5F]/20 shrink-0">٣</span>
-                    <p className="text-xs sm:text-sm text-gray-700 font-bold"><strong className="text-gray-950">استقبل الحجوزات:</strong> تواصل مباشرة واستلم أرباحك فوراً عند وصول الزوار.</p>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
           </div>
