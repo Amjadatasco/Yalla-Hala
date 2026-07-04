@@ -21,8 +21,6 @@ const filterAmenities = [
   { label: "🌐 إنترنت", value: "إنترنت" },
   { label: "🚰 مياه إضافية", value: "خزان مياه" }
 ];
-
-
 export default function HomePage() {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +38,26 @@ export default function HomePage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showScrollHint, setShowScrollHint] = useState(true);
 
+  const [displayLimit, setDisplayLimit] = useState(12);
+  const [hasMore, setHasMore] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
+  // تحميل بيانات المستخدم الحالية لمنع إظهار زر التسجيل للمسجلين بالفعل
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
 
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
   // تحميل المفضلة عند التشغيل
   useEffect(() => {
     const saved = localStorage.getItem("yallahala_wishlist");
@@ -74,11 +90,12 @@ export default function HomePage() {
 
   // إعادة تحميل تلقائي عند تغيير الفلاتر السريعة
   useEffect(() => {
-    loadProperties();
+    setDisplayLimit(12);
+    loadProperties(12);
   }, [selectedGovernorate, selectedType, selectedAmenity, maxPrice]);
 
   // 🛠️ الهندسة الذكية المحدثة لمنع الحجوزات المزدوجة وإخفاء العقار المحجوز تلقائياً
-  async function loadProperties() {
+  async function loadProperties(currentLimit = displayLimit) {
     setLoading(true);
     try {
       let bookedPropertyIds: string[] = [];
@@ -97,12 +114,13 @@ export default function HomePage() {
         }
       }
 
-      // 2. بناء استعلام جلب العقارات المعتمد
+      // 2. بناء استعلام جلب العقارات المعتمد - تحديد الأعمدة لمنع البطء والتحميل الزائد للبيانات
       let query = supabase
         .from("properties")
-        .select("*")
+        .select("id, title, location, price, image, type, governorate, rooms_count, beds_count, bathrooms_count, longitude, amenities, images")
         .eq("status", "approved") // العقارات المعتمدة من الإدارة فقط
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(currentLimit + 1);
 
       // فلاتر المحافظة والنوع العادية
       if (selectedGovernorate) {
@@ -127,7 +145,13 @@ export default function HomePage() {
 
       const { data, error } = await query;
       if (!error && data) {
-        setProperties(data);
+        if (data.length > currentLimit) {
+          setProperties(data.slice(0, currentLimit));
+          setHasMore(true);
+        } else {
+          setProperties(data);
+          setHasMore(false);
+        }
       }
     } catch (err) {
       console.error("خطأ أثناء فلترة وجلب العقارات المتاحة:", err);
@@ -182,6 +206,34 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* كارت تسجيل الحساب السريع للموبايل (يظهر فقط إذا كان المستخدم غير مسجل دخول وعلى الهواتف) */}
+      {!user && (
+        <div className="md:hidden mx-4 mb-8 p-5 rounded-2xl bg-gradient-to-br from-[#CF9E59]/10 to-[#2D6A5F]/10 border border-[#CF9E59]/25 text-right flex flex-col gap-3 shadow-xs animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="flex items-center gap-3 flex-row-reverse">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 text-lg shrink-0">
+              ✨
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-gray-950">أنشئ حسابك المجاني في دقيقة!</h3>
+              <p className="text-[11px] text-gray-500 font-bold mt-1 leading-4">
+                سجل الآن لتتمكن من حجز الشاليهات والمزارع بسهولة، أو لعرض عقارك السياحي والبدء في استقبال الحجوزات والطلبات.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/register"
+            className="w-full text-center bg-[#CF9E59] hover:bg-[#b58543] text-white font-black text-xs py-3.5 rounded-xl transition shadow-xs flex items-center justify-center gap-1.5"
+          >
+            <span>👤 إنشاء حساب جديد مجاناً</span>
+          </Link>
+          <div className="text-center border-t border-gray-100 pt-2.5">
+            <span className="text-[10px] text-gray-400 font-bold">
+              لديك حساب بالفعل؟ <Link href="/login" className="text-[#2D6A5F] underline hover:text-[#3FAF9B] transition">تسجيل الدخول من هنا</Link>
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* شريط البحث المطور للموبايل والكمبيوتر */}
       <section id="search-section" className="max-w-6xl mx-auto px-4 mb-8 relative z-20">
         {/* نسخة الموبايل المدمجة الفاخرة */}
@@ -214,7 +266,10 @@ export default function HomePage() {
             {/* 1. زر البحث */}
             <div className="lg:col-span-2">
               <button
-                onClick={loadProperties}
+                onClick={() => {
+                  setDisplayLimit(12);
+                  loadProperties(12);
+                }}
                 className="w-full h-12 bg-[#CF9E59] hover:bg-[#b58543] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition duration-200 text-sm shadow"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -427,14 +482,16 @@ export default function HomePage() {
             <p className="mt-2 text-sm text-[#6B7280]">يرجى تعديل تواريخ البحث أو المحاولة مجدداً في وقت لاحق.</p>
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {propertiesToDisplay.map((property) => (
               <article key={property.id} className="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg flex flex-col justify-between relative group">
                 <div className="relative">
                   <img
-                    src={property.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1200&auto=format&fit=crop"}
+                    src={property.image || "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=60&w=600&auto=format&fit=crop"}
                     alt={property.title}
                     loading="lazy"
+                    decoding="async"
                     className="h-52 w-full object-cover"
                   />
                   <span className="absolute top-3 right-3 bg-[#E6F4F1] text-[#3FAF9B] px-3 py-1 rounded-full text-xs font-bold shadow-sm border border-white/20">
@@ -528,8 +585,26 @@ export default function HomePage() {
               </article>
             ))}
           </div>
-        )}
-      </section>
+
+          {/* زر عرض المزيد */}
+          {hasMore && (
+            <div className="mt-12 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  const newLimit = displayLimit + 12;
+                  setDisplayLimit(newLimit);
+                  loadProperties(newLimit);
+                }}
+                className="inline-flex items-center gap-2 rounded-xl bg-white hover:bg-gray-50 text-[#2D6A5F] border border-gray-200 font-bold px-8 py-3.5 text-sm transition shadow-sm cursor-pointer"
+              >
+                🔄 عرض المزيد من العقارات
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </section>
 
       {/* قسم الملاك والمؤجرين (إغراءات مالية وإحصائيات تفاعلية) */}
       <section id="owners-section" className="bg-gradient-to-b from-white to-[#F0FDF4]/30 border-t border-b border-gray-100 py-16 sm:py-24 relative overflow-hidden">
@@ -739,7 +814,8 @@ export default function HomePage() {
                   setGuestsCount("");
                   setMaxPrice(250);
                   setShowMobileFilters(false);
-                  loadProperties();
+                  setDisplayLimit(12);
+                  loadProperties(12);
                 }}
                 className="flex-1 h-12 rounded-xl bg-gray-100 text-gray-700 font-bold text-xs"
               >
@@ -747,7 +823,8 @@ export default function HomePage() {
               </button>
               <button
                 onClick={() => {
-                  loadProperties();
+                  setDisplayLimit(12);
+                  loadProperties(12);
                   setShowMobileFilters(false);
                 }}
                 className="flex-1 h-12 rounded-xl bg-[#2D6A5F] text-white font-bold text-xs"

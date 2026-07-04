@@ -376,6 +376,48 @@ export default function PropertyPage({ params }: any) {
     }
   }
 
+  // تحديث وسوم السيو (SEO) ديناميكياً بناءً على بيانات العقار المحملة
+  useEffect(() => {
+    if (property) {
+      // 1. تحديث عنوان تبويب المتصفح
+      document.title = `${property.title} | حجز في ${property.location} - يلا هلا`;
+
+      // 2. تحديث وسم الوصف (Description)
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+      }
+      const cleanDesc = property.description
+        ? property.description.substring(0, 155) + "..."
+        : `احجز ${property.title} في ${property.location} بأفضل الأسعار وبشكل مباشر عبر منصة يلا هلا السياحية.`;
+      metaDesc.setAttribute('content', cleanDesc);
+
+      // 3. تحديث الكلمات المفتاحية (Keywords)
+      let metaKeywords = document.querySelector('meta[name="keywords"]');
+      if (!metaKeywords) {
+        metaKeywords = document.createElement('meta');
+        metaKeywords.setAttribute('name', 'keywords');
+        document.head.appendChild(metaKeywords);
+      }
+      metaKeywords.setAttribute('content', `${property.title}, حجز شاليهات ${property.location}, شاليه ${property.location}, مزرعة ${property.location}, يلا هلا سوريا, حجز شاليهات اللاذقية, مزارع ريف دمشق`);
+      
+      // 4. تحديث وسوم Open Graph لمشاركة الروابط
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) ogTitle.setAttribute('content', property.title);
+      
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) ogDesc.setAttribute('content', cleanDesc);
+      
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      if (ogImage && property.image) ogImage.setAttribute('content', property.image);
+      
+      const ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) ogUrl.setAttribute('content', `https://yallahala.com/property/${property.id}`);
+    }
+  }, [property]);
+
   function getBlockedDates() {
     const blockedDates: Date[] = [];
 
@@ -465,6 +507,34 @@ export default function PropertyPage({ params }: any) {
 
       const formattedPrice = property?.longitude === 1 ? `${Number(tPrice).toLocaleString()} ل.س` : `$${tPrice} USD`;
 
+      let regNights = 0;
+      let wkNights = 0;
+      let breakdownText = "";
+      let whatsappBreakdown = "";
+
+      if (bType === "nightly" && inDate && outDate && property?.rooms) {
+        const start = new Date(inDate);
+        const end = new Date(outDate);
+        let current = new Date(start);
+        const regP = Number(property.price || 0);
+        const wkP = Number(property.rooms);
+        while (current < end) {
+          const d = current.getDay();
+          if (d === 5 || d === 6) wkNights++;
+          else regNights++;
+          current.setDate(current.getDate() + 1);
+        }
+        const fReg = property.longitude === 1 ? `${regP.toLocaleString()} ل.س` : `$${regP} USD`;
+        const fWk = property.longitude === 1 ? `${wkP.toLocaleString()} ل.س` : `$${wkP} USD`;
+        breakdownText = `📊 تفصيل الحسبة:\n` +
+          `• ليالي عادية: ${regNights} ليلة × ${fReg}\n` +
+          `• ليالي عطلة (جمعة/سبت): ${wkNights} ليلة × ${fWk}\n\n`;
+        
+        whatsappBreakdown = `📊 تفصيل الحسبة:\n` +
+          `• ليالي عادية: ${regNights} × ${property.longitude === 1 ? `${regP.toLocaleString()} ل.س` : `$${regP}`}\n` +
+          `• ليالي عطلة: ${wkNights} × ${property.longitude === 1 ? `${wkP.toLocaleString()} ل.س` : `$${wkP}`}\n\n`;
+      }
+
       const whatsappMessage =
         `مرحباً بك صاحب العقار 👋\n` +
         `👤 المالك: ${property?.owner_name || ""}\n\n` +
@@ -475,8 +545,9 @@ export default function PropertyPage({ params }: any) {
         `👤 اسم المستأجر: ${name}\n` +
         `📞 رقم المستأجر: ${phone}\n` +
         (bType === "12h"
-          ? `📅 تاريخ الإقامة: يوم ${inDate} (إيجار 12 ساعة - نصف يوم)\n`
-          : `📅 من ${inDate} إلى ${outDate} (مبيت)\n`) +
+          ? `📅 تاريخ الإقامة: يوم ${inDate} (إيجار 12 ساعة - نصف يوم)\n\n`
+          : `📅 من ${inDate} إلى ${outDate} (مبيت)\n\n`) +
+        whatsappBreakdown +
         `💰 السعر المقدر: ${formattedPrice}`;
 
       const whatsappLink =
@@ -494,6 +565,7 @@ export default function PropertyPage({ params }: any) {
         (bType === "12h"
           ? `📅 تاريخ الإقامة:\n${inDate}\n\n`
           : `📅 الوصول:\n${inDate}\n\n📅 المغادرة:\n${outDate}\n\n`) +
+        breakdownText +
         `💰 السعر الإجمالي: ${formattedPrice}\n\n` +
         `📲 رابط مراسلة المؤجر:\n${whatsappLink}`;
 
@@ -501,16 +573,13 @@ export default function PropertyPage({ params }: any) {
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
           method: "POST",
-
           headers: {
             "Content-Type":
               "application/json",
           },
-
           body: JSON.stringify({
             chat_id:
               TELEGRAM_CHAT_ID,
-
             text: messageText,
           }),
         }
@@ -683,6 +752,9 @@ export default function PropertyPage({ params }: any) {
   // حاسبة الأسعار الديناميكية
   let nights = 0;
   let totalPrice = 0;
+  let regularNightsCount = 0;
+  let weekendNightsCount = 0;
+
   if (checkIn && checkOut) {
     if (bookingType === "12h") {
       totalPrice = property?.latitude || 0;
@@ -690,9 +762,23 @@ export default function PropertyPage({ params }: any) {
       const start = new Date(checkIn);
       const end = new Date(checkOut);
       if (end > start) {
-        const diffTime = Math.abs(end.getTime() - start.getTime());
-        nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        totalPrice = nights * (property?.price || 0);
+        let current = new Date(start);
+        const regularPrice = Number(property.price || 0);
+        const weekendPrice = property.rooms ? Number(property.rooms) : regularPrice;
+
+        while (current < end) {
+          const dayOfWeek = current.getDay();
+          // الجمعة والسبت هما عطلة نهاية الأسبوع في سوريا
+          if (dayOfWeek === 5 || dayOfWeek === 6) {
+            weekendNightsCount++;
+            totalPrice += weekendPrice;
+          } else {
+            regularNightsCount++;
+            totalPrice += regularPrice;
+          }
+          nights++;
+          current.setDate(current.getDate() + 1);
+        }
       }
     }
   }
@@ -702,6 +788,28 @@ export default function PropertyPage({ params }: any) {
       className="bg-[#FAFAFA] min-h-screen px-4 pt-6 pb-28 sm:py-10"
       dir="rtl"
     >
+      {/* حقن البيانات المنظمة (JSON-LD Structured Schema) لمحركات البحث وجوجل */}
+      {property && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "LodgingBusiness",
+              "name": property.title,
+              "description": property.description || property.title,
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": property.location,
+                "addressRegion": property.governorate,
+                "addressCountry": "SY"
+              },
+              "priceRange": property.price + (property.longitude === 1 ? " SYP" : " USD"),
+              "image": property.image || "https://yallahala.com/logo.jpg"
+            })
+          }}
+        />
+      )}
 
       <div className="max-w-5xl mx-auto">
 
@@ -835,13 +943,32 @@ export default function PropertyPage({ params }: any) {
 
             </div>
 
-            <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center">
-              <p className="text-2xl sm:text-3xl font-black text-[#2D6A5F]">
-                {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
-              </p>
-              <p className="text-xs mt-1 font-semibold">
-                {property.longitude === 1 ? "ليرة سورية" : "USD"} / ليلة
-              </p>
+            <div className="rounded-2xl bg-[#E6F4F1] px-6 py-4 text-center flex flex-col gap-1.5 justify-center">
+              {property.rooms ? (
+                <>
+                  <div className="text-right border-b border-[#2D6A5F]/15 pb-2">
+                    <span className="text-[10px] font-bold text-gray-500 block mb-0.5">أيام الأسبوع (الأحد - الخميس)</span>
+                    <p className="text-xl sm:text-2xl font-black text-[#2D6A5F]">
+                      {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`} <span className="text-xs font-normal">/ ليلة</span>
+                    </p>
+                  </div>
+                  <div className="text-right pt-1.5">
+                    <span className="text-[10px] font-bold text-amber-600 block mb-0.5">نهاية الأسبوع (الجمعة والسبت)</span>
+                    <p className="text-xl sm:text-2xl font-black text-amber-600">
+                      {property.longitude === 1 ? `${Number(property.rooms).toLocaleString()} ل.س` : `$${property.rooms}`} <span className="text-xs font-normal">/ ليلة</span>
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl sm:text-3xl font-black text-[#2D6A5F]">
+                    {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
+                  </p>
+                  <p className="text-xs mt-1 font-semibold">
+                    {property.longitude === 1 ? "ليرة سورية" : "USD"} / ليلة
+                  </p>
+                </>
+              )}
             </div>
 
           </div>
@@ -1227,14 +1354,35 @@ export default function PropertyPage({ params }: any) {
                       {bookingType === "12h" ? "إيجار 12 ساعة (نصف يوم)" : `مبيت (${nights} ليالٍ)`}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-sm font-semibold text-gray-700">
-                    <span>سعر الوحدة:</span>
-                    <span className="font-bold text-[#111827]">
-                      {property.longitude === 1 
-                        ? `${Number(bookingType === "12h" ? property.latitude : property.price).toLocaleString()} ل.س` 
-                        : `$${bookingType === "12h" ? property.latitude : property.price} USD`}
-                    </span>
-                  </div>
+
+                  {bookingType === "nightly" && property.rooms && (
+                    <div className="text-xs text-gray-500 font-medium space-y-1.5 py-1.5 border-t border-b border-[#D1FAE5]/40 my-1">
+                      {regularNightsCount > 0 && (
+                        <div className="flex justify-between flex-row-reverse">
+                          <span>ليالي عادية ({regularNightsCount} × {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}):</span>
+                          <span className="font-bold">{property.longitude === 1 ? `${(regularNightsCount * Number(property.price)).toLocaleString()} ل.س` : `$${regularNightsCount * Number(property.price)}`}</span>
+                        </div>
+                      )}
+                      {weekendNightsCount > 0 && (
+                        <div className="flex justify-between flex-row-reverse text-amber-700">
+                          <span>ليالي عطلة ({weekendNightsCount} × {property.longitude === 1 ? `${Number(property.rooms).toLocaleString()} ل.س` : `$${property.rooms}`}):</span>
+                          <span className="font-bold">{property.longitude === 1 ? `${(weekendNightsCount * Number(property.rooms)).toLocaleString()} ل.س` : `$${weekendNightsCount * Number(property.rooms)}`}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!(bookingType === "nightly" && property.rooms) && (
+                    <div className="flex justify-between items-center text-sm font-semibold text-gray-700">
+                      <span>سعر ليلة عادي:</span>
+                      <span className="font-bold text-[#111827]">
+                        {property.longitude === 1 
+                          ? `${Number(bookingType === "12h" ? property.latitude : property.price).toLocaleString()} ل.س` 
+                          : `$${bookingType === "12h" ? property.latitude : property.price} USD`}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="border-t border-[#D1FAE5] pt-2.5 flex justify-between items-center">
                     <span className="text-base font-bold text-[#166534]">الإجمالي المقدر للحجز:</span>
                     <span className="text-2xl font-black text-[#2D6A5F]">

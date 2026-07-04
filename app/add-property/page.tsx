@@ -122,6 +122,7 @@ export default function AddPropertyPage() {
   const [currency, setCurrency] = useState("USD");
   const [supports12h, setSupports12h] = useState(false);
   const [price12h, setPrice12h] = useState("");
+  const [weekendPrice, setWeekendPrice] = useState("");
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [compressing, setCompressing] = useState(false);
 
@@ -201,6 +202,7 @@ export default function AddPropertyPage() {
     try {
       const formattedPrice = currency === "SYP" ? `${Number(price).toLocaleString()} ل.س` : `$${price} USD`;
       const formattedPrice12h = supports12h ? (currency === "SYP" ? `${Number(price12h).toLocaleString()} ل.س` : `$${price12h} USD`) : "";
+      const formattedWeekendPrice = weekendPrice ? (currency === "SYP" ? `${Number(weekendPrice).toLocaleString()} ل.س` : `$${weekendPrice} USD`) : "";
 
       const messageText =
         `🆕 عقار جديد بانتظار المراجعة\n\n` +
@@ -210,7 +212,8 @@ export default function AddPropertyPage() {
         `🗺️ الموقع:\n${location}\n\n` +
         `👤 اسم المؤجر:\n${ownerName}\n\n` +
         `📞 رقم الهاتف:\n${ownerPhone}\n\n` +
-        `💰 السعر بالليلة:\n${formattedPrice}\n\n` +
+        `💰 السعر بالليلة (عادي):\n${formattedPrice}\n\n` +
+        `💰 سعر نهاية الأسبوع:\n${weekendPrice ? formattedWeekendPrice : "نفس السعر العادي"}\n\n` +
         `☀️ إيجار 12 ساعة:\n${supports12h ? `نعم (${formattedPrice12h})` : "غير مدعوم"}\n\n` +
         `🕒 وقت الدخول:\n${checkInTime}\n\n` +
         `🕒 وقت الخروج:\n${checkOutTime}\n\n` +
@@ -251,6 +254,7 @@ export default function AddPropertyPage() {
     setCurrency("USD");
     setSupports12h(false);
     setPrice12h("");
+    setWeekendPrice("");
 
     setRooms("");
     setBeds("");
@@ -375,6 +379,7 @@ export default function AddPropertyPage() {
           city: checkOutTime,
           latitude: supports12h && price12h ? Number(price12h) : null,
           longitude: currency === "SYP" ? 1 : 0,
+          rooms: weekendPrice ? weekendPrice : null, // حفظ سعر نهاية الأسبوع في حقل rooms الشاغر
         },
       ]);
 
@@ -530,6 +535,27 @@ export default function AddPropertyPage() {
                   <option value="USD">دولار أمريكي ($)</option>
                   <option value="SYP">ليرة سورية (ل.س)</option>
                 </select>
+              </div>
+            </div>
+
+            {/* سعر نهاية الأسبوع الاختياري */}
+            <div className="md:col-span-2 grid gap-4 grid-cols-3">
+              <div className="col-span-2 flex flex-col gap-1.5 text-right">
+                <label className="text-xs font-bold text-gray-700 font-sans">
+                  سعر نهاية الأسبوع (يومي الجمعة والسبت) بالليلة <span className="text-gray-400 font-normal">(اختياري)</span>
+                </label>
+                <input
+                  type="number"
+                  value={weekendPrice}
+                  onChange={(e) => setWeekendPrice(e.target.value)}
+                  placeholder={currency === "SYP" ? "مثال: 600000 ليرة" : "مثال: 25 دولار"}
+                  className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B] bg-white focus:ring-1 focus:ring-[#3FAF9B]"
+                />
+              </div>
+              <div className="flex flex-col justify-end text-right pb-1">
+                <span className="text-[10px] text-gray-400 leading-tight font-bold">
+                  * اترك الحقل فارغاً إذا كان السعر متطابقاً طوال أيام الأسبوع.
+                </span>
               </div>
             </div>
 

@@ -49,8 +49,16 @@ export default function RootLayout({
 
         <meta
           name="keywords"
-          content="يلا هلا, حجز شاليهات سوريا, شاليهات اللاذقية, شاليهات طرطوس, فلل حمص, مزارع دمشق, عقارات سياحية سوريا, إقامة قصيرة الأجل"
+          content="يلا هلا, حجز شاليهات سوريا, شاليهات اللاذقية, شاليهات طرطوس, مزارع ريف دمشق, شاليهات اللاذقية للايجار, مزارع للايجار في سوريا, فلل حمص, عقارات سياحية سوريا, إقامة قصيرة الأجل"
         />
+
+        {/* وسوم Open Graph لتسهيل وتحسين شكل مشاركة الروابط على فيسبوك وواتساب */}
+        <meta property="og:title" content="منصة يلا هلا | حجوزات الشاليهات والعقارات السياحية في سوريا" />
+        <meta property="og:description" content="تصفح واحجز أفضل الشاليهات، الفلل، والمزارع للإقامات قصيرة الأجل في سوريا بكل سهولة وأمان ونظام إشعارات فوري." />
+        <meta property="og:image" content="https://yallahala.com/logo.jpg" />
+        <meta property="og:url" content="https://yallahala.com" />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="ar_SY" />
 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
@@ -520,10 +528,10 @@ export default function RootLayout({
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-V5QW92L6J0"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
 
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -539,7 +547,7 @@ export default function RootLayout({
         <Script
           src="https://cloud.umami.is/script.js"
           data-website-id="4754c078-41b3-472a-9d24-a04874d18646"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
 
         {/* زر الدعم الفني العائم الواتساب */}

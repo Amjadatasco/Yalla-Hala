@@ -130,6 +130,7 @@ export default function EditPropertyPage({ params }: any) {
   const [currency, setCurrency] = useState("USD");
   const [supports12h, setSupports12h] = useState(false);
   const [price12h, setPrice12h] = useState("");
+  const [weekendPrice, setWeekendPrice] = useState("");
 
   // المواصفات
   const [rooms, setRooms] = useState("");
@@ -190,6 +191,7 @@ export default function EditPropertyPage({ params }: any) {
         setCurrency(data.longitude === 1 ? "SYP" : "USD");
         setSupports12h(data.latitude ? true : false);
         setPrice12h(data.latitude ? String(data.latitude) : "");
+        setWeekendPrice(data.rooms ? String(data.rooms) : "");
         setRooms(data.rooms_count ? String(data.rooms_count) : "");
         setBeds(data.beds_count ? String(data.beds_count) : "");
         setBathrooms(data.bathrooms_count ? String(data.bathrooms_count) : "");
@@ -390,6 +392,7 @@ export default function EditPropertyPage({ params }: any) {
           city: checkOutTime,
           latitude: supports12h && price12h ? Number(price12h) : null,
           longitude: currency === "SYP" ? 1 : 0,
+          rooms: weekendPrice ? weekendPrice : null, // تحديث سعر نهاية الأسبوع في عمود rooms
         })
         .eq("id", property.id);
 
@@ -552,6 +555,27 @@ export default function EditPropertyPage({ params }: any) {
                   <option value="USD">دولار أمريكي ($)</option>
                   <option value="SYP">ليرة سورية (ل.س)</option>
                 </select>
+              </div>
+            </div>
+
+            {/* سعر نهاية الأسبوع الاختياري */}
+            <div className="md:col-span-2 grid gap-4 grid-cols-3">
+              <div className="col-span-2 flex flex-col gap-1.5 text-right">
+                <label className="text-xs font-bold text-gray-700 font-sans">
+                  سعر نهاية الأسبوع (يومي الجمعة والسبت) بالليلة <span className="text-gray-400 font-normal">(اختياري)</span>
+                </label>
+                <input
+                  type="number"
+                  value={weekendPrice}
+                  onChange={(e) => setWeekendPrice(e.target.value)}
+                  placeholder={currency === "SYP" ? "مثال: 600000 ليرة" : "مثال: 25 دولار"}
+                  className="rounded-xl border border-[#E5E7EB] px-4 py-3.5 text-right text-sm outline-none focus:border-[#3FAF9B] bg-white focus:ring-1 focus:ring-[#3FAF9B]"
+                />
+              </div>
+              <div className="flex flex-col justify-end text-right pb-1">
+                <span className="text-[10px] text-gray-400 leading-tight font-bold">
+                  * اترك الحقل فارغاً إذا كان السعر متطابقاً طوال أيام الأسبوع.
+                </span>
               </div>
             </div>
 
