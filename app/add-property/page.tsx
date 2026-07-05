@@ -753,6 +753,19 @@ export default function AddPropertyPage() {
                   let files = Array.from(e.target.files || []);
                   if (files.length === 0) return;
 
+                  const heicFiles = files.filter(f => {
+                    const ext = f.name.split('.').pop()?.toLowerCase();
+                    return ext === 'heic' || ext === 'heif';
+                  });
+                  if (heicFiles.length > 0) {
+                    alert("⚠️ صيغة صور الآيفون (HEIC/HEIF) غير مدعومة مباشرة في المتصفحات. يرجى تحويل الصور إلى صيغة JPG أو PNG قبل رفعها لكي تظهر للجميع بشكل صحيح.");
+                    files = files.filter(f => {
+                      const ext = f.name.split('.').pop()?.toLowerCase();
+                      return ext !== 'heic' && ext !== 'heif';
+                    });
+                    if (files.length === 0) return;
+                  }
+
                   if (files.length > 6) {
                     alert("⚠️ الحد الأقصى المسموح به هو 6 صور فقط. سيتم أخذ أول 6 صور.");
                     files = files.slice(0, 6);
