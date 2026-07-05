@@ -25,6 +25,7 @@ type Property = {
   address?: string;
   city?: string;
   longitude?: number;
+  rooms?: string | null;
 };
 
 type Booking = {
@@ -55,6 +56,7 @@ const [editTitle, setEditTitle] = useState("");
 
 const [editPrice, setEditPrice] = useState("");
 const [editCurrency, setEditCurrency] = useState("USD");
+const [editWeekendPrice, setEditWeekendPrice] = useState("");
 
 const [editLocation, setEditLocation] = useState("");
 
@@ -300,6 +302,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
           owner_phone: editOwnerPhone.trim(),
           address: editCheckInTime,
           city: editCheckOutTime,
+          rooms: editWeekendPrice ? editWeekendPrice : null,
         })
         .eq("id", editingProperty.id);
 
@@ -623,6 +626,7 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
                                     setEditTitle(property.title || "");
                                     setEditPrice(String(property.price || ""));
                                     setEditCurrency(property.longitude === 1 ? "SYP" : "USD");
+                                    setEditWeekendPrice(property.rooms || "");
                                     setEditLocation(property.location || "");
                                     setEditDescription(property.description || "");
                                     setEditAmenities(property.amenities || "");
@@ -760,8 +764,9 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
           className={getEditInputClass(editTitle)}
         />
 
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2">
+        <div className="grid grid-cols-3 gap-3 text-right">
+          <div className="col-span-2 flex flex-col gap-1">
+            <label className="text-[11px] font-bold text-gray-500">💰 سعر ليلة عادي</label>
             <input
               value={editPrice}
               onChange={(e) =>
@@ -771,7 +776,8 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
               className={getEditInputClass(editPrice)}
             />
           </div>
-          <div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-bold text-gray-500">العملة</label>
             <select
               value={editCurrency}
               onChange={(e) => setEditCurrency(e.target.value)}
@@ -781,6 +787,19 @@ const [editCheckOutTime, setEditCheckOutTime] = useState("");
               <option value="SYP">ليرة (ل.س)</option>
             </select>
           </div>
+        </div>
+
+        {/* سعر نهاية الأسبوع */}
+        <div className="flex flex-col gap-1 text-right">
+          <label className="text-[11px] font-bold text-gray-500">💰 سعر نهاية الأسبوع (الجمعة والسبت) بالليلة (اختياري)</label>
+          <input
+            value={editWeekendPrice}
+            onChange={(e) =>
+              setEditWeekendPrice(e.target.value)
+            }
+            placeholder={editCurrency === "SYP" ? "مثال: 600000 ليرة (اتركه فارغاً للتطابق)" : "مثال: 25 دولار (اتركه فارغاً للتطابق)"}
+            className="border rounded-xl p-3 outline-none transition duration-200 text-right border-gray-300 focus:border-[#3FAF9B] h-11"
+          />
         </div>
 
         <input
