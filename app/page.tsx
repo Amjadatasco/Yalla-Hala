@@ -117,7 +117,7 @@ export default function HomePage() {
       // 2. بناء استعلام جلب العقارات المعتمد - تحديد الأعمدة لمنع البطء والتحميل الزائد للبيانات
       let query = supabase
         .from("properties")
-        .select("id, title, location, price, image, type, governorate, rooms_count, beds_count, bathrooms_count, longitude, amenities, images")
+        .select("id, title, location, price, image, type, governorate, rooms_count, beds_count, bathrooms_count, longitude, amenities, images, rooms")
         .eq("status", "approved") // العقارات المعتمدة من الإدارة فقط
         .order("created_at", { ascending: false })
         .limit(currentLimit + 1);
@@ -548,11 +548,32 @@ export default function HomePage() {
                         }
                       })()}
 
-                      <div className="flex items-baseline justify-end gap-1">
-                        <span className="text-xl font-black text-[#CF9E59]">
-                          {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
-                        </span>
-                        <span className="text-[10px] text-gray-400">/ ليلة</span>
+                      <div className="flex flex-col items-end justify-center">
+                        {property.rooms ? (
+                          <>
+                            <div className="flex items-baseline justify-end gap-1">
+                              <span className="text-[10px] text-gray-400 font-bold">عادي:</span>
+                              <span className="text-base font-black text-[#CF9E59]">
+                                {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
+                              </span>
+                              <span className="text-[9px] text-gray-400">/ ليلة</span>
+                            </div>
+                            <div className="flex items-baseline justify-end gap-1 -mt-1">
+                              <span className="text-[10px] text-amber-600 font-bold">عطلة:</span>
+                              <span className="text-xs font-black text-amber-600">
+                                {property.longitude === 1 ? `${Number(property.rooms).toLocaleString()} ل.س` : `$${property.rooms}`}
+                              </span>
+                              <span className="text-[9px] text-amber-600/70">/ ليلة</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex items-baseline justify-end gap-1">
+                            <span className="text-xl font-black text-[#CF9E59]">
+                              {property.longitude === 1 ? `${Number(property.price).toLocaleString()} ل.س` : `$${property.price}`}
+                            </span>
+                            <span className="text-[10px] text-gray-400">/ ليلة</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
