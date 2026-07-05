@@ -14,6 +14,8 @@ export default function RootLayout({
   const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showAndroidPrompt, setShowAndroidPrompt] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -49,14 +51,41 @@ export default function RootLayout({
       }
     }
 
+    // إمساك حدث التثبيت الخاص بالأندرويد
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowAndroidPrompt(true);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setShowAndroidPrompt(false);
+      console.log("PWA installed successfully");
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
     return () => {
       subscription.unsubscribe();
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
     window.location.href = "/";
+  }
+
+  async function handleAndroidInstallClick() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to PWA install: ${outcome}`);
+    setDeferredPrompt(null);
+    setShowAndroidPrompt(false);
   }
 
   return (
@@ -645,6 +674,49 @@ export default function RootLayout({
               >
                 فهمت، شكراً
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* نافذة التثبيت المباشرة الخاصة بالأندرويد */}
+        {showAndroidPrompt && (
+          <div className="fixed bottom-4 left-4 right-4 z-50 p-1 animate-in slide-in-from-bottom duration-300">
+            <div className="max-w-md mx-auto bg-white/95 backdrop-blur-md rounded-[28px] border border-gray-100 shadow-2xl p-6 text-right relative flex flex-col gap-4">
+              <button
+                onClick={() => setShowAndroidPrompt(false)}
+                className="absolute top-4 left-4 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition cursor-pointer"
+              >
+                ✕
+              </button>
+
+              <div className="flex items-center gap-3 flex-row-reverse border-b border-gray-100 pb-3.5 mb-1">
+                <div className="w-11 h-11 rounded-2xl bg-[#E6F4F1] flex items-center justify-center text-[#2D6A5F] text-xl shrink-0">
+                  🤖
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-gray-900 font-sans">تثبيت تطبيق يلا هلا للأندرويد</h4>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">ثبّت التطبيق بضغطة زر واحدة لتصفح وحجوزات أسرع</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                هل تريد إضافة تطبيق يلا هلا إلى شاشتك الرئيسية للوصول السريع والآمن في أي وقت؟
+              </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAndroidInstallClick}
+                  className="flex-1 py-3 rounded-2xl bg-[#2D6A5F] hover:bg-[#1E4E45] text-white font-bold text-xs transition shadow-sm cursor-pointer"
+                >
+                  📥 تثبيت التطبيق الآن
+                </button>
+                <button
+                  onClick={() => setShowAndroidPrompt(false)}
+                  className="px-5 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold text-xs transition cursor-pointer"
+                >
+                  ليس الآن
+                </button>
+              </div>
             </div>
           </div>
         )}
