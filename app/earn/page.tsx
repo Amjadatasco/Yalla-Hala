@@ -80,7 +80,7 @@ export default function EarnLandingPage() {
           </span>
           <h1 className="text-3xl sm:text-5xl font-black leading-tight tracking-tight">
             حول شاليهك أو مزرعتك الشاغرة <br />
-            <span className="text-[#CF9E59]">إلى مصدر دخل ممتاز بالدولار!</span>
+            <span className="text-[#CF9E59]">إلى مصدر عوائد مالية ممتازة!</span>
           </h1>
           <p className="mt-6 text-sm sm:text-base text-gray-200 max-w-2xl mx-auto leading-relaxed font-bold">
             اعرض عقارك السياحي اليوم مجاناً أمام آلاف الزوار والباحثين عن إقامات قصيرة الأجل في اللاذقية، طرطوس، ريف دمشق وكافة المحافظات السورية.
@@ -153,8 +153,8 @@ export default function EarnLandingPage() {
               💸
             </div>
             <div>
-              <h3 className="font-black text-sm text-gray-900">أرباح بالدولار وبدون وسيط</h3>
-              <p className="text-xs text-gray-500 mt-2 leading-5">أجر عقارك وقابل زبائنك مباشرة، استلم أرباحك بالعملة التي تفضلها (دولار أو ليرة سورية) كاش من الزبون بالكامل وبدون أي استقطاعات.</p>
+              <h3 className="font-black text-sm text-gray-900">عوائد مالية مباشرة وبدون وسيط</h3>
+              <p className="text-xs text-gray-500 mt-2 leading-5">أجر عقارك وقابل زبائنك مباشرة، استلم عوائدك بالعملة التي تفضلها كاش من الزبون بالكامل وبدون أي استقطاعات.</p>
             </div>
           </div>
 

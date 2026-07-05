@@ -637,7 +637,7 @@ export default function HomePage() {
               💰 أصحاب العقارات والمؤجرين
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] leading-tight">
-              هل تمتلك عقاراً في سوريا؟ حوله إلى مصدر دخل بالدولار!
+              هل تمتلك عقاراً في سوريا؟ حوله إلى مصدر عوائد مالية ممتازة!
             </h2>
             <p className="mt-4 text-sm sm:text-base text-gray-500 max-w-2xl mx-auto font-medium">
               انضم إلى مئات المؤجرين على منصة يلا هلا، واعرض شقتك، فيلتك أو شاليهك أمام آلاف الزوار شهرياً مجاناً وبدون أي عمولات مخفية.

@@ -13,6 +13,7 @@ export default function RootLayout({
 }) {
   const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -35,6 +36,17 @@ export default function RootLayout({
           console.log("Service Worker registration failed: ", err);
         }
       );
+    }
+
+    // التحقق من نظام iOS لإظهار الإرشادات
+    if (typeof window !== "undefined") {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone;
+      const isDismissed = localStorage.getItem("ios_pwa_prompt_dismissed");
+      
+      if (isIOS && !isStandalone && !isDismissed) {
+        setShowIOSPrompt(true);
+      }
     }
 
     return () => {
@@ -584,6 +596,58 @@ export default function RootLayout({
             الدعم الفني
           </span>
         </a>
+
+        {/* نافذة التثبيت الإرشادية الخاصة بـ iOS */}
+        {showIOSPrompt && (
+          <div className="fixed bottom-4 left-4 right-4 z-50 p-1 animate-in slide-in-from-bottom duration-300">
+            <div className="max-w-md mx-auto bg-white/95 backdrop-blur-md rounded-[28px] border border-gray-100 shadow-2xl p-6 text-right relative">
+              <button
+                onClick={() => {
+                  setShowIOSPrompt(false);
+                  localStorage.setItem("ios_pwa_prompt_dismissed", "true");
+                }}
+                className="absolute top-4 left-4 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition"
+              >
+                ✕
+              </button>
+
+              <div className="flex items-center gap-3 flex-row-reverse border-b border-gray-100 pb-3.5 mb-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-[#E6F4F1] flex items-center justify-center text-[#2D6A5F] text-xl shrink-0">
+                  📲
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-gray-900">تثبيت تطبيق يلا هلا على الآيفون</h4>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">تصفح أسرع وحجوزات فورية مباشرة من شاشتك</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                لتثبيت التطبيق على جهاز الآيفون الخاص بك، يرجى اتباع الآتي:
+              </p>
+              
+              <ul className="mt-3.5 space-y-3 text-xs text-gray-700 font-bold pr-1">
+                <li className="flex items-center gap-2.5 flex-row-reverse">
+                  <span className="w-5 h-5 rounded-full bg-[#E6F4F1] text-[#2D6A5F] flex items-center justify-center text-[10px] font-black shrink-0">1</span>
+                  <span>اضغط على زر **مشاركة** <span className="inline-block bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[10px]">↩️</span> في متصفح سفاري بالأسفل.</span>
+                </li>
+                <li className="flex items-center gap-2.5 flex-row-reverse">
+                  <span className="w-5 h-5 rounded-full bg-[#E6F4F1] text-[#2D6A5F] flex items-center justify-center text-[10px] font-black shrink-0">2</span>
+                  <span>اختر **إضافة إلى الشاشة الرئيسية** <span className="inline-block bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded text-[10px]">➕</span> من القائمة.</span>
+                </li>
+              </ul>
+
+              <button
+                onClick={() => {
+                  setShowIOSPrompt(false);
+                  localStorage.setItem("ios_pwa_prompt_dismissed", "true");
+                }}
+                className="w-full mt-5 py-3 rounded-2xl bg-[#2D6A5F] hover:bg-[#1E4E45] text-white font-bold text-xs transition shadow-sm cursor-pointer"
+              >
+                فهمت، شكراً
+              </button>
+            </div>
+          </div>
+        )}
 
       </body>
     </html>
