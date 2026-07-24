@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import dynamic from "next/dynamic";
+
+const PropertyMap = dynamic(() => import("@/components/PropertyMap"), { ssr: false });
 
 const governorates = [
   "دمشق", "ريف دمشق", "حلب", "إدلب", "اللاذقية", "طرطوس",
@@ -41,6 +44,8 @@ export default function HomePage() {
   const [displayLimit, setDisplayLimit] = useState(12);
   const [hasMore, setHasMore] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [sortBy, setSortBy] = useState("newest");
 
   // تحميل بيانات المستخدم الحالية لمنع إظهار زر التسجيل للمسجلين بالفعل
   useEffect(() => {
@@ -84,9 +89,32 @@ export default function HomePage() {
     localStorage.setItem("yallahala_wishlist", JSON.stringify(updated));
   };
 
-  const propertiesToDisplay = showFavoritesOnly
+  const basePropertiesToDisplay = showFavoritesOnly
     ? properties.filter((p) => favorites.includes(p.id))
     : properties;
+
+  const propertiesToDisplay = [...basePropertiesToDisplay].sort((a, b) => {
+    if (sortBy === "price_asc") {
+      return Number(a.price) - Number(b.price);
+    } else if (sortBy === "price_desc") {
+      return Number(b.price) - Number(a.price);
+    } else if (sortBy === "rating_desc") {
+      const getAvgRating = (prop: any) => {
+        let reviewsList: any[] = [];
+        if (prop.images && Array.isArray(prop.images)) {
+          try {
+            reviewsList = prop.images.map((r: string) => JSON.parse(r));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        if (reviewsList.length === 0) return 0;
+        return reviewsList.reduce((acc: number, curr: any) => acc + curr.rating, 0) / reviewsList.length;
+      };
+      return getAvgRating(b) - getAvgRating(a);
+    }
+    return 0;
+  });
 
   // إعادة تحميل تلقائي عند تغيير الفلاتر السريعة
   useEffect(() => {
@@ -469,9 +497,54 @@ export default function HomePage() {
 
       {/* عرض شبكة البطاقات */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-24 relative z-10">
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-8">
-          <h2 className="text-2xl font-extrabold text-[#111827]">العقارات المتاحة للطلب</h2>
-          <p className="text-xs font-bold text-[#6B7280]">المكتشفة: {propertiesToDisplay.length}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-4 mb-8 gap-4">
+          <div className="text-right">
+            <h2 className="text-2xl font-extrabold text-[#111827]">العقارات المتاحة للطلب</h2>
+            <p className="text-xs font-bold text-[#6B7280] mt-1">العقارات المكتشفة: {propertiesToDisplay.length}</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 justify-end">
+            {/* فرز وترتيب */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-gray-500">ترتيب:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="h-9 rounded-xl border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 outline-none focus:border-[#2D6A5F]"
+              >
+                <option value="newest">📅 الأحدث أولاً</option>
+                <option value="price_asc">📈 السعر: من الأقل للأعلى</option>
+                <option value="price_desc">📉 السعر: من الأعلى للأقل</option>
+                <option value="rating_desc">⭐ التقييم: الأعلى أولاً</option>
+              </select>
+            </div>
+
+            {/* وضع العرض */}
+            <div className="flex rounded-xl border border-gray-200 bg-gray-50 p-0.5">
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  viewMode === "list"
+                    ? "bg-white text-[#2D6A5F] shadow-sm"
+                    : "text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                📋 قائمة
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("map")}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                  viewMode === "map"
+                    ? "bg-white text-[#2D6A5F] shadow-sm"
+                    : "text-gray-500 hover:text-gray-800"
+                }`}
+              >
+                📍 خريطة
+              </button>
+            </div>
+          </div>
         </div>
 
         {loading ? (
@@ -480,6 +553,10 @@ export default function HomePage() {
           <div className="bg-white border border-[#E5E7EB] rounded-2xl p-12 text-center shadow-sm max-w-xl mx-auto">
             <h3 className="text-xl font-bold text-[#111827]">لا يوجد عقارات متاحة حالياً</h3>
             <p className="mt-2 text-sm text-[#6B7280]">يرجى تعديل تواريخ البحث أو المحاولة مجدداً في وقت لاحق.</p>
+          </div>
+        ) : viewMode === "map" ? (
+          <div className="w-full h-[550px] mb-8 rounded-3xl overflow-hidden shadow-sm border border-gray-200">
+            <PropertyMap properties={propertiesToDisplay} />
           </div>
         ) : (
           <>

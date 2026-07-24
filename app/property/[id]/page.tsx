@@ -2,6 +2,9 @@
 
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabase";
+import dynamic from "next/dynamic";
+
+const PropertyMap = dynamic(() => import("@/components/PropertyMap"), { ssr: false });
 
 
 // مكون تقويم الحجوزات التفاعلي المرئي
@@ -647,7 +650,7 @@ export default function PropertyPage({ params }: any) {
     try {
       setLoading(true);
 
-      const { error } =
+      const { data: newBookingData, error } =
         await supabase
           .from("bookings")
           .insert([
@@ -672,7 +675,9 @@ export default function PropertyPage({ params }: any) {
               status:
                 "pending",
             },
-          ]);
+          ])
+          .select()
+          .single();
 
       if (error) {
         console.error(error);
@@ -703,6 +708,25 @@ export default function PropertyPage({ params }: any) {
         bookingType,
         totalPrice
       });
+
+      if (newBookingData) {
+        try {
+          const savedBookings = JSON.parse(localStorage.getItem("yallahala_guest_bookings") || "[]");
+          localStorage.setItem(
+            "yallahala_guest_bookings",
+            JSON.stringify([
+              ...savedBookings,
+              {
+                id: newBookingData.id,
+                propertyTitle: property.title,
+                status: "pending"
+              }
+            ])
+          );
+        } catch (e) {
+          console.error("Localstorage save booking error:", e);
+        }
+      }
 
       setShowSuccessModal(true);
 
@@ -1090,6 +1114,18 @@ export default function PropertyPage({ params }: any) {
                 )}
               </section>
 
+              {/* خريطة الموقع الجغرافي */}
+              <section className="pt-8 border-t border-gray-100 text-right">
+                <h2 className="text-2xl font-black mb-4">📍 خريطة موقع العقار</h2>
+                <p className="text-xs text-gray-500 mb-5">موقع العقار التقريبي على الخريطة التفاعلية:</p>
+                <div className="w-full h-[350px] rounded-[24px] overflow-hidden shadow-sm border border-gray-100 z-10">
+                  <PropertyMap properties={[property]} singleProperty={true} />
+                </div>
+                <p className="text-[10px] text-gray-400 font-bold mt-2.5 mr-1">
+                  * تم تحديد موقع العقار تقريبياً بناءً على المنطقة والمحافظة المسجلة (المحافظة: {property.governorate}، المنطقة: {property.location}).
+                </p>
+              </section>
+
               {/* تقويم الحجوزات التفاعلي المرئي */}
               <section className="pt-8 border-t border-gray-100 text-right">
                 <h2 className="text-2xl font-black mb-4">📅 تقويم توفر العقار والحجز المباشر</h2>
@@ -1128,18 +1164,31 @@ export default function PropertyPage({ params }: any) {
                         </p>
                       ) : (
                         <div className="grid gap-4 sm:grid-cols-2">
-                          {reviewsList.map((rev, index) => (
-                            <div key={index} className="bg-gray-50/50 border rounded-2xl p-4 flex flex-col justify-between">
-                              <div>
-                                <div className="flex items-center justify-between gap-2 mb-2 flex-row-reverse">
-                                  <span className="font-bold text-xs text-gray-900">{rev.guestName}</span>
-                                  <span className="text-xs text-amber-500">
-                                    {"★".repeat(rev.rating)}
-                                    {"☆".repeat(5 - rev.rating)}
-                                  </span>
+                          {reviewsList.map((rev, index) => {
+                            const isVerifiedGuest = existingBookings.some(
+                              (b) =>
+                                b.status === "confirmed" &&
+                                b.guest_name?.trim().toLowerCase() === rev.guestName?.trim().toLowerCase()
+                            );
+                            return (
+                              <div key={index} className="bg-gray-50/50 border rounded-2xl p-4 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center justify-between gap-2 mb-2 flex-row-reverse">
+                                    <div className="flex items-center gap-1.5 flex-row-reverse">
+                                      <span className="font-bold text-xs text-gray-900">{rev.guestName}</span>
+                                      {isVerifiedGuest && (
+                                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-black text-emerald-600 border border-emerald-100 shadow-xs">
+                                          ✓ مستأجر موثق
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-xs text-amber-500">
+                                      {"★".repeat(rev.rating)}
+                                      {"☆".repeat(5 - rev.rating)}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
                                 </div>
-                                <p className="text-xs text-gray-600 leading-relaxed">{rev.comment}</p>
-                              </div>
                               <div className="text-[9px] text-gray-400 mt-3 text-left">
                                 {new Date(rev.createdAt).toLocaleDateString("ar-SY", {
                                   year: "numeric",
@@ -1148,7 +1197,8 @@ export default function PropertyPage({ params }: any) {
                                 })}
                               </div>
                             </div>
-                          ))}
+                          );
+                        })}
                         </div>
                       )}
                     </div>

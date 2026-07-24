@@ -17,6 +17,10 @@ export default function RootLayout({
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showAndroidPrompt, setShowAndroidPrompt] = useState(false);
 
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
@@ -73,6 +77,143 @@ export default function RootLayout({
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
+
+  useEffect(() => {
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 45000); // check every 45s
+    return () => clearInterval(interval);
+  }, [user]);
+
+  async function checkNotifications() {
+    try {
+      const list: any[] = [];
+      const ADMIN_EMAIL = "0995688838@yallahala.local";
+
+      // 1. If Admin or Owner
+      if (user) {
+        const isAdmin = user.email === ADMIN_EMAIL;
+        if (isAdmin) {
+          // Fetch pending bookings count
+          const { data: pendingBookings, error } = await supabase
+            .from("bookings")
+            .select("id, guest_name, created_at, property_id")
+            .eq("status", "pending")
+            .order("id", { ascending: false });
+
+          if (!error && pendingBookings) {
+            // Fetch property titles
+            const propIds = pendingBookings.map((b) => b.property_id);
+            const { data: props } = await supabase
+              .from("properties")
+              .select("id, title")
+              .in("id", propIds);
+
+            pendingBookings.forEach((b) => {
+              const prop = props?.find((p) => p.id === b.property_id);
+              list.push({
+                id: `booking-${b.id}`,
+                title: "طلب حجز جديد بانتظار الموافقة 📅",
+                message: `المستأجر ${b.guest_name} طلب حجز عقار "${prop?.title || "عقار"}"`,
+                time: b.created_at,
+                link: "/admin-dashboard"
+              });
+            });
+          }
+        } else {
+          // Owner: fetch their properties
+          const { data: ownerProps } = await supabase
+            .from("properties")
+            .select("id, title")
+            .eq("user_id", user.id);
+
+          if (ownerProps && ownerProps.length > 0) {
+            const propIds = ownerProps.map((p) => p.id);
+            const { data: ownerPendingBookings, error } = await supabase
+              .from("bookings")
+              .select("id, guest_name, created_at, property_id")
+              .eq("status", "pending")
+              .in("property_id", propIds)
+              .order("id", { ascending: false });
+
+            if (!error && ownerPendingBookings) {
+              ownerPendingBookings.forEach((b) => {
+                const prop = ownerProps.find((p) => p.id === b.property_id);
+                list.push({
+                  id: `booking-${b.id}`,
+                  title: "طلب حجز معلق لعقارك ⏳",
+                  message: `الزبون ${b.guest_name} بانتظار تأكيدك لعقار "${prop?.title}"`,
+                  time: b.created_at,
+                  link: "/owner-dashboard"
+                });
+              });
+            }
+          }
+        }
+      }
+
+      // 2. Check guest bookings in localStorage
+      if (typeof window !== "undefined") {
+        const localBookings = JSON.parse(localStorage.getItem("yallahala_guest_bookings") || "[]");
+        if (localBookings.length > 0) {
+          const bookingIds = localBookings.map((b: any) => b.id);
+          const { data: dbBookings } = await supabase
+            .from("bookings")
+            .select("id, status, property_id")
+            .in("id", bookingIds);
+
+          if (dbBookings && dbBookings.length > 0) {
+            const updatedLocalBookings = [...localBookings];
+            let changed = false;
+
+            for (const localB of updatedLocalBookings) {
+              const dbB = dbBookings.find((d) => d.id === localB.id);
+              if (dbB && dbB.status !== localB.status) {
+                localB.status = dbB.status;
+                changed = true;
+
+                if (dbB.status === "confirmed") {
+                  list.push({
+                    id: `confirmed-${dbB.id}`,
+                    title: "🎉 تم تأكيد حجزك بنجاح!",
+                    message: `تم قبول وتأكيد طلب حجزك لعقار "${localB.propertyTitle}" من قبل المالك.`,
+                    time: new Date().toISOString(),
+                    link: "/track"
+                  });
+                } else if (dbB.status === "rejected") {
+                  list.push({
+                    id: `rejected-${dbB.id}`,
+                    title: "⚠️ تم رفض طلب حجزك",
+                    message: `نعتذر منك، تم رفض طلب حجزك لعقار "${localB.propertyTitle}".`,
+                    time: new Date().toISOString(),
+                    link: "/track"
+                  });
+                }
+              }
+            }
+
+            if (changed) {
+              localStorage.setItem("yallahala_guest_bookings", JSON.stringify(updatedLocalBookings));
+            }
+          }
+        }
+      }
+
+      // Sort notifications by time
+      list.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+      // Save previous notifications length to compare unread
+      const prevCount = parseInt(localStorage.getItem("yallahala_notifications_read_count") || "0");
+      setNotifications(list);
+      setUnreadNotificationsCount(Math.max(0, list.length - prevCount));
+    } catch (e) {
+      console.error("Notifications error:", e);
+    }
+  }
+
+  function handleMarkNotificationsRead() {
+    localStorage.setItem("yallahala_notifications_read_count", String(notifications.length));
+    setUnreadNotificationsCount(0);
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -199,17 +340,70 @@ export default function RootLayout({
             </nav>
 
             {/* Desktop User Actions */}
-            <div className="hidden md:flex items-center gap-3 shrink-0">
+            <div className="hidden md:flex items-center gap-3 shrink-0 relative">
+
+              {/* أيقونة الإشعارات لنسخة الكمبيوتر */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowNotificationsDropdown(!showNotificationsDropdown);
+                    if (!showNotificationsDropdown) {
+                      handleMarkNotificationsRead();
+                    }
+                  }}
+                  className="p-2.5 rounded-full hover:bg-gray-150 text-gray-600 hover:text-[#2D6A5F] transition relative focus:outline-none cursor-pointer"
+                >
+                  🔔
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[9px] font-black animate-pulse">
+                      {unreadNotificationsCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* قائمة الإشعارات المنسدلة للكمبيوتر */}
+                {showNotificationsDropdown && (
+                  <div className="absolute left-0 mt-2 w-80 bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden z-50 text-right animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="bg-[#F8FFFD] px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-row-reverse">
+                      <span className="font-black text-xs text-[#2D6A5F]">🔔 مركز الإشعارات</span>
+                      <button
+                        onClick={() => setNotifications([])}
+                        className="text-[9px] font-bold text-red-500 hover:underline cursor-pointer"
+                      >
+                        مسح الكل
+                      </button>
+                    </div>
+
+                    <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
+                      {notifications.length === 0 ? (
+                        <p className="p-6 text-xs text-gray-400 text-center font-bold">لا توجد إشعارات حالياً.</p>
+                      ) : (
+                        notifications.map((n) => (
+                          <Link
+                            key={n.id}
+                            href={n.link}
+                            onClick={() => setShowNotificationsDropdown(false)}
+                            className="block px-4 py-3 hover:bg-gray-50/80 transition text-right"
+                          >
+                            <h5 className="font-extrabold text-xs text-gray-900 leading-tight">{n.title}</h5>
+                            <p className="text-[10px] text-gray-500 font-bold mt-1 leading-normal">{n.message}</p>
+                            <span className="text-[8px] text-gray-400 font-medium mt-1 block">
+                              {new Date(n.time).toLocaleTimeString("ar-SY", { hour: "numeric", minute: "2-digit" })}
+                            </span>
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {user ? (
-
                 <>
                   <div className="flex items-center gap-2 bg-[#E6F4F1] px-4 py-2 rounded-full border border-emerald-100 shadow-sm">
-
                     <span className="text-xs font-bold text-[#2D6A5F]">
                       {user.user_metadata?.full_name || "مرحباً بك"}
                     </span>
-
                   </div>
 
                   <Link
@@ -233,9 +427,7 @@ export default function RootLayout({
                     خروج
                   </button>
                 </>
-
               ) : (
-
                 <>
                   <Link
                     href="/login"
@@ -251,48 +443,97 @@ export default function RootLayout({
                     إنشاء حساب
                   </Link>
                 </>
-
               )}
 
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-[#2D6A5F] focus:outline-none"
-              aria-label="Toggle Menu"
-            >
+            {/* Mobile Notifications & Menu Button Container */}
+            <div className="md:hidden flex items-center gap-2">
+              
+              {/* أيقونة الإشعارات للموبايل */}
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowNotificationsDropdown(!showNotificationsDropdown);
+                    if (!showNotificationsDropdown) {
+                      handleMarkNotificationsRead();
+                    }
+                  }}
+                  className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition relative focus:outline-none cursor-pointer"
+                >
+                  🔔
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px] font-black">
+                      {unreadNotificationsCount}
+                    </span>
+                  )}
+                </button>
 
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+                {/* قائمة الإشعارات للموبايل */}
+                {showNotificationsDropdown && (
+                  <div className="fixed left-4 right-4 mt-2 bg-white rounded-2xl border border-gray-150 shadow-2xl overflow-hidden z-50 text-right">
+                    <div className="bg-[#F8FFFD] px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-row-reverse">
+                      <span className="font-black text-xs text-[#2D6A5F]">🔔 مركز الإشعارات</span>
+                      <button
+                        onClick={() => setNotifications([])}
+                        className="text-[9px] font-bold text-red-500 hover:underline cursor-pointer"
+                      >
+                        مسح الكل
+                      </button>
+                    </div>
 
-                {isMenuOpen ? (
-
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-
-                ) : (
-
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-
+                    <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
+                      {notifications.length === 0 ? (
+                        <p className="p-6 text-xs text-gray-400 text-center font-bold">لا توجد إشعارات حالياً.</p>
+                      ) : (
+                        notifications.map((n) => (
+                          <Link
+                            key={n.id}
+                            href={n.link}
+                            onClick={() => setShowNotificationsDropdown(false)}
+                            className="block px-4 py-3 hover:bg-gray-50 transition text-right"
+                          >
+                            <h5 className="font-extrabold text-xs text-gray-900 leading-tight">{n.title}</h5>
+                            <p className="text-[10px] text-gray-500 font-bold mt-1 leading-normal">{n.message}</p>
+                          </Link>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
+              </div>
 
-              </svg>
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 text-gray-600 hover:text-[#2D6A5F] focus:outline-none"
+                aria-label="Toggle Menu"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {isMenuOpen ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  )}
+                </svg>
+              </button>
 
-            </button>
+            </div>
 
           </div>
 

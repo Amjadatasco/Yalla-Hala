@@ -36,6 +36,11 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  const [blockingProperty, setBlockingProperty] = useState<Property | null>(null);
+  const [blockCheckIn, setBlockCheckIn] = useState("");
+  const [blockCheckOut, setBlockCheckOut] = useState("");
+  const [blockingSubmit, setBlockingSubmit] = useState(false);
 
   const ADMIN_EMAIL = "0995688838@yallahala.local";
 
@@ -267,6 +272,46 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleBlockDatesSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!blockingProperty || !blockCheckIn || !blockCheckOut) {
+      alert("⚠️ يرجى اختيار التواريخ أولاً.");
+      return;
+    }
+
+    if (new Date(blockCheckOut) < new Date(blockCheckIn)) {
+      alert("⚠️ تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول.");
+      return;
+    }
+
+    try {
+      setBlockingSubmit(true);
+
+      const { error } = await supabase.from("bookings").insert({
+        property_id: blockingProperty.id,
+        guest_name: "صيانة / حجز خارجي (مغلق من المالك)",
+        guest_phone: "حظر يدوياً",
+        check_in: blockCheckIn,
+        check_out: blockCheckOut,
+        status: "confirmed",
+        user_id: currentUser?.id
+      });
+
+      if (error) throw error;
+
+      alert("🔒 تم حظر التواريخ وإغلاق تقويم العقار بنجاح!");
+      setBlockingProperty(null);
+      setBlockCheckIn("");
+      setBlockCheckOut("");
+      refreshData();
+    } catch (err) {
+      console.error("Block dates error:", err);
+      alert("فشل حظر التواريخ، يرجى المحاولة لاحقاً.");
+    } finally {
+      setBlockingSubmit(false);
+    }
+  }
+
   if (!authorized) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-[#F9FAFB]">
@@ -417,15 +462,21 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-col gap-2">
-                        <Link
-  href={`/edit-property/${property.id}`}
-  className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center"
->
-  تعديل العقار
-</Link>
+                          <Link
+                            href={`/edit-property/${property.id}`}
+                            className="w-full h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center transition"
+                          >
+                            تعديل العقار
+                          </Link>
+                          <button
+                            onClick={() => setBlockingProperty(property)}
+                            className="w-full h-10 rounded-xl bg-[#CF9E59] hover:bg-[#b58543] text-white font-bold text-xs transition"
+                          >
+                            🔒 حظر تواريخ التقويم
+                          </button>
                           <button
                             onClick={() => deleteProperty(property.id)}
-                            className="w-full h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200"
+                            className="w-full h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs border border-red-200 transition"
                           >
                             حذف العقار
                           </button>
@@ -547,6 +598,77 @@ export default function DashboardPage() {
         )}
 
       </section>
+
+      {/* مودال حظر التواريخ للملاك */}
+      {blockingProperty && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 text-right shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => {
+                setBlockingProperty(null);
+                setBlockCheckIn("");
+                setBlockCheckOut("");
+              }}
+              className="absolute top-4 left-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-lg font-black text-[#111827] border-b pb-3 mb-5">
+              🔒 حظر تواريخ في التقويم
+            </h3>
+
+            <p className="text-xs text-gray-500 font-bold mb-4">
+              العقار المحدد: <span className="text-[#2D6A5F]">{blockingProperty.title}</span>
+            </p>
+
+            <form onSubmit={handleBlockDatesSubmit} className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-700">📅 تاريخ البدء (حظر من):</label>
+                <input
+                  type="date"
+                  required
+                  value={blockCheckIn}
+                  onChange={(e) => setBlockCheckIn(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-gray-200 px-3 text-right text-xs font-bold text-gray-800 outline-none focus:border-[#2D6A5F]"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-gray-700">📅 تاريخ الانتهاء (حظر إلى):</label>
+                <input
+                  type="date"
+                  required
+                  value={blockCheckOut}
+                  onChange={(e) => setBlockCheckOut(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-gray-200 px-3 text-right text-xs font-bold text-gray-800 outline-none focus:border-[#2D6A5F]"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="submit"
+                  disabled={blockingSubmit}
+                  className="flex-1 h-11 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-xs transition flex items-center justify-center gap-1 shadow-sm disabled:opacity-50 cursor-pointer"
+                >
+                  {blockingSubmit ? "جاري الحظر..." : "🔒 إغلاق وتأكيد الحظر"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBlockingProperty(null);
+                    setBlockCheckIn("");
+                    setBlockCheckOut("");
+                  }}
+                  className="px-5 h-11 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold text-xs transition cursor-pointer"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </main>
   );
