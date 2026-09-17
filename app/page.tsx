@@ -206,6 +206,13 @@ export default function HomePage() {
           استكشف شققاً، فيلات، وشاليهات سياحية في جميع المحافظات السورية بأفضل الأسعار.
         </p>
         
+        {/* كلمة تجربة باللون الأحمر بمنتصف الصفحة */}
+        <div className="my-6 text-center">
+          <span className="text-4xl sm:text-6xl font-black text-red-600 tracking-widest animate-pulse inline-block bg-red-50 border border-red-200 px-8 py-3 rounded-2xl shadow-md">
+            تجربة
+          </span>
+        </div>
+        
         {/* أزرار الحث على الإجراء (CTAs) ثنائية التوجه */}
         <div className="mt-8 flex flex-wrap justify-center gap-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
           <button
