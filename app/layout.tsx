@@ -254,6 +254,9 @@ export default function RootLayout({
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="ar_SY" />
 
+        {/* وسم توثيق ملكية الموقع لدى غوغل Google Search Console */}
+        <meta name="google-site-verification" content="Z---feuh9pKVQIP39b8h3zUG03-j8KtpWCkuMptR9_U" />
+
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#2D6A5F" />
