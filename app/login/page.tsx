@@ -85,7 +85,8 @@ export default function LoginPage() {
     if (error) {
       alert("خطأ في تسجيل الدخول، يرجى التحقق من الرقم أو كلمة المرور.");
     } else {
-      router.push("/");
+      const redirectTarget = typeof window !== "undefined" ? (new URLSearchParams(window.location.search).get("redirect") || "/") : "/";
+      router.push(redirectTarget);
       router.refresh();
     }
   }

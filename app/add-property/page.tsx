@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 const governorates = [
@@ -107,10 +108,32 @@ const compressImage = (file: File): Promise<File> => {
 };
 
 export default function AddPropertyPage() {
+  // بيانات المستحدم والجلسة
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
   // بيانات المؤجر
   const [ownerName, setOwnerName] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setCurrentUser(user);
+        if (user.user_metadata?.full_name) {
+          setOwnerName(user.user_metadata.full_name);
+        }
+        if (user.user_metadata?.phone) {
+          setOwnerPhone(user.user_metadata.phone);
+        }
+        if (user.email && !user.email.endsWith(".local")) {
+          setOwnerEmail(user.email);
+        }
+      }
+      setCheckingAuth(false);
+    });
+  }, []);
 
   // بيانات العقار
   const [title, setTitle] = useState("");
@@ -318,8 +341,9 @@ export default function AddPropertyPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        alert("يجب تسجيل الدخول أولاً.");
+        alert("يجب تسجيل الدخول أولاً لتتمكن من إضافة عقارك.");
         setLoading(false);
+        window.location.href = "/login?redirect=/add-property";
         return;
       }
 
@@ -420,6 +444,34 @@ export default function AddPropertyPage() {
             أضف معلومات العقار بشكل احترافي، وسيتم مراجعته قبل النشر.
           </p>
         </div>
+
+        {/* تنبيه تسجيل الدخول للمستخدم غير المسجل */}
+        {!checkingAuth && !currentUser && (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/90 p-5 text-right shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-amber-900 flex items-center gap-2">
+                <span>⚠️</span> تنبيه قبل تعبئة البيانات
+              </h3>
+              <p className="mt-1 text-xs sm:text-sm text-amber-800 leading-relaxed">
+                أنت غير مسجل الدخول حالياً. يرجى تسجيل الدخول أو إنشاء حساب لربط العقار بملفك الشخصي ومتابعة حالته من لوحة التحكم.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/login?redirect=/add-property"
+                className="rounded-xl bg-[#3FAF9B] hover:bg-[#2F8E7D] px-4 py-2.5 text-xs sm:text-sm font-bold text-white transition shadow-sm"
+              >
+                تسجيل الدخول
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-xl border border-amber-300 bg-white hover:bg-amber-100 px-4 py-2.5 text-xs sm:text-sm font-bold text-amber-900 transition shadow-sm"
+              >
+                حساب جديد
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* الفورم */}
         <div className="rounded-[32px] border border-[#E5E7EB] bg-white p-5 sm:p-8 shadow-sm space-y-6">
